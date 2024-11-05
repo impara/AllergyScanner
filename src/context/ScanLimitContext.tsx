@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { adService } from '../services/ads';
+import { adService } from '../services';
 import { logRewardedAdWatch } from '../services/analytics';
 import { Platform } from 'react-native';
 
