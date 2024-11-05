@@ -1,0 +1,70 @@
+# Node dependencies
+node_modules/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Expo specific folders and builds
+.expo/
+.expo-shared/
+dist/
+web-build/
+
+# Android sensitive files and build artifacts
+android/app/google-services.json
+android/app/debug.keystore
+android/app/*.jks
+android/app/build/
+android/app/proguard-rules.pro
+
+# iOS sensitive files and build artifacts
+ios/GoogleService-Info.plist
+ios/Pods/
+ios/build/
+
+# Expo and EAS configuration files
+app.json
+eas.json
+
+# Environment and secret files
+.env
+.env.local
+.env.*.local
+
+# Visual Studio Code settings
+.vscode/
+
+# macOS and system files
+.DS_Store
+*.pem
+
+# TypeScript
+*.tsbuildinfo
+
+# Metro bundler
+.metro-health-check*
+
+# Git merge conflict artifacts
+*.orig.*
+
+# Certificates and Keys
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Taxonomy files (optional, include only if they don't need to be versioned)
+additives.txt
+categories.txt
+ingredients.txt
+tekst.txt
+
+# Asset files (only if dynamically generated or non-essential)
+assets/icons/
+assets/sounds/
+assets/images/favicon.png
+
+# Global TypeScript definitions
+config/global.d.ts
+global.d.ts
