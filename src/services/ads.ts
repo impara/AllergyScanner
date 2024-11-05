@@ -3,16 +3,14 @@ import mobileAds, {
   TestIds,
   RewardedAdEventType,
   AdEventType,
-  AdapterStatus
 } from 'react-native-google-mobile-ads';
+import { Platform } from 'react-native';
 import { ADMOB_ANDROID_REWARDED_AD_UNIT_ID, ADMOB_IOS_REWARDED_AD_UNIT_ID } from '@env';
-import Constants from 'expo-constants';
-import type { AdService } from '../types/ads';
 
-class AdServiceImpl implements AdService {
+class AdService {
   private rewardedAd: RewardedAd | null = null;
 
-  initialize = async (): Promise<AdapterStatus[] | false> => {
+  initialize = async () => {
     try {
       const result = await mobileAds().initialize();
       console.log('Mobile Ads initialized successfully');
@@ -23,16 +21,16 @@ class AdServiceImpl implements AdService {
     }
   };
 
-  showRewardedAd = async () => {
+  showRewardedAd = async (): Promise<boolean> => {
     try {
       const adUnitId = __DEV__ 
         ? TestIds.REWARDED 
-        : Constants.platform?.ios 
-          ? ADMOB_IOS_REWARDED_AD_UNIT_ID 
-          : ADMOB_ANDROID_REWARDED_AD_UNIT_ID;
+        : Platform.select({
+            ios: ADMOB_IOS_REWARDED_AD_UNIT_ID,
+            android: ADMOB_ANDROID_REWARDED_AD_UNIT_ID,
+            default: TestIds.REWARDED,
+          });
 
-      console.log('Creating rewarded ad with unit ID:', adUnitId);
-      
       this.rewardedAd = RewardedAd.createForAdRequest(adUnitId);
 
       return new Promise<boolean>((resolve) => {
@@ -56,7 +54,7 @@ class AdServiceImpl implements AdService {
         const unsubscribeLoaded = this.rewardedAd?.addAdEventListener(
           RewardedAdEventType.LOADED,
           () => {
-            console.log('Rewarded ad loaded, attempting to show');
+            console.log('Rewarded ad loaded, showing ad...');
             this.rewardedAd?.show();
           }
         );
@@ -64,7 +62,7 @@ class AdServiceImpl implements AdService {
         const unsubscribeEarned = this.rewardedAd?.addAdEventListener(
           RewardedAdEventType.EARNED_REWARD,
           () => {
-            console.log('Reward earned');
+            console.log('User earned reward');
             resolveOnce(true);
           }
         );
@@ -88,10 +86,10 @@ class AdServiceImpl implements AdService {
         console.log('Loading rewarded ad...');
         this.rewardedAd?.load();
 
-        // Add timeout to prevent hanging
+        // Timeout to prevent hanging
         setTimeout(() => {
           resolveOnce(false);
-        }, 30000); // 30 second timeout
+        }, 30000); // 30 seconds
       });
     } catch (error) {
       console.error('Error showing rewarded ad:', error);
@@ -106,6 +104,6 @@ class AdServiceImpl implements AdService {
   };
 }
 
-const adService = new AdServiceImpl();
+const adService = new AdService();
 export { adService };
 export type { AdService };
