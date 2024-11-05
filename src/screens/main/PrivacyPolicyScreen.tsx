@@ -1,0 +1,144 @@
+import React from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { colors, spacing, typography } from '../../theme';
+
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+  <View style={styles.section}>
+    <Text style={styles.sectionTitle}>{title}</Text>
+    {children}
+  </View>
+);
+
+const BulletPoint: React.FC<{ title: string; description: string }> = ({ title, description }) => (
+  <View style={styles.bulletPoint}>
+    <Text style={styles.bulletPointText}>• <Text style={styles.bold}>{title}:</Text> {description}</Text>
+  </View>
+);
+
+const PrivacyPolicyScreen: React.FC = () => {
+  return (
+    <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>Privacy Policy</Text>
+
+        <Section title="Introduction">
+          <Text style={styles.text}>
+            PurePlate ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application. We comply with the General Data Protection Regulation (GDPR) to ensure your personal data is handled securely and transparently.
+          </Text>
+        </Section>
+
+        <Section title="Data We Collect">
+          <BulletPoint
+            title="Personal Identification Information"
+            description="Email address, username, and password used for account creation and authentication."
+          />
+          <BulletPoint
+            title="Usage Data"
+            description="Information about how you use the app, including scanned barcodes, preferences, and interaction with features."
+          />
+          <BulletPoint
+            title="Device Information"
+            description="Device type, operating system, and unique device identifiers."
+          />
+          <BulletPoint
+            title="Location Data"
+            description="If you enable location services, we may collect location data to enhance app functionality."
+          />
+        </Section>
+
+        <Section title="How We Use Your Data">
+          <BulletPoint
+            title="To Provide Services"
+            description="Facilitating user authentication, barcode scanning, and personalized ingredient profiles."
+          />
+          <BulletPoint
+            title="To Improve Our App"
+            description="Analyzing usage patterns to enhance app features and performance."
+          />
+          <BulletPoint
+            title="Communication"
+            description="Sending updates, newsletters, or responding to your inquiries."
+          />
+          <BulletPoint
+            title="Compliance and Security"
+            description="Ensuring the security of our app and complying with legal obligations."
+          />
+        </Section>
+
+        <Section title="Data Sharing and Disclosure">
+          <BulletPoint
+            title="With Service Providers"
+            description="We may share your data with third-party service providers who assist us in operating the app, conducting our business, or servicing you."
+          />
+          <BulletPoint
+            title="Legal Requirements"
+            description="We may disclose your information if required by law or to protect our rights."
+          />
+          <BulletPoint
+            title="Business Transfers"
+            description="In the event of a merger, acquisition, or sale of assets, your data may be transferred to the new owner."
+          />
+        </Section>
+
+        <Section title="Your Rights Under GDPR">
+          <BulletPoint title="Access" description="You have the right to access the personal data we hold about you." />
+          <BulletPoint title="Rectification" description="You can request correction of any inaccurate or incomplete data." />
+          <BulletPoint title="Erasure" description="You may request the deletion of your personal data under certain conditions." />
+          <BulletPoint title="Restriction of Processing" description="You can request the limiting of processing your data." />
+          <BulletPoint title="Data Portability" description="You have the right to receive your data in a structured, commonly used format." />
+          <BulletPoint title="Objection" description="You can object to the processing of your data for specific purposes." />
+        </Section>
+
+        <Section title="Contact Us">
+          <Text style={styles.text}>
+            If you have any questions about this Privacy Policy or our data practices, please contact us at support@pureplate.com
+          </Text>
+        </Section>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  container: {
+    padding: spacing.md,
+  },
+  title: {
+    ...typography.h5,
+    color: colors.text,
+    marginBottom: spacing.lg,
+    textAlign: 'center',
+  },
+  section: {
+    marginBottom: spacing.lg,
+  },
+  sectionTitle: {
+    ...typography.h6,
+    color: colors.text,
+    marginBottom: spacing.sm,
+  },
+  text: {
+    ...typography.body1,
+    color: colors.text,
+    marginBottom: spacing.sm,
+  },
+  bulletPoint: {
+    marginBottom: spacing.xs,
+    paddingLeft: spacing.sm,
+  },
+  bulletPointText: {
+    ...typography.body1,
+    color: colors.text,
+  },
+  bold: {
+    fontWeight: 'bold',
+  },
+});
+
+export default PrivacyPolicyScreen; 

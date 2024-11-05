@@ -51,12 +51,15 @@ export default {
     notFound: 'Ingredient Not Found',
     notFoundDesc: 'This ingredient is not recognized in the taxonomy.',
     deleteConfirm: 'Delete Ingredient',
-    deleteConfirmDesc: 'Are you sure you want to delete "{name}" from your ingredient list?',
+    deleteConfirmDesc: 'Are you sure you want to delete %{name} from your ingredient list?',
     cancel: 'Cancel',
     delete: 'Delete',
     undo: 'Undo',
     loading: 'Loading...',
-    selectGroup: 'Select a group for',
+    selectGroup: 'Select a group for {name}',
+    groupToggle: '{group} group {state}',
+    ingredientAdded: '{name} added to {group}',
+    ingredientDeleted: '{name} deleted'
   },
   product: {
     brand: 'Brand:',

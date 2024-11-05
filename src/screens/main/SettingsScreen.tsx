@@ -17,12 +17,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import i18n from '../../localization/i18n';
 import { useLanguage } from '../../context/LanguageContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { AppStackParamList } from '../../navigation/AppStackNavigator';
 
 const SettingsScreen: React.FC = () => {
   const { signOutUser } = useContext(AuthContext);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [languageDialogVisible, setLanguageDialogVisible] = useState(false);
   const { locale, setLocale } = useLanguage();
+  const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
 
   const languages = [
     { code: 'en', name: i18n.t('settings.english'), flag: '🇬🇧' },
@@ -105,13 +109,15 @@ const SettingsScreen: React.FC = () => {
           {renderSettingsItem(
             i18n.t('settings.privacyPolicy'),
             null,
-            <MaterialCommunityIcons name="chevron-right" size={24} color={colors.text} />
+            <MaterialCommunityIcons name="chevron-right" size={24} color={colors.text} />,
+            () => navigation.navigate('PrivacyPolicy')
           )}
 
           {renderSettingsItem(
             i18n.t('settings.termsOfService'),
             null,
-            <MaterialCommunityIcons name="chevron-right" size={24} color={colors.text} />
+            <MaterialCommunityIcons name="chevron-right" size={24} color={colors.text} />,
+            () => navigation.navigate('TermsOfService')
           )}
         </View>
 

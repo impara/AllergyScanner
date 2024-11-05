@@ -271,9 +271,12 @@ const IngredientProfileScreen: React.FC = () => {
   };
 
   const deleteIngredient = (ingredientId: string) => {
+    // Get the ingredient name with its language
+    const ingredientName = getIngredientName(ingredientId, checkedIngredients[ingredientId]?.lang);
+    
     Alert.alert(
       i18n.t('ingredients.deleteConfirm'),
-      i18n.t('ingredients.deleteConfirmDesc', { name: getIngredientName(ingredientId) }),
+      i18n.t('ingredients.deleteConfirmDesc', { name: ingredientName }),
       [
         {
           text: i18n.t('ingredients.cancel'),
@@ -314,7 +317,9 @@ const IngredientProfileScreen: React.FC = () => {
                 });
               };
 
-              showToast(`${getIngredientName(ingredientId)} ${i18n.t('ingredients.deleted')}`);
+              showToast(i18n.t('ingredients.ingredientDeleted', { 
+                name: ingredientName
+              }));
             } catch (error) {
               console.error('Error deleting ingredient:', error);
               Alert.alert('Error', 'Failed to delete ingredient. Please try again.');
@@ -393,7 +398,10 @@ const IngredientProfileScreen: React.FC = () => {
     setGroupToggleStatus(prev => ({ ...prev, [groupName]: isGroupEnabled }));
     await saveIngredientProfile(updatedIngredients);
 
-    showToast(`${groupName} group ${isGroupEnabled ? 'enabled' : 'disabled'}`);
+    // Revert back to the working version
+    const translatedGroupName = i18n.t(`categories.${groupName}`);
+    const status = isGroupEnabled ? i18n.t('ingredients.enabled') : i18n.t('ingredients.disabled');
+    showToast(`${translatedGroupName} ${status}`);
   };
 
   // Platform-specific styles

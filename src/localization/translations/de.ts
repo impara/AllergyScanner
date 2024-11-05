@@ -51,12 +51,15 @@ export default {
     notFound: 'Zutat nicht gefunden',
     notFoundDesc: 'Diese Zutat wird in der Taxonomie nicht erkannt.',
     deleteConfirm: 'Zutat löschen',
-    deleteConfirmDesc: 'Sind Sie sicher, dass Sie "{name}" aus Ihrer Zutatenliste löschen möchten?',
+    deleteConfirmDesc: 'Sind Sie sicher, dass Sie %{name} aus Ihrer Zutatenliste löschen möchten?',
     cancel: 'Abbrechen',
     delete: 'Löschen',
     undo: 'Rückgängig',
     loading: 'Laden...',
-    selectGroup: 'Gruppe auswählen für',
+    selectGroup: 'Gruppe auswählen für {name}',
+    groupToggle: '{group} Gruppe {state}',
+    ingredientAdded: '{name} zu {group} hinzugefügt',
+    ingredientDeleted: '{name} gelöscht'
   },
   product: {
     brand: 'Marke:',

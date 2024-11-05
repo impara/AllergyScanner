@@ -21,7 +21,11 @@ const AppNavigator: React.FC = () => {
   return (
     <SafeAreaProvider>
       <NavigationContainer>
-        {isAuthenticated ? <AppStackNavigator /> : <AuthNavigator />}
+        {isAuthenticated ? (
+          <AppStackNavigator />
+        ) : (
+          <AuthNavigator />
+        )}
       </NavigationContainer>
     </SafeAreaProvider>
   );

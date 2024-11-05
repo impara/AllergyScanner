@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors, spacing, typography } from '../theme';
+import i18n from '../localization/i18n';
 
 interface ToastProps {
   message: string;
@@ -30,7 +31,7 @@ const Toast: React.FC<ToastProps> = ({ message, isVisible, onHide, onUndo, durat
       </Text>
       {onUndo && (
         <TouchableOpacity onPress={onUndo} style={styles.undoButtonContainer}>
-          <Text style={styles.undoButton}>Undo</Text>
+          <Text style={styles.undoButton}>{i18n.t('ingredients.undo')}</Text>
         </TouchableOpacity>
       )}
     </View>

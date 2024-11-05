@@ -51,12 +51,15 @@ export default {
     notFound: 'Ainesosaa ei löydy',
     notFoundDesc: 'Tätä ainesosaa ei tunnisteta taksonomiassa.',
     deleteConfirm: 'Poista ainesosa',
-    deleteConfirmDesc: 'Haluatko varmasti poistaa ainesosan "{name}" listaltasi?',
+    deleteConfirmDesc: 'Haluatko varmasti poistaa %{name} listaltasi?',
     cancel: 'Peruuta',
     delete: 'Poista',
     undo: 'Kumoa',
     loading: 'Ladataan...',
-    selectGroup: 'Valitse ryhmä',
+    selectGroup: 'Valitse ryhmä ainesosalle {name}',
+    groupToggle: '{group} ryhmä {state}',
+    ingredientAdded: '{name} lisätty ryhmään {group}',
+    ingredientDeleted: '{name} poistettu'
   },
   product: {
     brand: 'Merkki:',

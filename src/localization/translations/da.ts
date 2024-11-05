@@ -51,12 +51,15 @@ export default {
     notFound: 'Ingrediens ikke fundet',
     notFoundDesc: 'Denne ingrediens er ikke genkendt i taksonomien.',
     deleteConfirm: 'Slet ingrediens',
-    deleteConfirmDesc: 'Er du sikker på, at du vil slette "{name}" fra din ingrediensliste?',
+    deleteConfirmDesc: 'Haluatko varmasti poistaa %{name} listaltasi?',
     cancel: 'Annuller',
     delete: 'Slet',
     undo: 'Fortryd',
     loading: 'Indlæser...',
-    selectGroup: 'Vælg gruppe for',
+    selectGroup: 'Vælg gruppe for {name}',
+    groupToggle: '{group} gruppe {state}',
+    ingredientAdded: '{name} tilføjet til {group}',
+    ingredientDeleted: '{name} slettet'
   },
   product: {
     brand: 'Mærke:',
