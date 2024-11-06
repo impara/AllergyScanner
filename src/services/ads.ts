@@ -5,7 +5,12 @@ import mobileAds, {
   RewardedAdEventType,
   AdEventType,
 } from 'react-native-google-mobile-ads';
-import { ADMOB_ANDROID_REWARDED_AD_UNIT_ID, ADMOB_IOS_REWARDED_AD_UNIT_ID } from '@env';
+import Constants from 'expo-constants';
+
+const {
+  ADMOB_ANDROID_REWARDED_AD_UNIT_ID,
+  ADMOB_IOS_REWARDED_AD_UNIT_ID,
+} = (Constants as any).expoConfig?.extra || {};
 
 class AdService {
   private rewardedAd: RewardedAd | null = null;

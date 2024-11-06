@@ -2,10 +2,12 @@ import mobileAds, {
   MaxAdContentRating,
 } from 'react-native-google-mobile-ads';
 import { Platform } from 'react-native';
-import {
-  ADMOB_ANDROID_APP_ID,
+import Constants from 'expo-constants';
+
+const {
   ADMOB_IOS_APP_ID,
-} from '@env';
+  ADMOB_ANDROID_APP_ID,
+} = (Constants as any).expoConfig?.extra || {};
 
 const mobileAdsWrapper = {
   initialize: async () => {

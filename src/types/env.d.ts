@@ -1,3 +1,5 @@
+// This file can be removed or updated to define types for Constants.expoConfig.extra
+
 declare module '@env' {
   export const FIREBASE_API_KEY: string;
   export const FIREBASE_AUTH_DOMAIN: string;

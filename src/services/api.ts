@@ -1,9 +1,11 @@
-import { FOOD_REPO_API_KEY } from '@env';
+import Constants from 'expo-constants';
 import axios from 'axios';
 import { ProductInfo, AlternateProductInfo } from '../types/ProductInfo';
 
 const OPENFOODFACTS_BASE_URL = 'https://world.openfoodfacts.org/api/v0/product/';
 const FOOD_REPO_BASE_URL = 'https://www.foodrepo.org/api/v3';
+
+const { FOOD_REPO_API_KEY } = (Constants as any).expoConfig?.extra || {};
 
 export const getOpenFoodFactsProductInfo = async (barcode: string): Promise<ProductInfo> => {
   console.log(`Fetching from OpenFoodFacts with barcode: ${barcode}`);

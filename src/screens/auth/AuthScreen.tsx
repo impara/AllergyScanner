@@ -1,18 +1,18 @@
 // src/screens/auth/AuthScreen.tsx
 
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  ScrollView, 
-  KeyboardAvoidingView, 
-  Platform 
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Button, TextInput, Title, Text } from 'react-native-paper';
-import { 
-  signInWithGoogleCredential, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword 
+import {
+  signInWithGoogleCredential,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
 } from '../../config/firebase';
 import * as WebBrowser from 'expo-web-browser';
 import Toast from '../../components/Toast';
@@ -21,19 +21,21 @@ import { colors } from '../../theme/colors';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { 
-  GOOGLE_EXPO_CLIENT_ID, 
-  GOOGLE_ANDROID_CLIENT_ID, 
-  GOOGLE_IOS_CLIENT_ID 
-} from '@env';
+import Constants from 'expo-constants';
 import i18n from '../../localization/i18n';
-import { 
-  makeRedirectUri, 
-  ResponseType, 
-  GoogleAuthRequestConfig 
+import {
+  makeRedirectUri,
+  ResponseType,
+  GoogleAuthRequestConfig,
 } from 'expo-auth-session';
 import { useAuthRequest } from 'expo-auth-session/providers/google';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+
+const {
+  GOOGLE_EXPO_CLIENT_ID,
+  GOOGLE_ANDROID_CLIENT_ID,
+  GOOGLE_IOS_CLIENT_ID,
+} = (Constants as any).expoConfig?.extra || {};
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -56,17 +58,9 @@ const AuthScreen: React.FC = () => {
   }, []);
 
   // Expo Auth Session setup for non-Android platforms
-  const redirectUri = Platform.select({
-    web: __DEV__ 
-      ? 'http://localhost:8081'
-      : makeRedirectUri({
-          scheme: 'pureplate',
-          path: 'oauth2redirect'
-        }),
-    default: makeRedirectUri({
-      scheme: 'pureplate',
-      path: 'oauth2redirect'
-    })
+  const redirectUri = makeRedirectUri({
+    scheme: 'pureplate',
+    path: 'oauth2redirect',
   });
 
   console.log('Platform:', Platform.OS);
@@ -74,7 +68,7 @@ const AuthScreen: React.FC = () => {
   console.log('Development mode:', __DEV__);
 
   const config: Partial<GoogleAuthRequestConfig> = {
-    clientId: Platform.OS === 'web' ? GOOGLE_EXPO_CLIENT_ID : undefined,
+    webClientId: GOOGLE_EXPO_CLIENT_ID,
     androidClientId: GOOGLE_ANDROID_CLIENT_ID,
     iosClientId: GOOGLE_IOS_CLIENT_ID,
     redirectUri,
@@ -117,10 +111,10 @@ const AuthScreen: React.FC = () => {
       console.log('Starting Google Sign-In...');
       await GoogleSignin.hasPlayServices();
       console.log('Play Services check passed');
-      
+
       const signInResult = await GoogleSignin.signIn();
       console.log('Sign in result:', signInResult);
-      
+
       const { idToken, accessToken } = await GoogleSignin.getTokens();
       console.log('Tokens retrieved:', { idToken: !!idToken, accessToken: !!accessToken });
       
@@ -134,7 +128,7 @@ const AuthScreen: React.FC = () => {
       console.error('Detailed Google Sign-In error:', {
         code: error.code,
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
         console.log('User cancelled the login flow');
@@ -148,9 +142,9 @@ const AuthScreen: React.FC = () => {
         showToast(i18n.t('auth.googleSignInFailed'));
       }
     }
-  };  
+  };
 
-  // Updated handleGoogleSignIn to use platform-specific methods
+  // Unified Google Sign-In handler
   const handleGoogleSignIn = async () => {
     if (Platform.OS === 'android') {
       await handleGoogleSignInAndroid();
@@ -162,14 +156,16 @@ const AuthScreen: React.FC = () => {
           return;
         }
 
-        const options = Platform.OS === 'web' ? {
-          windowFeatures: {
-            width: 500,
-            height: 600,
-            centerScreen: true,
-            popup: true
-          }
-        } : undefined;
+        const options = Platform.OS === 'web'
+          ? {
+              windowFeatures: {
+                width: 500,
+                height: 600,
+                centerScreen: true,
+                popup: true,
+              },
+            }
+          : undefined;
 
         await promptAsync(options);
       } catch (error) {
@@ -216,7 +212,7 @@ const AuthScreen: React.FC = () => {
   useEffect(() => {
     return () => {
       if (Platform.OS !== 'web') {
-        WebBrowser.coolDownAsync().catch(console.error);
+        WebBrowser.dismissBrowser().catch(console.error);
       }
     };
   }, []);
@@ -225,7 +221,7 @@ const AuthScreen: React.FC = () => {
     <PaperProvider theme={{ colors: { primary: colors.primary } }}>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior="padding"
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={20}
       >
         <LinearGradient colors={[colors.primary, colors.secondary]} style={styles.gradient} />
@@ -246,6 +242,8 @@ const AuthScreen: React.FC = () => {
               left={<TextInput.Icon name="email" color={colors.coolGray} />}
               outlineColor={colors.coolGray}
               activeOutlineColor={colors.primary}
+              keyboardType="email-address"
+              autoCapitalize="none"
             />
             <TextInput
               label={i18n.t('auth.password')}
@@ -265,7 +263,6 @@ const AuthScreen: React.FC = () => {
               style={styles.button}
               contentStyle={styles.buttonContent}
               labelStyle={styles.buttonLabel}
-              color={colors.primary}
             >
               {isRegistering ? i18n.t('auth.signUp') : i18n.t('auth.signIn')}
             </Button>
@@ -285,7 +282,6 @@ const AuthScreen: React.FC = () => {
               onPress={() => setIsRegistering(!isRegistering)}
               style={styles.switchButton}
               labelStyle={styles.switchButtonLabel}
-              color={colors.primary}
             >
               {isRegistering ? i18n.t('auth.haveAccount') : i18n.t('auth.noAccount')}
             </Button>
@@ -356,7 +352,6 @@ const styles = StyleSheet.create({
   },
   buttonLabel: {
     ...typography.button,
-    color: colors.surface,
     fontWeight: 'bold',
   },
   googleButton: {
@@ -371,13 +366,6 @@ const styles = StyleSheet.create({
     ...typography.body,
     fontWeight: 'bold',
     color: colors.primary,
-  },
-  toast: {
-    position: 'absolute',
-    bottom: spacing.xl,
-    left: spacing.md,
-    right: spacing.md,
-    zIndex: 1000,
   },
 });
 

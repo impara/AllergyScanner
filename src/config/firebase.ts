@@ -11,7 +11,11 @@ import {
 } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
 
-import {
+import Constants from 'expo-constants';
+
+import i18n from '../localization/i18n';
+
+const {
   FIREBASE_API_KEY,
   FIREBASE_AUTH_DOMAIN,
   FIREBASE_PROJECT_ID,
@@ -19,9 +23,7 @@ import {
   FIREBASE_MESSAGING_SENDER_ID,
   FIREBASE_APP_ID,
   FIREBASE_MEASUREMENT_ID,
-} from '@env';
-
-import i18n from '../localization/i18n';
+} = (Constants as any).expoConfig?.extra || {};
 
 const firebaseConfig = {
   apiKey: FIREBASE_API_KEY,
