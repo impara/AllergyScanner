@@ -9,10 +9,10 @@ import {
   Platform 
 } from 'react-native';
 import { Button, TextInput, Title, Text } from 'react-native-paper';
-import {
-  signInWithGoogleCredential,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
+import { 
+  signInWithGoogleCredential, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword 
 } from '../../config/firebase';
 import * as WebBrowser from 'expo-web-browser';
 import Toast from '../../components/Toast';
@@ -21,9 +21,17 @@ import { colors } from '../../theme/colors';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { GOOGLE_EXPO_CLIENT_ID, GOOGLE_ANDROID_CLIENT_ID, GOOGLE_IOS_CLIENT_ID } from '@env';
+import { 
+  GOOGLE_EXPO_CLIENT_ID, 
+  GOOGLE_ANDROID_CLIENT_ID, 
+  GOOGLE_IOS_CLIENT_ID 
+} from '@env';
 import i18n from '../../localization/i18n';
-import { makeRedirectUri, ResponseType, GoogleAuthRequestConfig } from 'expo-auth-session';
+import { 
+  makeRedirectUri, 
+  ResponseType, 
+  GoogleAuthRequestConfig 
+} from 'expo-auth-session';
 import { useAuthRequest } from 'expo-auth-session/providers/google';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
@@ -51,9 +59,12 @@ const AuthScreen: React.FC = () => {
   const redirectUri = Platform.select({
     web: __DEV__ 
       ? 'http://localhost:8081'
-      : 'https://your-app.firebaseapp.com',
+      : makeRedirectUri({
+          scheme: 'pureplate',
+          path: 'oauth2redirect'
+        }),
     default: makeRedirectUri({
-      scheme: 'com.pureplate',
+      scheme: 'pureplate',
       path: 'oauth2redirect'
     })
   });
@@ -99,7 +110,8 @@ const AuthScreen: React.FC = () => {
       showToast(i18n.t('auth.googleSignInFailed'));
     }
   };
-  // New function to handle Google Sign-In using Credential Manager API on Android
+
+  // Function to handle Google Sign-In using Credential Manager API on Android
   const handleGoogleSignInAndroid = async () => {
     try {
       console.log('Starting Google Sign-In...');

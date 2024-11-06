@@ -1,6 +1,6 @@
 {
   "name": "pureplate",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
@@ -32,7 +32,7 @@
     "expo-linear-gradient": "~13.0.2",
     "expo-localization": "~15.0.3",
     "expo-status-bar": "~1.12.1",
-    "expo-updates": "~0.25.27",
+    "expo-updates": "^0.25.27",
     "expo-web-browser": "~13.0.3",
     "firebase": "^10.13.2",
     "i18n-js": "3.8.0",

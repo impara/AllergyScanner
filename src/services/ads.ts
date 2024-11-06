@@ -1,109 +1,120 @@
-import mobileAds, { 
-  RewardedAd, 
+import { Platform } from 'react-native';
+import mobileAds, {
   TestIds,
+  RewardedAd,
   RewardedAdEventType,
   AdEventType,
 } from 'react-native-google-mobile-ads';
-import { Platform } from 'react-native';
 import { ADMOB_ANDROID_REWARDED_AD_UNIT_ID, ADMOB_IOS_REWARDED_AD_UNIT_ID } from '@env';
 
 class AdService {
   private rewardedAd: RewardedAd | null = null;
+  private unsubscribeCallbacks: (() => void)[] = [];
 
-  initialize = async () => {
-    try {
-      const result = await mobileAds().initialize();
-      console.log('Mobile Ads initialized successfully');
-      return result;
-    } catch (error) {
-      console.error('Error initializing mobile ads:', error);
-      return false;
+  async initialize() {
+    if (Platform.OS === 'web') {
+      console.log('Ads not supported on web platform');
+      return;
     }
-  };
 
-  showRewardedAd = async (): Promise<boolean> => {
     try {
-      const adUnitId = __DEV__ 
-        ? TestIds.REWARDED 
-        : Platform.select({
-            ios: ADMOB_IOS_REWARDED_AD_UNIT_ID,
-            android: ADMOB_ANDROID_REWARDED_AD_UNIT_ID,
-            default: TestIds.REWARDED,
-          });
+      // Initialize the Mobile Ads SDK
+      await mobileAds().initialize();
+
+      const adUnitId = Platform.select({
+        ios: __DEV__ ? TestIds.REWARDED : ADMOB_IOS_REWARDED_AD_UNIT_ID,
+        android: __DEV__ ? TestIds.REWARDED : ADMOB_ANDROID_REWARDED_AD_UNIT_ID,
+        default: TestIds.REWARDED,
+      });
 
       this.rewardedAd = RewardedAd.createForAdRequest(adUnitId);
-
-      return new Promise<boolean>((resolve) => {
-        let hasResolved = false;
-
-        const cleanup = () => {
-          if (unsubscribeLoaded) unsubscribeLoaded();
-          if (unsubscribeEarned) unsubscribeEarned();
-          if (unsubscribeError) unsubscribeError();
-          if (unsubscribeClosed) unsubscribeClosed();
-        };
-
-        const resolveOnce = (success: boolean) => {
-          if (!hasResolved) {
-            hasResolved = true;
-            resolve(success);
-            cleanup();
-          }
-        };
-
-        const unsubscribeLoaded = this.rewardedAd?.addAdEventListener(
-          RewardedAdEventType.LOADED,
-          () => {
-            console.log('Rewarded ad loaded, showing ad...');
-            this.rewardedAd?.show();
-          }
-        );
-
-        const unsubscribeEarned = this.rewardedAd?.addAdEventListener(
-          RewardedAdEventType.EARNED_REWARD,
-          () => {
-            console.log('User earned reward');
-            resolveOnce(true);
-          }
-        );
-
-        const unsubscribeError = this.rewardedAd?.addAdEventListener(
-          AdEventType.ERROR,
-          (error) => {
-            console.error('Ad error:', error);
-            resolveOnce(false);
-          }
-        );
-
-        const unsubscribeClosed = this.rewardedAd?.addAdEventListener(
-          AdEventType.CLOSED,
-          () => {
-            console.log('Ad closed without reward');
-            resolveOnce(false);
-          }
-        );
-
-        console.log('Loading rewarded ad...');
-        this.rewardedAd?.load();
-
-        // Timeout to prevent hanging
-        setTimeout(() => {
-          resolveOnce(false);
-        }, 30000); // 30 seconds
-      });
+      
+      // Load the first ad
+      await this.loadAd();
     } catch (error) {
-      console.error('Error showing rewarded ad:', error);
+      console.error('Failed to initialize ads:', error);
+    }
+  }
+
+  private async loadAd(): Promise<void> {
+    if (!this.rewardedAd) return;
+
+    return new Promise((resolve) => {
+      const unsubscribeLoaded = this.rewardedAd?.addAdEventListener(
+        AdEventType.LOADED,
+        () => {
+          if (unsubscribeLoaded) {
+            unsubscribeLoaded();
+            this.unsubscribeCallbacks = this.unsubscribeCallbacks.filter(cb => cb !== unsubscribeLoaded);
+          }
+          resolve();
+        }
+      );
+
+      const unsubscribeError = this.rewardedAd?.addAdEventListener(
+        AdEventType.ERROR,
+        (error) => {
+          console.error('Ad loading error:', error);
+          if (unsubscribeError) {
+            unsubscribeError();
+            this.unsubscribeCallbacks = this.unsubscribeCallbacks.filter(cb => cb !== unsubscribeError);
+          }
+          resolve();
+        }
+      );
+
+      if (unsubscribeLoaded) this.unsubscribeCallbacks.push(unsubscribeLoaded);
+      if (unsubscribeError) this.unsubscribeCallbacks.push(unsubscribeError);
+
+      this.rewardedAd?.load();
+    });
+  }
+
+  async showRewardedAd(): Promise<boolean> {
+    if (!this.rewardedAd) {
+      console.log('Ad not initialized');
       return false;
     }
-  };
 
-  cleanup = () => {
-    if (this.rewardedAd) {
-      this.rewardedAd = null;
-    }
-  };
+    return new Promise((resolve) => {
+      const unsubscribeEarned = this.rewardedAd?.addAdEventListener(
+        RewardedAdEventType.EARNED_REWARD,
+        () => {
+          if (unsubscribeEarned) {
+            unsubscribeEarned();
+            this.unsubscribeCallbacks = this.unsubscribeCallbacks.filter(cb => cb !== unsubscribeEarned);
+          }
+          resolve(true);
+        }
+      );
+
+      const unsubscribeClosed = this.rewardedAd?.addAdEventListener(
+        AdEventType.CLOSED,
+        () => {
+          if (unsubscribeClosed) {
+            unsubscribeClosed();
+            this.unsubscribeCallbacks = this.unsubscribeCallbacks.filter(cb => cb !== unsubscribeClosed);
+          }
+          this.loadAd(); // Preload the next ad
+          resolve(false);
+        }
+      );
+
+      if (unsubscribeEarned) this.unsubscribeCallbacks.push(unsubscribeEarned);
+      if (unsubscribeClosed) this.unsubscribeCallbacks.push(unsubscribeClosed);
+
+      this.rewardedAd?.show();
+    });
+  }
+
+  cleanup() {
+    // Unsubscribe from all event listeners
+    this.unsubscribeCallbacks.forEach(unsubscribe => unsubscribe());
+    this.unsubscribeCallbacks = [];
+    
+    // Clear the rewarded ad
+    this.rewardedAd = null;
+  }
 }
 
-const adService = new AdService();
-export { adService };
-export type { AdService };
+export const adService = new AdService();

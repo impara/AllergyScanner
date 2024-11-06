@@ -8,8 +8,18 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { theme, colors } from './src/theme';
 import { AuthProvider } from './src/context/AuthContext';
 import { LanguageProvider } from './src/context/LanguageContext';
-import { adService } from './src/services/ads';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Platform } from 'react-native';
+
+// Define a type for the ad service
+interface AdServiceType {
+  initialize?: () => Promise<void>;
+}
+
+// Import ad service based on platform
+const AdService: AdServiceType = Platform.select({
+  web: {},
+  default: require('./src/services/ads')
+});
 
 // Create a custom theme that extends MD3LightTheme
 const paperTheme = {
@@ -33,10 +43,12 @@ const App: React.FC = () => {
   useEffect(() => {
     const initializeServices = async () => {
       try {
-        await adService.initialize();
-        setIsInitialized(true);
+        if (Platform.OS !== 'web' && AdService.initialize) {
+          await AdService.initialize();
+        }
       } catch (error) {
         console.error('Error initializing services:', error);
+      } finally {
         setIsInitialized(true);
       }
     };
