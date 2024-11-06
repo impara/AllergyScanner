@@ -18,5 +18,8 @@ export default {
                 projectId: "c2ceb6a3-210e-4d75-b3cf-38878dd25b98",
             },
         },
+        "updates": {
+            "url": "https://u.expo.dev/c2ceb6a3-210e-4d75-b3cf-38878dd25b98"
+        },
     },
 }; 
