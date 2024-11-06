@@ -60,11 +60,6 @@ categories.txt
 ingredients.txt
 tekst.txt
 
-# Asset files (only if dynamically generated or non-essential)
-assets/icons/
-assets/sounds/
-assets/images/favicon.png
-
 # Global TypeScript definitions
 config/global.d.ts
 global.d.ts

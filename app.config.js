@@ -22,6 +22,9 @@ export default {
                 backgroundColor: '#ffffff',
             },
         },
+        ios: {
+            bundleIdentifier: "com.pureplate"
+        },
         plugins: [
             [
                 'expo-build-properties',
@@ -36,11 +39,11 @@ export default {
             [
                 'react-native-google-mobile-ads',
                 {
-                    android_app_id: process.env.ADMOB_ANDROID_APP_ID,
-                    ios_app_id: process.env.ADMOB_IOS_APP_ID,
-                },
+                    androidAppId: process.env.ADMOB_ANDROID_APP_ID,
+                    iosAppId: process.env.ADMOB_IOS_APP_ID,
+                }
             ],
-            './withGoogleSignIn', // Custom config plugin for Google Sign-In
+            './withGoogleSignIn',
         ],
         updates: {
             enabled: true,
@@ -64,10 +67,7 @@ export default {
             FIREBASE_APP_ID: process.env.FIREBASE_APP_ID || null,
             FIREBASE_MEASUREMENT_ID: process.env.FIREBASE_MEASUREMENT_ID || null,
             FOOD_REPO_API_KEY: process.env.FOOD_REPO_API_KEY || null,
-            ADMOB_ANDROID_APP_ID: process.env.ADMOB_ANDROID_APP_ID || null,
-            ADMOB_IOS_APP_ID: process.env.ADMOB_IOS_APP_ID || null,
-            ADMOB_ANDROID_REWARDED_AD_UNIT_ID:
-                process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID || null,
+            ADMOB_ANDROID_REWARDED_AD_UNIT_ID: process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID || null,
             ADMOB_IOS_REWARDED_AD_UNIT_ID: process.env.ADMOB_IOS_REWARDED_AD_UNIT_ID || null,
         },
     },

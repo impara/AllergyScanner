@@ -12,7 +12,25 @@
         "gradleCommand": ":app:assembleRelease",
         "withoutCredentials": false
       },
-      "channel": "production"
+      "channel": "production",
+      "env": {
+        "GOOGLE_SERVICES_JSON": "@secret/GOOGLE_SERVICES_JSON",
+        "GOOGLE_IOS_CLIENT_ID": "@secret/GOOGLE_IOS_CLIENT_ID",
+        "GOOGLE_ANDROID_CLIENT_ID": "@secret/GOOGLE_ANDROID_CLIENT_ID",
+        "GOOGLE_EXPO_CLIENT_ID": "@secret/GOOGLE_EXPO_CLIENT_ID",
+        "FIREBASE_API_KEY": "@secret/FIREBASE_API_KEY",
+        "FIREBASE_AUTH_DOMAIN": "@secret/FIREBASE_AUTH_DOMAIN",
+        "FIREBASE_PROJECT_ID": "@secret/FIREBASE_PROJECT_ID",
+        "FIREBASE_STORAGE_BUCKET": "@secret/FIREBASE_STORAGE_BUCKET",
+        "FIREBASE_MESSAGING_SENDER_ID": "@secret/FIREBASE_MESSAGING_SENDER_ID",
+        "FIREBASE_APP_ID": "@secret/FIREBASE_APP_ID",
+        "FIREBASE_MEASUREMENT_ID": "@secret/FIREBASE_MEASUREMENT_ID",
+        "FOOD_REPO_API_KEY": "@secret/FOOD_REPO_API_KEY",
+        "ADMOB_ANDROID_APP_ID": "@secret/ADMOB_ANDROID_APP_ID",
+        "ADMOB_IOS_APP_ID": "@secret/ADMOB_IOS_APP_ID",
+        "ADMOB_ANDROID_REWARDED_AD_UNIT_ID": "@secret/ADMOB_ANDROID_REWARDED_AD_UNIT_ID",
+        "ADMOB_IOS_REWARDED_AD_UNIT_ID": "@secret/ADMOB_IOS_REWARDED_AD_UNIT_ID"
+      }
     }
   },
   "submit": {
