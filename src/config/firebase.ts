@@ -9,7 +9,7 @@ import {
   createUserWithEmailAndPassword as firebaseCreateUserWithEmailAndPassword,
   signOut as firebaseSignOut,
 } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import Constants from 'expo-constants';
 import i18n from '../localization/i18n';
 
@@ -49,9 +49,17 @@ export type IngredientsProfile = Record<string, {
 
 export const signInWithGoogleCredential = async (idToken: string, accessToken?: string) => {
   try {
+    if (!idToken) {
+      throw new Error('No ID token provided');
+    }
+
     const credential = GoogleAuthProvider.credential(idToken, accessToken);
     const userCredential = await signInWithCredential(auth, credential);
     const user = userCredential.user;
+
+    if (!user) {
+      throw new Error('No user returned from credential sign-in');
+    }
 
     // Check if user document exists
     const userDocRef = doc(db, 'users', user.uid);
@@ -59,11 +67,21 @@ export const signInWithGoogleCredential = async (idToken: string, accessToken?: 
 
     if (!userDocSnap.exists()) {
       // Create Firestore document for new user
-      await setDoc(userDocRef, { ingredients: {} }, { merge: true });
+      await setDoc(userDocRef, { 
+        ingredients: {},
+        createdAt: serverTimestamp(),
+        lastLoginAt: serverTimestamp()
+      }, { merge: true });
       console.log('User signed in with Google and Firestore document initialized.');
     } else {
-      console.log('User signed in with Google and Firestore document already exists.');
+      // Update last login timestamp
+      await updateDoc(userDocRef, {
+        lastLoginAt: serverTimestamp()
+      });
+      console.log('User signed in with Google and Firestore document updated.');
     }
+
+    return user;
   } catch (error) {
     console.error('Error signing in with Google', error);
     throw error;

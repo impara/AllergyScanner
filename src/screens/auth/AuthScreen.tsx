@@ -130,8 +130,11 @@ const AuthScreen: React.FC = () => {
         message: error.message,
         stack: error.stack,
       });
+      
+      // Handle specific error cases
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
         console.log('User cancelled the login flow');
+        return; // Don't show error toast for user cancellation
       } else if (error.code === statusCodes.IN_PROGRESS) {
         console.log('Sign in is in progress already');
       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
@@ -141,16 +144,17 @@ const AuthScreen: React.FC = () => {
         console.error('Google Sign-In error:', error);
         showToast(i18n.t('auth.googleSignInFailed'));
       }
+      throw error; // Re-throw the error to be handled by the caller
     }
   };
 
   // Unified Google Sign-In handler
   const handleGoogleSignIn = async () => {
-    if (Platform.OS === 'android') {
-      await handleGoogleSignInAndroid();
-    } else {
-      // Existing Expo Auth Session method for iOS and web
-      try {
+    try {
+      if (Platform.OS === 'android') {
+        await handleGoogleSignInAndroid();
+      } else {
+        // Existing Expo Auth Session method for iOS and web
         if (!request) {
           showToast('Google Sign-In not ready');
           return;
@@ -168,10 +172,10 @@ const AuthScreen: React.FC = () => {
           : undefined;
 
         await promptAsync(options);
-      } catch (error) {
-        console.error('Google Sign-In error:', error);
-        showToast(i18n.t('auth.googleSignInFailed'));
       }
+    } catch (error) {
+      // Only log the error here, don't show toast since it's already handled in the specific handlers
+      console.error('Google Sign-In wrapper error:', error);
     }
   };
 
