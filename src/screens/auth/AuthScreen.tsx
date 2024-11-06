@@ -216,7 +216,7 @@ const AuthScreen: React.FC = () => {
   useEffect(() => {
     return () => {
       if (Platform.OS !== 'web') {
-        WebBrowser.dismissBrowser().catch(console.error);
+        WebBrowser.dismissBrowser();
       }
     };
   }, []);
