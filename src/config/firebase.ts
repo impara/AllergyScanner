@@ -1,6 +1,6 @@
 // src/config/firebase.ts
 
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
 import {
   getAuth,
   GoogleAuthProvider,
@@ -10,9 +10,7 @@ import {
   signOut as firebaseSignOut,
 } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
-
 import Constants from 'expo-constants';
-
 import i18n from '../localization/i18n';
 
 const {
@@ -35,16 +33,13 @@ const firebaseConfig = {
   measurementId: FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+if (!getApps().length) {
+  initializeApp(firebaseConfig);
+}
 
-// Initialize Auth
-const auth = getAuth(app);
+const auth = getAuth();
+const db = getFirestore();
 
-// Initialize Firestore
-const db = getFirestore(app);
-
-// Update IngredientsProfile type to include 'lang?: string' and 'category?: string'
 export type IngredientsProfile = Record<string, {
   selected: boolean;
   name: string;
@@ -151,4 +146,3 @@ export const updateUserIngredients = async (ingredients: IngredientsProfile) => 
 };
 
 export { auth, db };
-export default app;
