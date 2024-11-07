@@ -50,7 +50,7 @@ export const initializeFirebase = async () => {
       try {
         await initializeAnalytics();
       } catch (error) {
-        console.error('Analytics initialization error:', error);
+        console.warn('Analytics initialization error:', error);
         // Continue even if analytics fails
       }
       

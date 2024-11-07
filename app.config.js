@@ -47,6 +47,20 @@ export default {
                 }
             ],
             './withGoogleSignIn',
+            [
+                "@react-native-firebase/app",
+                {
+                    // Your native Firebase config from google-services.json (Android) and GoogleService-Info.plist (iOS)
+                    android_client_id: process.env.FIREBASE_ANDROID_CLIENT_ID,
+                    ios_client_id: process.env.FIREBASE_IOS_CLIENT_ID,
+                    appId: process.env.FIREBASE_APP_ID,
+                    apiKey: process.env.FIREBASE_API_KEY,
+                    projectId: process.env.FIREBASE_PROJECT_ID,
+                    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+                    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+                    measurementId: process.env.FIREBASE_MEASUREMENT_ID,
+                },
+            ],
         ],
         updates: {
             enabled: true,

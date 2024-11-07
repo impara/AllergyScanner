@@ -1,15 +1,19 @@
-import { getAnalytics, logEvent as firebaseLogEvent } from 'firebase/analytics';
-import { getApp } from 'firebase/app';
-
-let analytics: ReturnType<typeof getAnalytics> | null = null;
+import analytics from '@react-native-firebase/analytics';
+import { Platform } from 'react-native';
 
 /**
  * Initializes Firebase Analytics. Must be called after Firebase App is initialized.
  */
-export const initializeAnalytics = () => {
+export const initializeAnalytics = async () => {
+  if (Platform.OS === 'web') {
+    console.log('Analytics: Skipping initialization on web platform');
+    return;
+  }
+
   try {
-    analytics = getAnalytics(getApp());
-    console.log('Firebase Analytics initialized');
+    // Enable analytics collection
+    await analytics().setAnalyticsCollectionEnabled(true);
+    console.log('Firebase Analytics initialized successfully');
   } catch (error) {
     console.error('Error initializing Firebase Analytics:', error);
   }
@@ -25,10 +29,8 @@ export const logEvent = async (eventName: string, params?: Record<string, any>) 
     if (__DEV__) {
       console.log('Analytics Event:', eventName, params);
     }
-    if (analytics) {
-      await firebaseLogEvent(analytics, eventName, params);
-    } else {
-      console.warn('Analytics not initialized');
+    if (Platform.OS !== 'web') {
+      await analytics().logEvent(eventName, params);
     }
   } catch (error) {
     console.error('Analytics error:', error);
