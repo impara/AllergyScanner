@@ -4,6 +4,7 @@ import mobileAds, {
   RewardedAd,
   RewardedAdEventType,
   AdEventType,
+  MaxAdContentRating,
 } from 'react-native-google-mobile-ads';
 import Constants from 'expo-constants';
 
@@ -15,6 +16,7 @@ const {
 class AdService {
   private rewardedAd: RewardedAd | null = null;
   private unsubscribeCallbacks: (() => void)[] = [];
+  private isInitialized: boolean = false;
 
   async initialize() {
     if (Platform.OS === 'web') {
@@ -24,7 +26,15 @@ class AdService {
 
     try {
       // Initialize the Mobile Ads SDK
-      await mobileAds().initialize();
+      await mobileAds()
+        .setRequestConfiguration({
+          maxAdContentRating: MaxAdContentRating.PG,
+          tagForChildDirectedTreatment: false,
+          tagForUnderAgeOfConsent: false,
+        })
+        .then(() => {
+          return mobileAds().initialize();
+        });
 
       const adUnitId = Platform.select({
         ios: __DEV__ ? TestIds.REWARDED : ADMOB_IOS_REWARDED_AD_UNIT_ID,
@@ -36,8 +46,12 @@ class AdService {
       
       // Load the first ad
       await this.loadAd();
+      this.isInitialized = true;
+      console.log('AdMob initialized successfully');
     } catch (error) {
       console.error('Failed to initialize ads:', error);
+      this.isInitialized = false;
+      throw error;
     }
   }
 
@@ -76,9 +90,18 @@ class AdService {
   }
 
   async showRewardedAd(): Promise<boolean> {
-    if (!this.rewardedAd) {
+    if (!this.isInitialized || !this.rewardedAd) {
       console.log('Ad not initialized');
-      return false;
+      // Try to reinitialize
+      try {
+        await this.initialize();
+      } catch (error) {
+        console.error('Failed to reinitialize ads:', error);
+        return false;
+      }
+      if (!this.isInitialized || !this.rewardedAd) {
+        return false;
+      }
     }
 
     return new Promise((resolve) => {

@@ -48,7 +48,13 @@ const App: React.FC = () => {
     const initializeServices = async () => {
       try {
         if (Platform.OS !== 'web' && AdService.initialize) {
-          await AdService.initialize();
+          try {
+            await AdService.initialize();
+            console.log('AdService initialized successfully');
+          } catch (error) {
+            console.error('AdService initialization failed:', error);
+            // Continue with app initialization even if ads fail
+          }
         }
       } catch (error) {
         console.error('Error initializing services:', error);

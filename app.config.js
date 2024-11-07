@@ -41,6 +41,7 @@ export default {
                 {
                     androidAppId: process.env.ADMOB_ANDROID_APP_ID,
                     iosAppId: process.env.ADMOB_IOS_APP_ID,
+                    delayAppMeasurementInit: true,
                 }
             ],
             './withGoogleSignIn',
