@@ -1,17 +1,18 @@
+// src/services/ads.ts
 import { Platform } from 'react-native';
 import mobileAds, {
-  TestIds,
-  RewardedAd,
-  RewardedAdEventType,
-  AdEventType,
   MaxAdContentRating,
+  RewardedAd,
+  TestIds,
+  AdEventType,
+  RewardedAdEventType,
 } from 'react-native-google-mobile-ads';
 import Constants from 'expo-constants';
 
 const {
   ADMOB_ANDROID_REWARDED_AD_UNIT_ID,
   ADMOB_IOS_REWARDED_AD_UNIT_ID,
-} = (Constants as any).expoConfig?.extra || {};
+} = Constants.expoConfig?.extra || {};
 
 class AdService {
   private rewardedAd: RewardedAd | null = null;
@@ -40,11 +41,10 @@ class AdService {
       const adUnitId = Platform.select({
         ios: __DEV__ ? TestIds.REWARDED : ADMOB_IOS_REWARDED_AD_UNIT_ID,
         android: __DEV__ ? TestIds.REWARDED : ADMOB_ANDROID_REWARDED_AD_UNIT_ID,
-        default: TestIds.REWARDED,
       });
 
-      this.rewardedAd = RewardedAd.createForAdRequest(adUnitId);
-      
+      this.rewardedAd = RewardedAd.createForAdRequest(adUnitId!);
+
       // Load the first ad
       await this.loadAd();
       this.isInitialized = true;

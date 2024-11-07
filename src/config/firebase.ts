@@ -1,6 +1,6 @@
 // src/config/firebase.ts
 
-import { initializeApp, getApps, FirebaseOptions } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
 import {
   getAuth,
   GoogleAuthProvider,
@@ -9,10 +9,19 @@ import {
   createUserWithEmailAndPassword as firebaseCreateUserWithEmailAndPassword,
   signOut as firebaseSignOut,
 } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+  updateDoc,
+} from 'firebase/firestore';
 import Constants from 'expo-constants';
 import i18n from '../localization/i18n';
-import { initializeAnalytics } from '../services/analytics'; // Import the initializeAnalytics function
+
+// Import expo-firebase-analytics
+import * as Analytics from 'expo-firebase-analytics';
 
 const {
   FIREBASE_API_KEY,
@@ -23,9 +32,9 @@ const {
   FIREBASE_APP_ID,
   FIREBASE_MEASUREMENT_ID,
   DATABASE_URL,
-} = (Constants as any).expoConfig?.extra || {};
+} = Constants.expoConfig?.extra || {};
 
-const firebaseConfig: FirebaseOptions = {
+const firebaseConfig = {
   apiKey: FIREBASE_API_KEY,
   authDomain: FIREBASE_AUTH_DOMAIN,
   projectId: FIREBASE_PROJECT_ID,
@@ -43,51 +52,46 @@ const firebaseConfig: FirebaseOptions = {
 export const initializeFirebase = async () => {
   try {
     if (!getApps().length) {
-      const app = initializeApp(firebaseConfig);
+      initializeApp(firebaseConfig);
       console.log('Firebase initialized successfully');
-      
-      // Initialize Analytics after Firebase is initialized
-      try {
-        await initializeAnalytics();
-      } catch (error) {
-        console.warn('Analytics initialization error:', error);
-        // Continue even if analytics fails
-      }
-      
-      return app;
     }
-    return getApps()[0];
+
+    // Initialize Analytics after Firebase is initialized
+    try {
+      await Analytics.setUnavailabilityLogging(false);
+      console.log('Firebase Analytics initialized successfully');
+    } catch (error) {
+      console.warn('Analytics initialization error:', error);
+      // Continue even if analytics fails
+    }
   } catch (error) {
     console.error('Firebase initialization error:', error);
     throw error;
   }
 };
 
-let auth: any;
-let db: any;
-
 export const getFirebaseAuth = () => {
-  if (!auth) {
-    auth = getAuth();
-  }
-  return auth;
+  return getAuth();
 };
 
 export const getFirebaseDb = () => {
-  if (!db) {
-    db = getFirestore();
-  }
-  return db;
+  return getFirestore();
 };
 
-export type IngredientsProfile = Record<string, {
-  selected: boolean;
-  name: string;
-  lang?: string;
-  category?: string;
-}>;
+export type IngredientsProfile = Record<
+  string,
+  {
+    selected: boolean;
+    name: string;
+    lang?: string;
+    category?: string;
+  }
+>;
 
-export const signInWithGoogleCredential = async (idToken: string, accessToken?: string) => {
+export const signInWithGoogleCredential = async (
+  idToken: string,
+  accessToken?: string
+) => {
   const auth = getFirebaseAuth();
   const db = getFirebaseDb();
   try {
@@ -109,18 +113,26 @@ export const signInWithGoogleCredential = async (idToken: string, accessToken?: 
 
     if (!userDocSnap.exists()) {
       // Create Firestore document for new user
-      await setDoc(userDocRef, { 
-        ingredients: {},
-        createdAt: serverTimestamp(),
-        lastLoginAt: serverTimestamp()
-      }, { merge: true });
-      console.log('User signed in with Google and Firestore document initialized.');
+      await setDoc(
+        userDocRef,
+        {
+          ingredients: {},
+          createdAt: serverTimestamp(),
+          lastLoginAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+      console.log(
+        'User signed in with Google and Firestore document initialized.'
+      );
     } else {
       // Update last login timestamp
       await updateDoc(userDocRef, {
-        lastLoginAt: serverTimestamp()
+        lastLoginAt: serverTimestamp(),
       });
-      console.log('User signed in with Google and Firestore document updated.');
+      console.log(
+        'User signed in with Google and Firestore document updated.'
+      );
     }
 
     return user;
@@ -130,13 +142,16 @@ export const signInWithGoogleCredential = async (idToken: string, accessToken?: 
   }
 };
 
-export const signInWithEmailAndPassword = async (email: string, password: string) => {
+export const signInWithEmailAndPassword = async (
+  email: string,
+  password: string
+) => {
   const auth = getFirebaseAuth();
   try {
     await firebaseSignInWithEmailAndPassword(auth, email, password);
   } catch (error: any) {
     console.error('Firebase auth error:', error.code, error.message);
-    
+
     // Map Firebase error codes directly to our translation keys
     switch (error.code) {
       case 'auth/user-not-found':
@@ -153,18 +168,28 @@ export const signInWithEmailAndPassword = async (email: string, password: string
   }
 };
 
-export const createUserWithEmailAndPassword = async (email: string, password: string) => {
+export const createUserWithEmailAndPassword = async (
+  email: string,
+  password: string
+) => {
   const auth = getFirebaseAuth();
   try {
-    const userCredential = await firebaseCreateUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await firebaseCreateUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
     const user = userCredential.user;
 
     const userDocRef = doc(getFirebaseDb(), 'users', user.uid);
-    await setDoc(userDocRef, { ingredients: {} }, { merge: true });
-
+    await setDoc(
+      userDocRef,
+      { ingredients: {} },
+      { merge: true }
+    );
   } catch (error: any) {
     console.error('Firebase auth error:', error.code, error.message);
-    
+
     // Map Firebase error codes directly to our translation keys
     switch (error.code) {
       case 'auth/email-already-in-use':
@@ -188,16 +213,24 @@ export const getUserIngredients = async (): Promise<IngredientsProfile> => {
   if (!getFirebaseAuth().currentUser) {
     throw new Error('No user is signed in');
   }
-  const userDoc = await getDoc(doc(getFirebaseDb(), 'users', getFirebaseAuth().currentUser.uid));
+  const userDoc = await getDoc(
+    doc(getFirebaseDb(), 'users', getFirebaseAuth().currentUser!.uid)
+  );
   return userDoc.data()?.ingredients || {};
 };
 
-export const updateUserIngredients = async (ingredients: IngredientsProfile) => {
+export const updateUserIngredients = async (
+  ingredients: IngredientsProfile
+) => {
   if (!getFirebaseAuth().currentUser) {
     throw new Error('No user is signed in');
   }
   try {
-    const userDocRef = doc(getFirebaseDb(), 'users', getFirebaseAuth().currentUser.uid);
+    const userDocRef = doc(
+      getFirebaseDb(),
+      'users',
+      getFirebaseAuth().currentUser!.uid
+    );
     // Replace the entire 'ingredients' object instead of merging
     await setDoc(userDocRef, { ingredients }, { merge: false });
     console.log('Ingredients updated successfully.');
