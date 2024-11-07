@@ -1,7 +1,6 @@
 // src/services/analytics.ts
 
-import * as Analytics from 'expo-firebase-analytics';
-import { Platform } from 'react-native';
+import analytics from '@react-native-firebase/analytics';
 
 /**
  * Logs an event to Firebase Analytics.
@@ -16,9 +15,7 @@ export const logEvent = async (
     if (__DEV__) {
       console.log('Analytics Event:', eventName, params);
     }
-    if (Platform.OS !== 'web') {
-      await Analytics.logEvent(eventName, params);
-    }
+    await analytics().logEvent(eventName, params);
   } catch (error) {
     console.error('Analytics error:', error);
   }

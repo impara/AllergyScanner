@@ -1,7 +1,7 @@
 // src/context/AuthContext.tsx
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
-import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
-import { getFirebaseAuth } from '../config/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import auth from '@react-native-firebase/auth';
 
 type AuthContextType = {
   isAuthenticated: boolean;
@@ -24,8 +24,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const auth = getFirebaseAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = auth().onAuthStateChanged((user) => {
       console.log('Auth state changed:', user);
       setIsAuthenticated(!!user);
       setLoading(false);
@@ -37,8 +36,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOutUser = async () => {
     try {
       console.log('Signing out user...');
-      const auth = getFirebaseAuth();
-      await firebaseSignOut(auth);
+      await auth().signOut();
       console.log('User signed out');
     } catch (error) {
       console.error('Error signing out:', error);

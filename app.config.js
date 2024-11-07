@@ -47,6 +47,12 @@ module.exports = {
                     delayAppMeasurementInit: true,
                 },
             ],
+            [
+                '@react-native-firebase/app',
+                {
+                    // No additional config needed unless specified
+                },
+            ],
             './withGoogleSignIn',
             'expo-dev-client',
         ],

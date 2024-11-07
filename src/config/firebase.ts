@@ -1,27 +1,11 @@
 // src/config/firebase.ts
 
-import { initializeApp, getApps } from 'firebase/app';
-import {
-  getAuth,
-  GoogleAuthProvider,
-  signInWithCredential,
-  signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword,
-  createUserWithEmailAndPassword as firebaseCreateUserWithEmailAndPassword,
-  signOut as firebaseSignOut,
-} from 'firebase/auth';
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  serverTimestamp,
-  updateDoc,
-} from 'firebase/firestore';
+import firebase from '@react-native-firebase/app';
+import analytics from '@react-native-firebase/analytics';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 import Constants from 'expo-constants';
 import i18n from '../localization/i18n';
-
-// Import expo-firebase-analytics
-import * as Analytics from 'expo-firebase-analytics';
 
 const {
   FIREBASE_API_KEY,
@@ -51,14 +35,14 @@ const firebaseConfig = {
  */
 export const initializeFirebase = async () => {
   try {
-    if (!getApps().length) {
-      initializeApp(firebaseConfig);
+    if (!firebase.apps.length) {
+      await firebase.initializeApp(firebaseConfig);
       console.log('Firebase initialized successfully');
     }
 
     // Initialize Analytics after Firebase is initialized
     try {
-      await Analytics.setUnavailabilityLogging(false);
+      await analytics().setAnalyticsCollectionEnabled(true);
       console.log('Firebase Analytics initialized successfully');
     } catch (error) {
       console.warn('Analytics initialization error:', error);
@@ -71,11 +55,11 @@ export const initializeFirebase = async () => {
 };
 
 export const getFirebaseAuth = () => {
-  return getAuth();
+  return auth();
 };
 
 export const getFirebaseDb = () => {
-  return getFirestore();
+  return firestore();
 };
 
 export type IngredientsProfile = Record<
@@ -88,47 +72,44 @@ export type IngredientsProfile = Record<
   }
 >;
 
+// Update your authentication methods accordingly
 export const signInWithGoogleCredential = async (
   idToken: string,
   accessToken?: string
 ) => {
-  const auth = getFirebaseAuth();
-  const db = getFirebaseDb();
   try {
     if (!idToken) {
       throw new Error('No ID token provided');
     }
 
-    const credential = GoogleAuthProvider.credential(idToken, accessToken);
-    const userCredential = await signInWithCredential(auth, credential);
+    const credential = auth.GoogleAuthProvider.credential(idToken, accessToken);
+    const userCredential = await auth().signInWithCredential(credential);
     const user = userCredential.user;
 
     if (!user) {
       throw new Error('No user returned from credential sign-in');
     }
 
-    // Check if user document exists
-    const userDocRef = doc(db, 'users', user.uid);
-    const userDocSnap = await getDoc(userDocRef);
+    const db = getFirebaseDb();
 
-    if (!userDocSnap.exists()) {
+    // Check if user document exists
+    const userDocRef = db.collection('users').doc(user.uid);
+    const userDocSnap = await userDocRef.get();
+
+    if (!userDocSnap.exists) {
       // Create Firestore document for new user
-      await setDoc(
-        userDocRef,
-        {
-          ingredients: {},
-          createdAt: serverTimestamp(),
-          lastLoginAt: serverTimestamp(),
-        },
-        { merge: true }
-      );
+      await userDocRef.set({
+        ingredients: {},
+        createdAt: firestore.FieldValue.serverTimestamp(),
+        lastLoginAt: firestore.FieldValue.serverTimestamp(),
+      });
       console.log(
         'User signed in with Google and Firestore document initialized.'
       );
     } else {
       // Update last login timestamp
-      await updateDoc(userDocRef, {
-        lastLoginAt: serverTimestamp(),
+      await userDocRef.update({
+        lastLoginAt: firestore.FieldValue.serverTimestamp(),
       });
       console.log(
         'User signed in with Google and Firestore document updated.'
@@ -146,9 +127,8 @@ export const signInWithEmailAndPassword = async (
   email: string,
   password: string
 ) => {
-  const auth = getFirebaseAuth();
   try {
-    await firebaseSignInWithEmailAndPassword(auth, email, password);
+    await auth().signInWithEmailAndPassword(email, password);
   } catch (error: any) {
     console.error('Firebase auth error:', error.code, error.message);
 
@@ -172,18 +152,16 @@ export const createUserWithEmailAndPassword = async (
   email: string,
   password: string
 ) => {
-  const auth = getFirebaseAuth();
   try {
-    const userCredential = await firebaseCreateUserWithEmailAndPassword(
-      auth,
+    const userCredential = await auth().createUserWithEmailAndPassword(
       email,
       password
     );
     const user = userCredential.user;
 
-    const userDocRef = doc(getFirebaseDb(), 'users', user.uid);
-    await setDoc(
-      userDocRef,
+    const db = getFirebaseDb();
+    const userDocRef = db.collection('users').doc(user.uid);
+    await userDocRef.set(
       { ingredients: {} },
       { merge: true }
     );
@@ -206,33 +184,31 @@ export const createUserWithEmailAndPassword = async (
 };
 
 export const signOut = () => {
-  return firebaseSignOut(getFirebaseAuth());
+  return auth().signOut();
 };
 
 export const getUserIngredients = async (): Promise<IngredientsProfile> => {
-  if (!getFirebaseAuth().currentUser) {
+  const currentUser = auth().currentUser;
+  if (!currentUser) {
     throw new Error('No user is signed in');
   }
-  const userDoc = await getDoc(
-    doc(getFirebaseDb(), 'users', getFirebaseAuth().currentUser!.uid)
-  );
+  const db = getFirebaseDb();
+  const userDoc = await db.collection('users').doc(currentUser.uid).get();
   return userDoc.data()?.ingredients || {};
 };
 
 export const updateUserIngredients = async (
   ingredients: IngredientsProfile
 ) => {
-  if (!getFirebaseAuth().currentUser) {
+  const currentUser = auth().currentUser;
+  if (!currentUser) {
     throw new Error('No user is signed in');
   }
   try {
-    const userDocRef = doc(
-      getFirebaseDb(),
-      'users',
-      getFirebaseAuth().currentUser!.uid
-    );
+    const db = getFirebaseDb();
+    const userDocRef = db.collection('users').doc(currentUser.uid);
     // Replace the entire 'ingredients' object instead of merging
-    await setDoc(userDocRef, { ingredients }, { merge: false });
+    await userDocRef.set({ ingredients }, { merge: false });
     console.log('Ingredients updated successfully.');
   } catch (error) {
     console.error('Error updating ingredients:', error);
