@@ -3,6 +3,11 @@ require('dotenv').config();
 const { withPlugins } = require('@expo/config-plugins');
 const withGoogleSignIn = require('./withGoogleSignIn');
 
+// Check if AdMob app IDs are set
+if (!process.env.ADMOB_ANDROID_APP_ID || !process.env.ADMOB_IOS_APP_ID) {
+    throw new Error("AdMob App IDs are not set. Please define ADMOB_ANDROID_APP_ID and ADMOB_IOS_APP_ID in your environment variables.");
+}
+
 module.exports = ({ config }) => {
     config.extra = {
         ...config.extra,

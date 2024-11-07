@@ -42,10 +42,13 @@ const App: React.FC = () => {
       try {
         // Initialize Firebase first
         await initializeFirebase();
+        console.log('Firebase initialized successfully.');
 
         // Initialize Ads if not on web, but don't wait for it
         if (Platform.OS !== 'web') {
-          adService.initialize().catch(error => {
+          adService.initialize().then(() => {
+            console.log('Ads initialized successfully.');
+          }).catch(error => {
             // Log the error but don't prevent app from loading
             console.warn('Ad initialization failed:', error);
           });

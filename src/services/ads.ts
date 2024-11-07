@@ -27,10 +27,10 @@ class AdService {
     }
 
     try {
-      // Add delay before initialization
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Initializing Google Mobile Ads SDK...');
+      // Add delay before initialization to ensure JS engine is ready
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Fix the promise chain
       await mobileAds().setRequestConfiguration({
         maxAdContentRating: MaxAdContentRating.PG,
         tagForChildDirectedTreatment: false,
@@ -39,6 +39,7 @@ class AdService {
 
       try {
         await mobileAds().initialize();
+        console.log('Mobile Ads SDK initialized.');
       } catch (initError) {
         console.warn('Ads initialization warning:', initError);
       }
@@ -49,16 +50,16 @@ class AdService {
       });
 
       if (!adUnitId) {
-        throw new Error('No valid ad unit ID found for this platform');
+        throw new Error('No valid Ad Unit ID found for this platform.');
       }
 
       this.rewardedAd = RewardedAd.createForAdRequest(adUnitId);
 
-      // Load the first ad with a delay
+      // Load the first ad with a delay to ensure initialization completeness
       setTimeout(() => this.loadAd(), 2000);
-      
+
       this.isInitialized = true;
-      console.log('AdMob initialized successfully');
+      console.log('AdMob initialized successfully.');
     } catch (error) {
       console.warn('Non-critical error initializing ads:', error);
       this.isInitialized = false;
@@ -104,7 +105,7 @@ class AdService {
 
   async showRewardedAd(): Promise<boolean> {
     if (!this.isInitialized || !this.rewardedAd) {
-      console.log('Ad not initialized');
+      console.log('Ad not initialized. Attempting to reinitialize...');
       // Try to reinitialize
       try {
         await this.initialize();
