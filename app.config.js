@@ -59,18 +59,6 @@ module.exports = ({ config }) => {
                 "CAMERA",
                 "INTERNET",
                 "ACCESS_NETWORK_STATE"
-            ],
-            intentFilters: [
-                {
-                    action: "VIEW",
-                    autoVerify: true,
-                    data: [
-                        {
-                            scheme: "pureplate"
-                        }
-                    ],
-                    category: ["BROWSABLE", "DEFAULT"]
-                }
             ]
         },
         ios: {
@@ -97,7 +85,9 @@ module.exports = ({ config }) => {
                     targetSdkVersion: 34,
                     buildToolsVersion: "34.0.0",
                     minSdkVersion: 23,
-                    hermesEnabled: true
+                    hermesEnabled: true,
+                    kotlinVersion: "1.8.0",
+                    enableProguardInReleaseBuilds: true
                 },
                 ios: {
                     deploymentTarget: "13.4",

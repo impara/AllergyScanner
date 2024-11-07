@@ -11,14 +11,10 @@ import { LanguageProvider } from './src/context/LanguageContext';
 import { View, ActivityIndicator, Platform } from 'react-native';
 import { initializeFirebase } from './src/config/firebase';
 import { LogBox } from 'react-native';
-
-// Import AdService based on platform
 import { adService } from './src/services/ads';
-
-// Import Google Sign-In
 import { initializeGoogleSignIn } from './src/config/googleSignIn';
 
-// Ignore specific warnings (optional)
+// Ignore specific warnings
 LogBox.ignoreLogs(['Setting a timer for a long period of time']);
 
 // Create a custom theme that extends MD3LightTheme
@@ -51,22 +47,19 @@ const App: React.FC = () => {
         initializeGoogleSignIn();
         console.log('Google Sign-In initialized successfully.');
 
+        // Set app as ready
+        setAppReady(true);
+
         // Initialize Ads if not on web
         if (Platform.OS !== 'web') {
-          adService.initialize().then(() => {
-            console.log('Ads initialized successfully.');
-          }).catch(error => {
-            // Log the error but don't prevent app from loading
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          await adService.initialize().catch(error => {
             console.warn('Ad initialization failed:', error);
           });
         }
-
-        // Set app as ready even if ads fail
-        setAppReady(true);
       } catch (error) {
         console.error('Critical initialization error:', error);
-        // You might want to show an error screen here
-        setAppReady(true); // Still set app as ready to not block the user
+        setAppReady(true);
       }
     };
 

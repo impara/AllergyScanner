@@ -28,35 +28,57 @@ class AdService {
 
     try {
       console.log('Initializing Google Mobile Ads SDK...');
-      // Add delay before initialization to ensure JS engine is ready
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Shorter delays for development builds
+      const initDelay = __DEV__ ? 1000 : 3000;
+      await new Promise(resolve => setTimeout(resolve, initDelay));
 
+      // Set configuration before initialization
       await mobileAds().setRequestConfiguration({
         maxAdContentRating: MaxAdContentRating.PG,
         tagForChildDirectedTreatment: false,
         tagForUnderAgeOfConsent: false,
       });
 
-      try {
+      // Initialize immediately in dev mode
+      if (__DEV__) {
         await mobileAds().initialize();
-        console.log('Mobile Ads SDK initialized.');
-      } catch (initError) {
-        console.warn('Ads initialization warning:', initError);
+        console.log('Mobile Ads SDK initialized in dev mode');
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        try {
+          await mobileAds().initialize();
+        } catch (initError) {
+          console.warn('Ads initialization warning:', initError);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          await mobileAds().initialize();
+        }
       }
 
-      const adUnitId = Platform.select({
-        ios: __DEV__ ? TestIds.REWARDED : ADMOB_IOS_REWARDED_AD_UNIT_ID,
-        android: __DEV__ ? TestIds.REWARDED : ADMOB_ANDROID_REWARDED_AD_UNIT_ID,
-      });
+      // Always use test IDs in development
+      const adUnitId = __DEV__ 
+        ? TestIds.REWARDED 
+        : Platform.select({
+            ios: ADMOB_IOS_REWARDED_AD_UNIT_ID,
+            android: ADMOB_ANDROID_REWARDED_AD_UNIT_ID,
+          });
 
       if (!adUnitId) {
         throw new Error('No valid Ad Unit ID found for this platform.');
       }
 
-      this.rewardedAd = RewardedAd.createForAdRequest(adUnitId);
+      // Create ad request immediately in dev mode
+      this.rewardedAd = RewardedAd.createForAdRequest(adUnitId, {
+        requestNonPersonalizedAdsOnly: true,
+        keywords: ['test']
+      });
 
-      // Load the first ad with a delay to ensure initialization completeness
-      setTimeout(() => this.loadAd(), 2000);
+      // Load first ad
+      if (__DEV__) {
+        this.loadAd();
+      } else {
+        setTimeout(() => this.loadAd(), 3000);
+      }
 
       this.isInitialized = true;
       console.log('AdMob initialized successfully.');

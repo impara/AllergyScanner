@@ -16,10 +16,16 @@ export const initializeGoogleSignIn = () => {
         console.warn('Web Client ID not configured');
     }
 
+    console.log('Initializing Google Sign-In with:', {
+        iosClientId: GOOGLE_IOS_CLIENT_ID,
+        webClientId: GOOGLE_EXPO_CLIENT_ID,
+        platform: Platform.OS
+    });
+
     GoogleSignin.configure({
         iosClientId: GOOGLE_IOS_CLIENT_ID,
-        webClientId: GOOGLE_EXPO_CLIENT_ID, // Required for Firebase auth to work
-        offlineAccess: true,
+        webClientId: GOOGLE_EXPO_CLIENT_ID,
+        offlineAccess: true
     });
 };
 

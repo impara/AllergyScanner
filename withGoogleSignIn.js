@@ -8,6 +8,12 @@ const withGoogleSignIn = (config) => {
     const googleServicesJson = process.env.GOOGLE_SERVICES_JSON;
     const googleServiceInfoPlist = process.env.GOOGLE_SERVICE_INFO_PLIST;
 
+    // Add debug logging
+    console.log('Google Services Config:', {
+        hasAndroidConfig: !!googleServicesJson,
+        hasIOSConfig: !!googleServiceInfoPlist
+    });
+
     if (!googleServicesJson && !googleServiceInfoPlist) {
         console.warn('Google Services environment variables are not set.');
         return config;
