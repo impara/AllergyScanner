@@ -43,6 +43,9 @@ module.exports = ({ config }) => {
         android: {
             package: "com.impara1.pureplate",
             versionCode: 1,
+            runtimeVersion: {
+                policy: "appVersion"
+            },
             adaptiveIcon: {
                 foregroundImage: "./assets/icons/icon_1024x1024.png",
                 backgroundColor: "#FFFFFF"
@@ -80,5 +83,8 @@ module.exports = ({ config }) => {
                 userTrackingPermission: "This identifier will be used to deliver personalized ads to you."
             }]
         ],
+        updates: {
+            url: "https://u.expo.dev/c2ceb6a3-210e-4d75-b3cf-38878dd25b98"
+        },
     };
 };
