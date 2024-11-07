@@ -17,6 +17,7 @@ class AdService {
   private rewardedAd: RewardedAd | null = null;
   private unsubscribeCallbacks: (() => void)[] = [];
   private isInitialized: boolean = false;
+  private isLoading: boolean = false;
 
   async initialize() {
     if (Platform.OS === 'web') {
@@ -56,12 +57,14 @@ class AdService {
   }
 
   private async loadAd(): Promise<void> {
-    if (!this.rewardedAd) return;
+    if (!this.rewardedAd || this.isLoading) return;
 
-    return new Promise((resolve) => {
+    this.isLoading = true;
+    return new Promise((resolve, reject) => {
       const unsubscribeLoaded = this.rewardedAd?.addAdEventListener(
         RewardedAdEventType.LOADED,
         () => {
+          this.isLoading = false;
           if (unsubscribeLoaded) {
             unsubscribeLoaded();
             this.unsubscribeCallbacks = this.unsubscribeCallbacks.filter(cb => cb !== unsubscribeLoaded);
@@ -73,12 +76,13 @@ class AdService {
       const unsubscribeError = this.rewardedAd?.addAdEventListener(
         AdEventType.ERROR,
         (error) => {
+          this.isLoading = false;
           console.error('Ad loading error:', error);
           if (unsubscribeError) {
             unsubscribeError();
             this.unsubscribeCallbacks = this.unsubscribeCallbacks.filter(cb => cb !== unsubscribeError);
           }
-          resolve();
+          reject(error);
         }
       );
 
@@ -142,6 +146,11 @@ class AdService {
     
     // Clear the rewarded ad
     this.rewardedAd = null;
+  }
+
+  // Add a method to check if ad is ready
+  isAdReady(): boolean {
+    return this.rewardedAd !== null && !this.isLoading;
   }
 }
 

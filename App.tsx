@@ -39,37 +39,25 @@ const paperTheme = {
 };
 
 const App: React.FC = () => {
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isFirebaseInitialized, setFirebaseInitialized] = useState(false);
 
   useEffect(() => {
-    const initializeServices = async () => {
+    const initializeApp = async () => {
       try {
-        // Initialize Firebase first
         await initializeFirebase();
-
-        // Initialize AdService
-        if (Platform.OS !== 'web' && AdService.initialize) {
-          try {
-            await AdService.initialize();
-            console.log('AdService initialized successfully');
-          } catch (error) {
-            console.error('AdService initialization failed:', error);
-          }
-        }
+        setFirebaseInitialized(true);
       } catch (error) {
-        console.error('Error initializing services:', error);
-      } finally {
-        setIsInitialized(true);
+        console.error('Failed to initialize Firebase:', error);
       }
     };
 
-    initializeServices();
+    initializeApp();
   }, []);
 
-  if (!isInitialized) {
+  if (!isFirebaseInitialized) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" />
       </View>
     );
   }
