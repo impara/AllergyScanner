@@ -164,9 +164,15 @@ export const updateUserIngredients = async (ingredients: IngredientsProfile) => 
   }
 };
 
-export const initializeFirebase = () => {
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+export const initializeFirebase = async () => {
+  try {
+    if (!firebase.apps.length) {
+      await firebase.initializeApp(firebaseConfig);
+      console.log('Firebase initialized successfully');
+    }
+  } catch (error) {
+    console.error('Firebase initialization error:', error);
+    throw error;
   }
 };
 

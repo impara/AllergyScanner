@@ -60,7 +60,7 @@ class AdService {
 
     return new Promise((resolve) => {
       const unsubscribeLoaded = this.rewardedAd?.addAdEventListener(
-        AdEventType.LOADED,
+        RewardedAdEventType.LOADED,
         () => {
           if (unsubscribeLoaded) {
             unsubscribeLoaded();
