@@ -21,9 +21,11 @@ export default {
                 foregroundImage: './assets/icons/adaptive-icon.png',
                 backgroundColor: '#ffffff',
             },
+            jsEngine: "hermes",
         },
         ios: {
-            bundleIdentifier: "com.pureplate"
+            bundleIdentifier: "com.pureplate",
+            jsEngine: "hermes",
         },
         plugins: [
             [
@@ -70,6 +72,7 @@ export default {
             FOOD_REPO_API_KEY: process.env.FOOD_REPO_API_KEY || null,
             ADMOB_ANDROID_REWARDED_AD_UNIT_ID: process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID || null,
             ADMOB_IOS_REWARDED_AD_UNIT_ID: process.env.ADMOB_IOS_REWARDED_AD_UNIT_ID || null,
+            DATABASE_URL: process.env.FIREBASE_DATABASE_URL || null,
         },
     },
 };

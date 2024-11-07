@@ -48,7 +48,7 @@ const App: React.FC = () => {
     const initializeServices = async () => {
       try {
         // Initialize Firebase first
-        initializeFirebase();
+        await initializeFirebase();
         console.log('Firebase initialized successfully');
 
         // Then initialize AdService
@@ -58,6 +58,7 @@ const App: React.FC = () => {
             console.log('AdService initialized successfully');
           } catch (error) {
             console.error('AdService initialization failed:', error);
+            // Continue with app initialization even if ads fail
           }
         }
       } catch (error) {

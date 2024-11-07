@@ -1,6 +1,6 @@
 // src/config/firebase.ts
 
-import { initializeApp, getApps } from 'firebase/app';
+import { initializeApp, getApps, FirebaseOptions } from 'firebase/app';
 import {
   getAuth,
   GoogleAuthProvider,
@@ -12,7 +12,6 @@ import {
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import Constants from 'expo-constants';
 import i18n from '../localization/i18n';
-import firebase from '@react-native-firebase/app';
 
 const {
   FIREBASE_API_KEY,
@@ -22,9 +21,10 @@ const {
   FIREBASE_MESSAGING_SENDER_ID,
   FIREBASE_APP_ID,
   FIREBASE_MEASUREMENT_ID,
+  DATABASE_URL,
 } = (Constants as any).expoConfig?.extra || {};
 
-const firebaseConfig = {
+const firebaseConfig: FirebaseOptions = {
   apiKey: FIREBASE_API_KEY,
   authDomain: FIREBASE_AUTH_DOMAIN,
   projectId: FIREBASE_PROJECT_ID,
@@ -32,11 +32,20 @@ const firebaseConfig = {
   messagingSenderId: FIREBASE_MESSAGING_SENDER_ID,
   appId: FIREBASE_APP_ID,
   measurementId: FIREBASE_MEASUREMENT_ID,
+  databaseURL: DATABASE_URL,
 };
 
-if (!getApps().length) {
-  initializeApp(firebaseConfig);
-}
+export const initializeFirebase = async () => {
+  try {
+    if (!getApps().length) {
+      initializeApp(firebaseConfig);
+      console.log('Firebase initialized successfully');
+    }
+  } catch (error) {
+    console.error('Firebase initialization error:', error);
+    throw error;
+  }
+};
 
 const auth = getAuth();
 const db = getFirestore();
@@ -160,18 +169,6 @@ export const updateUserIngredients = async (ingredients: IngredientsProfile) => 
     console.log('Ingredients updated successfully.');
   } catch (error) {
     console.error('Error updating ingredients:', error);
-    throw error;
-  }
-};
-
-export const initializeFirebase = async () => {
-  try {
-    if (!firebase.apps.length) {
-      await firebase.initializeApp(firebaseConfig);
-      console.log('Firebase initialized successfully');
-    }
-  } catch (error) {
-    console.error('Firebase initialization error:', error);
     throw error;
   }
 };

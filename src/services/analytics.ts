@@ -1,11 +1,14 @@
-import analytics from '@react-native-firebase/analytics';
+import { getAnalytics, logEvent as firebaseLogEvent } from 'firebase/analytics';
+import { getApp } from 'firebase/app';
+
+const analytics = getAnalytics(getApp());
 
 export const logEvent = async (eventName: string, params?: Record<string, any>) => {
   try {
     if (__DEV__) {
       console.log('Analytics Event:', eventName, params);
     }
-    await analytics().logEvent(eventName, params);
+    await firebaseLogEvent(analytics, eventName, params);
   } catch (error) {
     console.error('Analytics error:', error);
   }
