@@ -15,6 +15,9 @@ import { LogBox } from 'react-native';
 // Import AdService based on platform
 import { adService } from './src/services/ads';
 
+// Import Google Sign-In
+import { initializeGoogleSignIn } from './src/config/googleSignIn';
+
 // Ignore specific warnings (optional)
 LogBox.ignoreLogs(['Setting a timer for a long period of time']);
 
@@ -44,7 +47,11 @@ const App: React.FC = () => {
         await initializeFirebase();
         console.log('Firebase initialized successfully.');
 
-        // Initialize Ads if not on web, but don't wait for it
+        // Initialize Google Sign-In
+        initializeGoogleSignIn();
+        console.log('Google Sign-In initialized successfully.');
+
+        // Initialize Ads if not on web
         if (Platform.OS !== 'web') {
           adService.initialize().then(() => {
             console.log('Ads initialized successfully.');

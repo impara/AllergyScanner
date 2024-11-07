@@ -60,6 +60,18 @@ module.exports = ({ config }) => {
                 "INTERNET",
                 "ACCESS_NETWORK_STATE"
             ],
+            intentFilters: [
+                {
+                    action: "VIEW",
+                    autoVerify: true,
+                    data: [
+                        {
+                            scheme: "pureplate"
+                        }
+                    ],
+                    category: ["BROWSABLE", "DEFAULT"]
+                }
+            ]
         },
         ios: {
             bundleIdentifier: "com.pureplate",
@@ -68,7 +80,10 @@ module.exports = ({ config }) => {
             infoPlist: {
                 CFBundleURLTypes: [
                     {
-                        CFBundleURLSchemes: ['pureplate']
+                        CFBundleURLSchemes: [
+                            "pureplate",
+                            "com.googleusercontent.apps.474564174366-nrjoiqf0n76rqstngp2a9pnvnq89na4j"
+                        ]
                     }
                 ]
             }

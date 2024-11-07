@@ -2,6 +2,7 @@
 import React, { createContext, useState, ReactNode, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import auth from '@react-native-firebase/auth';
+import { signOutGoogle } from '../config/googleSignIn';
 
 type AuthContextType = {
   isAuthenticated: boolean;
@@ -37,6 +38,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       console.log('Signing out user...');
       await auth().signOut();
+      await signOutGoogle();
       console.log('User signed out');
     } catch (error) {
       console.error('Error signing out:', error);

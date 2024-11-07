@@ -14,7 +14,6 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from '../../config/firebase';
-import * as WebBrowser from 'expo-web-browser';
 import Toast from '../../components/Toast';
 import { spacing, shadows, typography } from '../../theme/theme';
 import { colors } from '../../theme/colors';
@@ -23,22 +22,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import i18n from '../../localization/i18n';
-import {
-  makeRedirectUri,
-  ResponseType,
-  GoogleAuthRequestConfig,
-} from 'expo-auth-session';
-import { useAuthRequest } from 'expo-auth-session/providers/google';
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
-import { Linking } from 'react-native';
+import { statusCodes } from '@react-native-google-signin/google-signin';
+import { signInWithGoogle } from '../../config/googleSignIn';
 
 const {
   GOOGLE_EXPO_CLIENT_ID,
   GOOGLE_ANDROID_CLIENT_ID,
   GOOGLE_IOS_CLIENT_ID,
 } = (Constants as any).expoConfig?.extra || {};
-
-WebBrowser.maybeCompleteAuthSession();
 
 const AuthScreen: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -47,136 +38,25 @@ const AuthScreen: React.FC = () => {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
 
-  // Configure Google Sign-In for Android
-  useEffect(() => {
-    if (Platform.OS === 'android') {
-      GoogleSignin.configure({
-        webClientId: GOOGLE_EXPO_CLIENT_ID,
-        offlineAccess: true,
-        forceCodeForRefreshToken: true,
-      });
-    }
-  }, []);
-
-  // Expo Auth Session setup for non-Android platforms
-  const redirectUri = makeRedirectUri({
-    scheme: 'pureplate',
-    path: 'oauth2redirect',
-  });
-
-  console.log('Platform:', Platform.OS);
-  console.log('Redirect URI:', redirectUri);
-  console.log('Development mode:', __DEV__);
-
-  const config: Partial<GoogleAuthRequestConfig> = {
-    webClientId: GOOGLE_EXPO_CLIENT_ID,
-    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
-    iosClientId: GOOGLE_IOS_CLIENT_ID,
-    redirectUri,
-    responseType: ResponseType.IdToken,
-    scopes: ['openid', 'profile', 'email'],
-    extraParams: {
-      access_type: 'offline',
-    },
-  };
-
-  const [request, response, promptAsync] = useAuthRequest(config);
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { id_token } = response.params;
-      handleGoogleSignInSuccess(id_token);
-    } else if (response?.type === 'error') {
-      console.error('Auth Error:', response.error);
-      showToast(i18n.t('auth.googleSignInFailed'));
-    }
-  }, [response]);
-
-  const handleGoogleSignInSuccess = async (idToken?: string) => {
-    if (!idToken) {
-      showToast(i18n.t('auth.googleSignInFailed'));
-      return;
-    }
+  const handleGoogleSignIn = async () => {
     try {
-      await signInWithGoogleCredential(idToken);
-      showToast(i18n.t('auth.googleSignInSuccess'));
-    } catch (error) {
-      console.error('Google Sign-In error:', error);
-      showToast(i18n.t('auth.googleSignInFailed'));
-    }
-  };
-
-  // Function to handle Google Sign-In using Credential Manager API on Android
-  const handleGoogleSignInAndroid = async () => {
-    try {
-      console.log('Starting Google Sign-In...');
-      await GoogleSignin.hasPlayServices();
-      console.log('Play Services check passed');
-
-      const signInResult = await GoogleSignin.signIn();
-      console.log('Sign in result:', signInResult);
-
-      const { idToken, accessToken } = await GoogleSignin.getTokens();
-      console.log('Tokens retrieved:', { idToken: !!idToken, accessToken: !!accessToken });
-      
+      const { idToken, accessToken } = await signInWithGoogle();
       if (idToken) {
         await signInWithGoogleCredential(idToken, accessToken);
         showToast(i18n.t('auth.googleSignInSuccess'));
-      } else {
-        throw new Error('No ID token found');
       }
     } catch (error: any) {
-      console.error('Detailed Google Sign-In error:', {
-        code: error.code,
-        message: error.message,
-        stack: error.stack,
-      });
+      console.error('Google Sign-In error:', error);
       
       // Handle specific error cases
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
         console.log('User cancelled the login flow');
-        return; // Don't show error toast for user cancellation
-      } else if (error.code === statusCodes.IN_PROGRESS) {
-        console.log('Sign in is in progress already');
+        return;
       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        console.log('Play Services not available or outdated');
         showToast(i18n.t('auth.playServicesUnavailable'));
       } else {
-        console.error('Google Sign-In error:', error);
         showToast(i18n.t('auth.googleSignInFailed'));
       }
-      throw error; // Re-throw the error to be handled by the caller
-    }
-  };
-
-  // Unified Google Sign-In handler
-  const handleGoogleSignIn = async () => {
-    try {
-      if (Platform.OS === 'android') {
-        await handleGoogleSignInAndroid();
-      } else {
-        // Existing Expo Auth Session method for iOS and web
-        if (!request) {
-          showToast('Google Sign-In not ready');
-          return;
-        }
-
-        const options = Platform.OS === 'web'
-          ? {
-              windowFeatures: {
-                width: 500,
-                height: 600,
-                centerScreen: true,
-                popup: true,
-              },
-            }
-          : undefined;
-
-        await promptAsync(options);
-      }
-    } catch (error) {
-      // Only log the error here, don't show toast since it's already handled in the specific handlers
-      console.error('Google Sign-In wrapper error:', error);
     }
   };
 
@@ -213,14 +93,6 @@ const AuthScreen: React.FC = () => {
       text: colors.text,
     },
   };
-
-  useEffect(() => {
-    return () => {
-      if (Platform.OS !== 'web') {
-        WebBrowser.dismissBrowser();
-      }
-    };
-  }, []);
 
   return (
     <PaperProvider theme={{ colors: { primary: colors.primary } }}>
@@ -278,7 +150,6 @@ const AuthScreen: React.FC = () => {
               contentStyle={styles.buttonContent}
               labelStyle={[styles.buttonLabel, { color: colors.primary }]}
               icon="google"
-              disabled={Platform.OS === 'android' ? false : !request}
             >
               {i18n.t('auth.googleSignIn')}
             </Button>

@@ -27,19 +27,10 @@ const withGoogleSignIn = (config) => {
                     // Decode base64 content
                     const decodedJson = Buffer.from(googleServicesJson, 'base64').toString('utf-8');
 
-                    // Ensure android/app directory exists
-                    const androidAppDir = path.join(modRequest.projectRoot, 'android', 'app');
-                    if (!fs.existsSync(androidAppDir)) {
-                        fs.mkdirSync(androidAppDir, { recursive: true });
-                    }
-
                     // Write to android/app/google-services.json
-                    const androidPath = path.join(androidAppDir, 'google-services.json');
-                    fs.writeFileSync(androidPath, decodedJson);
-
-                    // Also write to project root for compatibility
-                    const rootPath = path.join(modRequest.projectRoot, 'google-services.json');
-                    fs.writeFileSync(rootPath, decodedJson);
+                    const androidAppDir = path.join(modRequest.projectRoot, 'android', 'app');
+                    fs.mkdirSync(androidAppDir, { recursive: true });
+                    fs.writeFileSync(path.join(androidAppDir, 'google-services.json'), decodedJson);
 
                     console.log('Successfully wrote google-services.json');
                 } catch (error) {
@@ -65,19 +56,10 @@ const withGoogleSignIn = (config) => {
                     // Decode base64 content
                     const decodedPlist = Buffer.from(googleServiceInfoPlist, 'base64').toString('utf-8');
 
-                    // Ensure ios directory exists
+                    // Write to ios directory
                     const iosDir = path.join(modRequest.projectRoot, 'ios');
-                    if (!fs.existsSync(iosDir)) {
-                        fs.mkdirSync(iosDir, { recursive: true });
-                    }
-
-                    // Write to ios/GoogleService-Info.plist
-                    const iosPath = path.join(iosDir, 'GoogleService-Info.plist');
-                    fs.writeFileSync(iosPath, decodedPlist);
-
-                    // Also write to project root for compatibility
-                    const rootPath = path.join(modRequest.projectRoot, 'GoogleService-Info.plist');
-                    fs.writeFileSync(rootPath, decodedPlist);
+                    fs.mkdirSync(iosDir, { recursive: true });
+                    fs.writeFileSync(path.join(iosDir, 'GoogleService-Info.plist'), decodedPlist);
 
                     console.log('Successfully wrote GoogleService-Info.plist');
                 } catch (error) {
