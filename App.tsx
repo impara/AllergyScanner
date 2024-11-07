@@ -11,9 +11,6 @@ import { LanguageProvider } from './src/context/LanguageContext';
 import { View, ActivityIndicator, Platform } from 'react-native';
 import { initializeFirebase } from './src/config/firebase';
 
-// Initialize Firebase at app startup
-initializeFirebase();
-
 // Define a type for the ad service
 interface AdServiceType {
   initialize?: () => Promise<void>;
@@ -47,6 +44,9 @@ const App: React.FC = () => {
   useEffect(() => {
     const initializeServices = async () => {
       try {
+        // Initialize Firebase first
+        await initializeFirebase();
+
         // Initialize AdService
         if (Platform.OS !== 'web' && AdService.initialize) {
           try {
@@ -54,7 +54,6 @@ const App: React.FC = () => {
             console.log('AdService initialized successfully');
           } catch (error) {
             console.error('AdService initialization failed:', error);
-            // Continue with app initialization even if ads fail
           }
         }
       } catch (error) {

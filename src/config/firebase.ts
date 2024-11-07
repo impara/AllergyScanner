@@ -40,21 +40,45 @@ const firebaseConfig: FirebaseOptions = {
  * Initializes Firebase App and Analytics.
  * Should be called once during app startup.
  */
-export const initializeFirebase = () => {
+export const initializeFirebase = async () => {
   try {
     if (!getApps().length) {
-      initializeApp(firebaseConfig);
+      const app = initializeApp(firebaseConfig);
       console.log('Firebase initialized successfully');
-      initializeAnalytics(); // Initialize Analytics here
+      
+      // Initialize Analytics after Firebase is initialized
+      try {
+        await initializeAnalytics();
+      } catch (error) {
+        console.error('Analytics initialization error:', error);
+        // Continue even if analytics fails
+      }
+      
+      return app;
     }
+    return getApps()[0];
   } catch (error) {
     console.error('Firebase initialization error:', error);
     throw error;
   }
 };
 
-const auth = getAuth();
-const db = getFirestore();
+let auth: any;
+let db: any;
+
+export const getFirebaseAuth = () => {
+  if (!auth) {
+    auth = getAuth();
+  }
+  return auth;
+};
+
+export const getFirebaseDb = () => {
+  if (!db) {
+    db = getFirestore();
+  }
+  return db;
+};
 
 export type IngredientsProfile = Record<string, {
   selected: boolean;
@@ -64,6 +88,8 @@ export type IngredientsProfile = Record<string, {
 }>;
 
 export const signInWithGoogleCredential = async (idToken: string, accessToken?: string) => {
+  const auth = getFirebaseAuth();
+  const db = getFirebaseDb();
   try {
     if (!idToken) {
       throw new Error('No ID token provided');
@@ -105,6 +131,7 @@ export const signInWithGoogleCredential = async (idToken: string, accessToken?: 
 };
 
 export const signInWithEmailAndPassword = async (email: string, password: string) => {
+  const auth = getFirebaseAuth();
   try {
     await firebaseSignInWithEmailAndPassword(auth, email, password);
   } catch (error: any) {
@@ -127,11 +154,12 @@ export const signInWithEmailAndPassword = async (email: string, password: string
 };
 
 export const createUserWithEmailAndPassword = async (email: string, password: string) => {
+  const auth = getFirebaseAuth();
   try {
     const userCredential = await firebaseCreateUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    const userDocRef = doc(db, 'users', user.uid);
+    const userDocRef = doc(getFirebaseDb(), 'users', user.uid);
     await setDoc(userDocRef, { ingredients: {} }, { merge: true });
 
   } catch (error: any) {
@@ -153,23 +181,23 @@ export const createUserWithEmailAndPassword = async (email: string, password: st
 };
 
 export const signOut = () => {
-  return firebaseSignOut(auth);
+  return firebaseSignOut(getFirebaseAuth());
 };
 
 export const getUserIngredients = async (): Promise<IngredientsProfile> => {
-  if (!auth.currentUser) {
+  if (!getFirebaseAuth().currentUser) {
     throw new Error('No user is signed in');
   }
-  const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+  const userDoc = await getDoc(doc(getFirebaseDb(), 'users', getFirebaseAuth().currentUser.uid));
   return userDoc.data()?.ingredients || {};
 };
 
 export const updateUserIngredients = async (ingredients: IngredientsProfile) => {
-  if (!auth.currentUser) {
+  if (!getFirebaseAuth().currentUser) {
     throw new Error('No user is signed in');
   }
   try {
-    const userDocRef = doc(db, 'users', auth.currentUser.uid);
+    const userDocRef = doc(getFirebaseDb(), 'users', getFirebaseAuth().currentUser.uid);
     // Replace the entire 'ingredients' object instead of merging
     await setDoc(userDocRef, { ingredients }, { merge: false });
     console.log('Ingredients updated successfully.');
@@ -178,5 +206,3 @@ export const updateUserIngredients = async (ingredients: IngredientsProfile) => 
     throw error;
   }
 };
-
-export { auth, db };
