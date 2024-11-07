@@ -9,6 +9,10 @@ import { theme, colors } from './src/theme';
 import { AuthProvider } from './src/context/AuthContext';
 import { LanguageProvider } from './src/context/LanguageContext';
 import { View, ActivityIndicator, Platform } from 'react-native';
+import { initializeFirebase } from './src/config/firebase';
+
+// Initialize Firebase at app startup
+initializeFirebase();
 
 // Define a type for the ad service
 interface AdServiceType {

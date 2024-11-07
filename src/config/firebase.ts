@@ -12,6 +12,7 @@ import {
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import Constants from 'expo-constants';
 import i18n from '../localization/i18n';
+import firebase from '@react-native-firebase/app';
 
 const {
   FIREBASE_API_KEY,
@@ -160,6 +161,12 @@ export const updateUserIngredients = async (ingredients: IngredientsProfile) => 
   } catch (error) {
     console.error('Error updating ingredients:', error);
     throw error;
+  }
+};
+
+export const initializeFirebase = () => {
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
   }
 };
 
