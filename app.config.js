@@ -46,7 +46,7 @@ module.exports = ({ config }) => {
             backgroundColor: "#ffffff"
         },
         android: {
-            package: "com.impara1.pureplate",
+            package: "com.pureplate",
             versionCode: 1,
             runtimeVersion: {
                 policy: "appVersion"
@@ -62,9 +62,16 @@ module.exports = ({ config }) => {
             ],
         },
         ios: {
-            bundleIdentifier: "com.impara1.pureplate",
+            bundleIdentifier: "com.pureplate",
             buildNumber: "1",
-            deploymentTarget: "13.4"
+            deploymentTarget: "13.4",
+            infoPlist: {
+                CFBundleURLTypes: [
+                    {
+                        CFBundleURLSchemes: ['pureplate']
+                    }
+                ]
+            }
         },
         plugins: [
             ...(config.plugins || []),
@@ -74,10 +81,12 @@ module.exports = ({ config }) => {
                     compileSdkVersion: 34,
                     targetSdkVersion: 34,
                     buildToolsVersion: "34.0.0",
-                    minSdkVersion: 23
+                    minSdkVersion: 23,
+                    hermesEnabled: true
                 },
                 ios: {
-                    deploymentTarget: "13.4"
+                    deploymentTarget: "13.4",
+                    hermesEnabled: true
                 }
             }],
             ["@react-native-google-signin/google-signin"],

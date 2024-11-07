@@ -30,6 +30,7 @@ import {
 } from 'expo-auth-session';
 import { useAuthRequest } from 'expo-auth-session/providers/google';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import { Linking } from 'react-native';
 
 const {
   GOOGLE_EXPO_CLIENT_ID,

@@ -25,6 +25,7 @@ ios/build/
 # Expo and EAS configuration files
 app.json
 google-services.json
+GoogleService-Info.plist
 
 # Environment and secret files
 .env

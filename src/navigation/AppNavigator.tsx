@@ -5,7 +5,7 @@ import AuthNavigator from './AuthNavigator';
 import AppStackNavigator from './AppStackNavigator';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthContext } from '../context/AuthContext';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
 
 const AppNavigator: React.FC = () => {
   const { isAuthenticated, loading } = useContext(AuthContext);
