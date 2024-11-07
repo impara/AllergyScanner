@@ -40,17 +40,23 @@ const App: React.FC = () => {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // Initialize Firebase
+        // Initialize Firebase first
         await initializeFirebase();
 
-        // Initialize Ads if not on web
+        // Initialize Ads if not on web, but don't wait for it
         if (Platform.OS !== 'web') {
-          await adService.initialize();
+          adService.initialize().catch(error => {
+            // Log the error but don't prevent app from loading
+            console.warn('Ad initialization failed:', error);
+          });
         }
 
+        // Set app as ready even if ads fail
         setAppReady(true);
       } catch (error) {
-        console.error('Failed to initialize app:', error);
+        console.error('Critical initialization error:', error);
+        // You might want to show an error screen here
+        setAppReady(true); // Still set app as ready to not block the user
       }
     };
 

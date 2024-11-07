@@ -17,8 +17,8 @@ const {
 class AdService {
   private rewardedAd: RewardedAd | null = null;
   private unsubscribeCallbacks: (() => void)[] = [];
-  private isInitialized: boolean = false;
-  private isLoading: boolean = false;
+  public isLoading: boolean = false;
+  public isInitialized: boolean = false;
 
   async initialize() {
     if (Platform.OS === 'web') {
@@ -27,32 +27,41 @@ class AdService {
     }
 
     try {
-      // Initialize the Mobile Ads SDK
-      await mobileAds()
-        .setRequestConfiguration({
-          maxAdContentRating: MaxAdContentRating.PG,
-          tagForChildDirectedTreatment: false,
-          tagForUnderAgeOfConsent: false,
-        })
-        .then(() => {
-          return mobileAds().initialize();
-        });
+      // Add delay before initialization
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Fix the promise chain
+      await mobileAds().setRequestConfiguration({
+        maxAdContentRating: MaxAdContentRating.PG,
+        tagForChildDirectedTreatment: false,
+        tagForUnderAgeOfConsent: false,
+      });
+
+      try {
+        await mobileAds().initialize();
+      } catch (initError) {
+        console.warn('Ads initialization warning:', initError);
+      }
 
       const adUnitId = Platform.select({
         ios: __DEV__ ? TestIds.REWARDED : ADMOB_IOS_REWARDED_AD_UNIT_ID,
         android: __DEV__ ? TestIds.REWARDED : ADMOB_ANDROID_REWARDED_AD_UNIT_ID,
       });
 
-      this.rewardedAd = RewardedAd.createForAdRequest(adUnitId!);
+      if (!adUnitId) {
+        throw new Error('No valid ad unit ID found for this platform');
+      }
 
-      // Load the first ad
-      await this.loadAd();
+      this.rewardedAd = RewardedAd.createForAdRequest(adUnitId);
+
+      // Load the first ad with a delay
+      setTimeout(() => this.loadAd(), 2000);
+      
       this.isInitialized = true;
       console.log('AdMob initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize ads:', error);
+      console.warn('Non-critical error initializing ads:', error);
       this.isInitialized = false;
-      throw error;
     }
   }
 
@@ -151,6 +160,10 @@ class AdService {
   // Add a method to check if ad is ready
   isAdReady(): boolean {
     return this.rewardedAd !== null && !this.isLoading;
+  }
+
+  public getInitializationStatus(): boolean {
+    return this.isInitialized;
   }
 }
 

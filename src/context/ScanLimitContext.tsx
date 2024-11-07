@@ -80,9 +80,9 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const watchAdForScans = async () => {
     try {
-      // For web platform, automatically grant scans without showing ad
-      if (Platform.OS === 'web') {
-        console.log('[ScanLimit] Auto-granting scans on web platform');
+      // For web platform or when ads aren't initialized, automatically grant scans
+      if (Platform.OS === 'web' || !adService.getInitializationStatus()) {
+        console.log('[ScanLimit] Auto-granting scans (ads unavailable)');
         const newCount = scansRemaining + SCANS_PER_AD;
         await AsyncStorage.setItem(SCANS_REMAINING_KEY, newCount.toString());
         setScansRemaining(newCount);
@@ -103,6 +103,10 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     } catch (error) {
       console.error('[ScanLimit] Error showing rewarded ad:', error);
+      // Fallback: grant scans anyway if there's an error
+      const newCount = scansRemaining + SCANS_PER_AD;
+      await AsyncStorage.setItem(SCANS_REMAINING_KEY, newCount.toString());
+      setScansRemaining(newCount);
     }
   };
 
