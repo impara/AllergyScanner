@@ -12,6 +12,7 @@ import {
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import Constants from 'expo-constants';
 import i18n from '../localization/i18n';
+import { initializeAnalytics } from '../services/analytics'; // Import the initializeAnalytics function
 
 const {
   FIREBASE_API_KEY,
@@ -35,11 +36,16 @@ const firebaseConfig: FirebaseOptions = {
   databaseURL: DATABASE_URL,
 };
 
-export const initializeFirebase = async () => {
+/**
+ * Initializes Firebase App and Analytics.
+ * Should be called once during app startup.
+ */
+export const initializeFirebase = () => {
   try {
     if (!getApps().length) {
       initializeApp(firebaseConfig);
       console.log('Firebase initialized successfully');
+      initializeAnalytics(); // Initialize Analytics here
     }
   } catch (error) {
     console.error('Firebase initialization error:', error);

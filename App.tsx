@@ -22,7 +22,7 @@ interface AdServiceType {
 // Import ad service based on platform
 const AdService: AdServiceType = Platform.select({
   web: {},
-  default: require('./src/services/ads')
+  default: require('./src/services/ads').adService
 });
 
 // Create a custom theme that extends MD3LightTheme
@@ -47,11 +47,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const initializeServices = async () => {
       try {
-        // Initialize Firebase first
-        await initializeFirebase();
-        console.log('Firebase initialized successfully');
-
-        // Then initialize AdService
+        // Initialize AdService
         if (Platform.OS !== 'web' && AdService.initialize) {
           try {
             await AdService.initialize();
