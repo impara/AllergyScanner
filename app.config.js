@@ -30,7 +30,7 @@ module.exports = ({ config }) => {
         ADMOB_IOS_APP_ID: process.env.ADMOB_IOS_APP_ID || null,
         ADMOB_ANDROID_REWARDED_AD_UNIT_ID: process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID || null,
         ADMOB_IOS_REWARDED_AD_UNIT_ID: process.env.ADMOB_IOS_REWARDED_AD_UNIT_ID || null,
-        DATABASE_URL: process.env.DATABASE_URL || null,
+        DATABASE_URL: process.env.FIREBASE_DATABASE_URL || null,
     };
 
     return {

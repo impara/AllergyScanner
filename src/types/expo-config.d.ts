@@ -17,6 +17,9 @@ declare module 'expo-constants' {
       ADMOB_IOS_APP_ID: string;
       ADMOB_IOS_REWARDED_AD_UNIT_ID: string;
       DATABASE_URL: string;
+      eas: {
+        projectId: string;
+      };
     };
   }
 
