@@ -1,88 +1,84 @@
 // app.config.js
 require('dotenv').config();
+const { withPlugins } = require('@expo/config-plugins');
+const withGoogleSignIn = require('./withGoogleSignIn');
 
-module.exports = {
-    expo: {
-        name: 'PurePlate',
-        slug: 'pureplate',
-        version: '1.0.1',
-        owner: 'impara1',
-        runtimeVersion: '1.0.1',
-        scheme: 'pureplate',
-        icon: './assets/icons/icon_1024x1024.png',
-        splash: {
-            image: './assets/images/splash.png',
-            resizeMode: 'contain',
-            backgroundColor: '#ffffff',
+module.exports = ({ config }) => {
+    config.extra = {
+        ...config.extra,
+        eas: {
+            projectId: 'c2ceb6a3-210e-4d75-b3cf-38878dd25b98'
         },
-        assetBundlePatterns: ['assets/*', 'assets/**/*'],
+        // Environment variables for your app
+        GOOGLE_IOS_CLIENT_ID: process.env.GOOGLE_IOS_CLIENT_ID || null,
+        GOOGLE_ANDROID_CLIENT_ID: process.env.GOOGLE_ANDROID_CLIENT_ID || null,
+        GOOGLE_EXPO_CLIENT_ID: process.env.GOOGLE_EXPO_CLIENT_ID || null,
+        FIREBASE_API_KEY: process.env.FIREBASE_API_KEY || null,
+        FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN || null,
+        FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID || null,
+        FIREBASE_STORAGE_BUCKET: process.env.FIREBASE_STORAGE_BUCKET || null,
+        FIREBASE_MESSAGING_SENDER_ID: process.env.FIREBASE_MESSAGING_SENDER_ID || null,
+        FIREBASE_APP_ID: process.env.FIREBASE_APP_ID || null,
+        FIREBASE_MEASUREMENT_ID: process.env.FIREBASE_MEASUREMENT_ID || null,
+        FOOD_REPO_API_KEY: process.env.FOOD_REPO_API_KEY || null,
+        ADMOB_ANDROID_APP_ID: process.env.ADMOB_ANDROID_APP_ID || null,
+        ADMOB_IOS_APP_ID: process.env.ADMOB_IOS_APP_ID || null,
+        ADMOB_ANDROID_REWARDED_AD_UNIT_ID: process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID || null,
+        ADMOB_IOS_REWARDED_AD_UNIT_ID: process.env.ADMOB_IOS_REWARDED_AD_UNIT_ID || null,
+        DATABASE_URL: process.env.DATABASE_URL || null,
+    };
+
+    return {
+        ...config,
+        name: "PurePlate",
+        slug: "pureplate",
+        version: "1.0.1",
+        orientation: "portrait",
+        icon: "./assets/icons/icon_1024x1024.png",
+        splash: {
+            image: "./assets/images/splash.png",
+            resizeMode: "contain",
+            backgroundColor: "#ffffff"
+        },
         android: {
-            package: 'com.pureplate',
+            package: "com.impara1.pureplate",
+            versionCode: 1,
             adaptiveIcon: {
-                foregroundImage: './assets/icons/adaptive-icon.png',
-                backgroundColor: '#ffffff',
+                foregroundImage: "./assets/icons/icon_1024x1024.png",
+                backgroundColor: "#FFFFFF"
             },
-            jsEngine: 'hermes',
+            permissions: [
+                "CAMERA",
+                "INTERNET",
+                "ACCESS_NETWORK_STATE"
+            ],
         },
         ios: {
-            bundleIdentifier: 'com.pureplate',
-            jsEngine: 'hermes',
+            bundleIdentifier: "com.impara1.pureplate",
+            buildNumber: "1",
+            deploymentTarget: "13.4"
         },
         plugins: [
-            [
-                'expo-build-properties',
-                {
-                    android: {
-                        extraProguardRules: `-keepattributes *Annotation*
--dontwarn com.google.android.gms.**
--keep class com.google.android.gms.** { *; }`,
-                    },
+            ...(config.plugins || []),
+            withGoogleSignIn,
+            ["expo-build-properties", {
+                android: {
+                    compileSdkVersion: 34,
+                    targetSdkVersion: 34,
+                    buildToolsVersion: "34.0.0",
+                    minSdkVersion: 23
                 },
-            ],
-            [
-                'react-native-google-mobile-ads',
-                {
-                    androidAppId: process.env.ADMOB_ANDROID_APP_ID,
-                    iosAppId: process.env.ADMOB_IOS_APP_ID,
-                    delayAppMeasurementInit: true,
-                },
-            ],
-            [
-                '@react-native-firebase/app',
-                {
-                    // No additional config needed unless specified
-                },
-            ],
-            './withGoogleSignIn',
-            'expo-dev-client',
+                ios: {
+                    deploymentTarget: "13.4"
+                }
+            }],
+            ["@react-native-google-signin/google-signin"],
+            ["react-native-google-mobile-ads", {
+                androidAppId: process.env.ADMOB_ANDROID_APP_ID,
+                iosAppId: process.env.ADMOB_IOS_APP_ID,
+                delay: 3000,
+                userTrackingPermission: "This identifier will be used to deliver personalized ads to you."
+            }]
         ],
-        updates: {
-            enabled: true,
-            checkAutomatically: 'ON_LOAD',
-            fallbackToCacheTimeout: 0,
-            url: 'https://u.expo.dev/c2ceb6a3-210e-4d75-b3cf-38878dd25b98',
-        },
-        extra: {
-            eas: {
-                projectId: 'c2ceb6a3-210e-4d75-b3cf-38878dd25b98',
-            },
-            // Environment variables for your app
-            GOOGLE_IOS_CLIENT_ID: process.env.GOOGLE_IOS_CLIENT_ID || null,
-            GOOGLE_ANDROID_CLIENT_ID: process.env.GOOGLE_ANDROID_CLIENT_ID || null,
-            GOOGLE_EXPO_CLIENT_ID: process.env.GOOGLE_EXPO_CLIENT_ID || null,
-            FIREBASE_API_KEY: process.env.FIREBASE_API_KEY || null,
-            FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN || null,
-            FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID || null,
-            FIREBASE_STORAGE_BUCKET: process.env.FIREBASE_STORAGE_BUCKET || null,
-            FIREBASE_MESSAGING_SENDER_ID: process.env.FIREBASE_MESSAGING_SENDER_ID || null,
-            FIREBASE_APP_ID: process.env.FIREBASE_APP_ID || null,
-            FIREBASE_MEASUREMENT_ID: process.env.FIREBASE_MEASUREMENT_ID || null,
-            FOOD_REPO_API_KEY: process.env.FOOD_REPO_API_KEY || null,
-            ADMOB_ANDROID_REWARDED_AD_UNIT_ID:
-                process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID || null,
-            ADMOB_IOS_REWARDED_AD_UNIT_ID:
-                process.env.ADMOB_IOS_REWARDED_AD_UNIT_ID || null,
-            DATABASE_URL: process.env.FIREBASE_DATABASE_URL || null,
-        },
-    },
+    };
 };
