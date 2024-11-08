@@ -28,8 +28,6 @@ class AdService {
     }
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
       console.log('[AdService] Initializing Google Mobile Ads SDK...');
       
       await mobileAds().setRequestConfiguration({
@@ -38,21 +36,12 @@ class AdService {
         tagForUnderAgeOfConsent: false,
       });
 
-      let retryCount = 0;
-      const maxRetries = 3;
-      
-      while (retryCount < maxRetries) {
-        try {
-          const result = await mobileAds().initialize();
-          console.log('[AdService] SDK initialization result:', result);
-          break;
-        } catch (error) {
-          console.warn(`[AdService] Initialization attempt ${retryCount + 1} failed:`, error);
-          retryCount++;
-          if (retryCount === maxRetries) throw error;
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        }
-      }
+      const result = await Promise.race([
+        mobileAds().initialize(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Initialization timeout')), 5000)
+        )
+      ]);
 
       this.isInitialized = true;
       console.log('[AdService] SDK initialized successfully');
@@ -82,7 +71,6 @@ class AdService {
 
   private async loadAd(): Promise<void> {
     if (!this.rewardedAd || this.isLoading) {
-      console.log('[AdService] Skip loading: already loading or no ad instance');
       return this.adLoadPromise || Promise.reject('Ad not ready');
     }
 
@@ -93,7 +81,7 @@ class AdService {
       const timeoutId = setTimeout(() => {
         reject(new Error('Ad load timeout'));
         this.isLoading = false;
-      }, 30000);
+      }, 15000);
 
       const unsubscribeLoaded = this.rewardedAd?.addAdEventListener(
         RewardedAdEventType.LOADED,

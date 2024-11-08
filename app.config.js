@@ -111,15 +111,13 @@ module.exports = ({ config }) => {
             ["react-native-google-mobile-ads", {
                 androidAppId: process.env.ADMOB_ANDROID_APP_ID,
                 iosAppId: process.env.ADMOB_IOS_APP_ID,
-                delay: 3000,
+                delay: 0,
                 userTrackingPermission: "This identifier will be used to deliver personalized ads to you.",
                 android: {
-                    delayAdLoad: true,
-                    appId: process.env.ADMOB_ANDROID_APP_ID
+                    delayAdLoad: false
                 },
                 ios: {
-                    delayAdLoad: true,
-                    appId: process.env.ADMOB_IOS_APP_ID
+                    delayAdLoad: false
                 }
             }]
         ],

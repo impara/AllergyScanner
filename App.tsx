@@ -41,20 +41,17 @@ const App: React.FC = () => {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // Initialize Firebase
-        await firebase.initializeFirebase();
-        console.log('Firebase initialized successfully.');
+        // Run Firebase and Google Sign-In initialization in parallel
+        await Promise.all([
+          firebase.initializeFirebase(),
+          initializeGoogleSignIn(),
+        ]);
 
-        // Initialize Google Sign-In
-        initializeGoogleSignIn();
-        console.log('Google Sign-In initialized successfully.');
-
-        // Initialize Ads
+        // Remove the artificial delay for ads initialization
         if (Platform.OS !== 'web') {
-          await new Promise(resolve => setTimeout(resolve, 3000));
+          // Remove the setTimeout
           await adsWrapper.initialize();
           await adService.initialize();
-          console.log('Ads initialized successfully.');
         }
 
         setAppReady(true);
