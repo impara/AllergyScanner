@@ -48,10 +48,12 @@ const App: React.FC = () => {
         initializeGoogleSignIn();
         console.log('Google Sign-In initialized successfully.');
 
+        // Set app as ready before initializing ads
         setAppReady(true);
 
-        // Initialize Ads if not on web
+        // Initialize Ads after a delay
         if (Platform.OS !== 'web') {
+          await new Promise(resolve => setTimeout(resolve, 2000));
           await adService.initialize().catch(error => {
             console.warn('Ad initialization failed:', error);
           });
