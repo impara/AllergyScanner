@@ -120,11 +120,15 @@ const ScanScreen: React.FC = () => {
           i18n.t('scan.scanLimitReached'),
           i18n.t('scan.watchAdPrompt'),
           [
-            {
-              text: isAdLoading ? 'Loading...' : i18n.t('scan.watchAdButton'),
-              onPress: watchAdForScans,
-              disabled: isAdLoading
-            },
+            isAdLoading ? 
+              {
+                text: i18n.t('ads.loading'),
+                onPress: () => {}
+              } :
+              {
+                text: i18n.t('scan.watchAdButton'),
+                onPress: watchAdForScans
+              },
             {
               text: i18n.t('common.cancel'),
               style: 'cancel'
@@ -194,7 +198,7 @@ const ScanScreen: React.FC = () => {
           i18n.t('scan.productNotFoundDesc'),
           [
             {
-              text: 'OK',
+              text: i18n.t('common.ok'),
               onPress: () => {
                 setIsScanning(false);
                 setLoading(false);
@@ -378,8 +382,8 @@ const ScanScreen: React.FC = () => {
   if (hasPermission === null) {
     return (
       <View style={styles.permissionContainer}>
-        <Text>{i18n.t('scan.requestingCamera')}</Text>
-        <ActivityIndicator size="small" />
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text>{i18n.t('camera.loading')}</Text>
       </View>
     );
   }
@@ -387,9 +391,13 @@ const ScanScreen: React.FC = () => {
   if (hasPermission === false) {
     return (
       <View style={styles.permissionContainer}>
-        <Text>{i18n.t('scan.noCamera')}</Text>
-        <Text onPress={() => Linking.openSettings()} style={styles.link}>
-          {i18n.t('scan.openSettings')}
+        <Text>{i18n.t('camera.permission')}</Text>
+        <Text>{i18n.t('camera.permissionDesc')}</Text>
+        <Text
+          style={styles.link}
+          onPress={() => Linking.openSettings()}
+        >
+          {i18n.t('camera.openSettings')}
         </Text>
       </View>
     );

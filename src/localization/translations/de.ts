@@ -80,6 +80,7 @@ export default {
     nutriments: {
       title: 'Nährwertinformationen:',
       'energy-kcal': 'Kalorien: {value} {unit}',
+      'energy': 'Kalorien: {value} {unit}',
       proteins: 'Eiweiß: {value}g',
       carbohydrates: 'Kohlenhydrate: {value}g',
       fat: 'Fett: {value}g',
@@ -135,4 +136,25 @@ export default {
     ingredients: 'Zutaten',
     settings: 'Einstellungen',
   },
+  ads: {
+    loading: 'Laden...',
+    cancel: 'Abbrechen',
+    error: 'Werbung konnte nicht geladen werden',
+    errorDesc: 'Bitte versuchen Sie es später erneut',
+    rewarded: 'Belohnung Erhalten',
+    rewardedDesc: 'Sie haben 3 weitere Scans erhalten!',
+    ok: 'OK'
+  },
+  common: {
+    cancel: 'Abbrechen',
+    ok: 'OK',
+    error: 'Fehler',
+    loading: 'Laden...'
+  },
+  camera: {
+    permission: 'Kamerazugriff Erforderlich',
+    permissionDesc: 'Wir benötigen Kamerazugriff zum Scannen von Barcodes',
+    openSettings: 'Einstellungen Öffnen',
+    loading: 'Kamera wird geladen...'
+  }
 };

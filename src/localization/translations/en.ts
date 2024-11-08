@@ -135,4 +135,25 @@ export default {
     ingredients: 'Ingredients',
     settings: 'Settings',
   },
+  ads: {
+    loading: 'Loading...',
+    cancel: 'Cancel',
+    error: 'Ad failed to load',
+    errorDesc: 'Please try again later',
+    rewarded: 'Reward Earned',
+    rewardedDesc: 'You got 3 more scans!',
+    ok: 'OK'
+  },
+  common: {
+    cancel: 'Cancel',
+    ok: 'OK',
+    error: 'Error',
+    loading: 'Loading...'
+  },
+  camera: {
+    permission: 'Camera Permission Required',
+    permissionDesc: 'We need camera access to scan barcodes',
+    openSettings: 'Open Settings',
+    loading: 'Loading Camera...'
+  }
 };

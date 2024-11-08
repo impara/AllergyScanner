@@ -80,6 +80,7 @@ export default {
     nutriments: {
       title: 'Næringsindhold:',
       'energy-kcal': 'Kalorier: {value} {unit}',
+      'energy': 'Kalorier: {value} {unit}',
       proteins: 'Protein: {value}g',
       carbohydrates: 'Kulhydrater: {value}g',
       fat: 'Fedt: {value}g',
@@ -135,4 +136,25 @@ export default {
     ingredients: 'Ingredienser',
     settings: 'Indstillinger',
   },
+  ads: {
+    loading: 'Indlæser...',
+    cancel: 'Annuller',
+    error: 'Reklame kunne ikke indlæses',
+    errorDesc: 'Prøv venligst igen senere',
+    rewarded: 'Belønning Optjent',
+    rewardedDesc: 'Du fik 3 flere scanninger!',
+    ok: 'OK'
+  },
+  common: {
+    cancel: 'Annuller',
+    ok: 'OK',
+    error: 'Fejl',
+    loading: 'Indlæser...'
+  },
+  camera: {
+    permission: 'Kameratilladelse Påkrævet',
+    permissionDesc: 'Vi har brug for kameraadgang for at scanne stregkoder',
+    openSettings: 'Åbn Indstillinger',
+    loading: 'Indlæser Kamera...'
+  }
 };

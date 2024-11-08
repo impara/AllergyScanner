@@ -80,6 +80,7 @@ export default {
     nutriments: {
       title: 'Información Nutricional:',
       'energy-kcal': 'Calorías: {value} {unit}',
+      'energy': 'Calorías: {value} {unit}',
       proteins: 'Proteínas: {value}g',
       carbohydrates: 'Carbohidratos: {value}g',
       fat: 'Grasas: {value}g',
@@ -134,5 +135,26 @@ export default {
     scan: 'Escanear',
     ingredients: 'Ingredientes',
     settings: 'Ajustes',
+  },
+  ads: {
+    loading: 'Cargando...',
+    cancel: 'Cancelar',
+    error: 'Error al cargar el anuncio',
+    errorDesc: 'Por favor, inténtalo de nuevo más tarde',
+    rewarded: 'Recompensa Obtenida',
+    rewardedDesc: '¡Obtuviste 3 escaneos más!',
+    ok: 'OK'
+  },
+  common: {
+    cancel: 'Cancelar',
+    ok: 'OK',
+    error: 'Error',
+    loading: 'Cargando...'
+  },
+  camera: {
+    permission: 'Permiso de Cámara Requerido',
+    permissionDesc: 'Necesitamos acceso a la cámara para escanear códigos de barras',
+    openSettings: 'Abrir Configuración',
+    loading: 'Cargando Cámara...'
   },
 };

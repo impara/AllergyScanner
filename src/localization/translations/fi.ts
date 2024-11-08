@@ -80,6 +80,7 @@ export default {
     nutriments: {
       title: 'Ravintosisältö:',
       'energy-kcal': 'Kalorit: {value} {unit}',
+      'energy': 'Kalorit: {value} {unit}',
       proteins: 'Proteiini: {value}g',
       carbohydrates: 'Hiilihydraatit: {value}g',
       fat: 'Rasva: {value}g',
@@ -135,4 +136,25 @@ export default {
     ingredients: 'Ainesosat',
     settings: 'Asetukset',
   },
+  ads: {
+    loading: 'Ladataan...',
+    cancel: 'Peruuta',
+    error: 'Mainoksen lataaminen epäonnistui',
+    errorDesc: 'Yritä myöhemmin uudelleen',
+    rewarded: 'Palkkio Ansaittu',
+    rewardedDesc: 'Sait 3 lisäskannausta!',
+    ok: 'OK'
+  },
+  common: {
+    cancel: 'Peruuta',
+    ok: 'OK',
+    error: 'Virhe',
+    loading: 'Ladataan...'
+  },
+  camera: {
+    permission: 'Kameran Käyttöoikeus Vaaditaan',
+    permissionDesc: 'Tarvitsemme kameran käyttöoikeuden viivakoodien skannaamiseen',
+    openSettings: 'Avaa Asetukset',
+    loading: 'Ladataan Kameraa...'
+  }
 };
