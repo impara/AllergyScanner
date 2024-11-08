@@ -9,15 +9,23 @@ if (!process.env.ADMOB_ANDROID_APP_ID || !process.env.ADMOB_IOS_APP_ID) {
 }
 
 module.exports = ({ config }) => {
+    // Add validation for Google Sign-In configuration
+    if (!process.env.GOOGLE_ANDROID_CLIENT_ID || !process.env.GOOGLE_EXPO_CLIENT_ID) {
+        console.warn('Google Sign-In configuration is incomplete:', {
+            androidClientId: process.env.GOOGLE_ANDROID_CLIENT_ID,
+            webClientId: process.env.GOOGLE_EXPO_CLIENT_ID
+        });
+    }
+
     config.extra = {
         ...config.extra,
         eas: {
             projectId: 'c2ceb6a3-210e-4d75-b3cf-38878dd25b98'
         },
         // Environment variables for your app
-        GOOGLE_IOS_CLIENT_ID: process.env.GOOGLE_IOS_CLIENT_ID || null,
-        GOOGLE_ANDROID_CLIENT_ID: process.env.GOOGLE_ANDROID_CLIENT_ID || null,
-        GOOGLE_EXPO_CLIENT_ID: process.env.GOOGLE_EXPO_CLIENT_ID || null,
+        GOOGLE_IOS_CLIENT_ID: process.env.GOOGLE_IOS_CLIENT_ID,
+        GOOGLE_ANDROID_CLIENT_ID: process.env.GOOGLE_ANDROID_CLIENT_ID,
+        GOOGLE_EXPO_CLIENT_ID: process.env.GOOGLE_EXPO_CLIENT_ID,
         FIREBASE_API_KEY: process.env.FIREBASE_API_KEY || null,
         FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN || null,
         FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID || null,

@@ -23,11 +23,15 @@ const withGoogleSignIn = (config) => {
                             throw new Error('Project root not found');
                         }
 
-                        const decodedJson = Buffer.from(googleServicesJson, 'base64').toString('utf-8');
+                        // Read directly from the file path provided by EAS
+                        const jsonContent = fs.readFileSync(googleServicesJson, 'utf-8');
                         const androidAppDir = path.join(modRequest.projectRoot, 'android', 'app');
                         fs.mkdirSync(androidAppDir, { recursive: true });
-                        fs.writeFileSync(path.join(androidAppDir, 'google-services.json'), decodedJson);
-                        console.log('Successfully wrote google-services.json from EAS secrets');
+                        fs.writeFileSync(
+                            path.join(androidAppDir, 'google-services.json'),
+                            jsonContent
+                        );
+                        console.log('Successfully wrote google-services.json from EAS file secret');
                     } catch (error) {
                         console.error('Error writing google-services.json:', error);
                         throw error;
@@ -47,11 +51,15 @@ const withGoogleSignIn = (config) => {
                             throw new Error('Project root not found');
                         }
 
-                        const decodedPlist = Buffer.from(googleServiceInfoPlist, 'base64').toString('utf-8');
+                        // Read directly from the file path provided by EAS
+                        const plistContent = fs.readFileSync(googleServiceInfoPlist, 'utf-8');
                         const iosDir = path.join(modRequest.projectRoot, 'ios');
                         fs.mkdirSync(iosDir, { recursive: true });
-                        fs.writeFileSync(path.join(iosDir, 'GoogleService-Info.plist'), decodedPlist);
-                        console.log('Successfully wrote GoogleService-Info.plist from EAS secrets');
+                        fs.writeFileSync(
+                            path.join(iosDir, 'GoogleService-Info.plist'),
+                            plistContent
+                        );
+                        console.log('Successfully wrote GoogleService-Info.plist from EAS file secret');
                     } catch (error) {
                         console.error('Error writing GoogleService-Info.plist:', error);
                         throw error;
