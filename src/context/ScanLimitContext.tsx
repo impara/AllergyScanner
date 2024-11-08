@@ -112,8 +112,9 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         return;
       }
 
+      // Show loading state if needed
       // Show the rewarded ad
-      console.log('[ScanLimit] Showing rewarded ad...');
+      console.log('[ScanLimit] Attempting to show rewarded ad...');
       const success = await adService.showRewardedAd();
       console.log('[ScanLimit] Ad result:', success);
       
@@ -132,13 +133,18 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         console.log('[ScanLimit] Added scans. New total:', newCount);
       } else {
         console.log('[ScanLimit] Ad was not completed successfully');
+        Alert.alert(
+          'Ad Not Completed',
+          'Please watch the entire ad to receive additional scans.',
+          [{ text: 'OK' }]
+        );
       }
     } catch (error) {
       console.error('[ScanLimit] Error in watchAdForScans:', error);
-      // Don't auto-grant scans on error anymore - this could be exploited
       Alert.alert(
-        'Error',
-        'There was an error showing the ad. Please try again.'
+        'Ad Error',
+        'There was an error showing the ad. Please try again later.',
+        [{ text: 'OK' }]
       );
     }
   };
