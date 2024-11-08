@@ -103,31 +103,42 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const watchAdForScans = async () => {
     try {
-      // First check if ads are available
-      if (Platform.OS === 'web' || !adService.getInitializationStatus()) {
-        console.log('[ScanLimit] Ads not available, auto-granting scans');
-        const newCount = scansRemaining + SCANS_PER_AD;
-        await AsyncStorage.setItem(SCANS_REMAINING_KEY, newCount.toString());
-        setScansRemaining(newCount);
-        return;
+      // Check if ads are available and try to reinitialize if they're not
+      if (!adService.getInitializationStatus()) {
+        console.log('[ScanLimit] Ads not initialized, attempting to initialize...');
+        try {
+          await adService.initialize();
+        } catch (error) {
+          console.error('[ScanLimit] Failed to initialize ads:', error);
+          // Only auto-grant scans for web platform
+          if (Platform.OS === 'web') {
+            console.log('[ScanLimit] Web platform detected, auto-granting scans');
+            const newCount = scansRemaining + SCANS_PER_AD;
+            await AsyncStorage.setItem(SCANS_REMAINING_KEY, newCount.toString());
+            setScansRemaining(newCount);
+            return;
+          }
+          // For other platforms, show error to user
+          Alert.alert(
+            'Ad Service Unavailable',
+            'Unable to load ad service. Please try again later.',
+            [{ text: 'OK' }]
+          );
+          return;
+        }
       }
 
-      // Show loading state if needed
-      // Show the rewarded ad
       console.log('[ScanLimit] Attempting to show rewarded ad...');
       const success = await adService.showRewardedAd();
       console.log('[ScanLimit] Ad result:', success);
       
-      // Log the ad watch attempt
       await logRewardedAdWatch(success);
       
       if (success) {
-        // Calculate new scan count
         const currentScans = await AsyncStorage.getItem(SCANS_REMAINING_KEY);
         const currentCount = currentScans ? parseInt(currentScans, 10) : 0;
         const newCount = currentCount + SCANS_PER_AD;
         
-        // Update storage and state
         await AsyncStorage.setItem(SCANS_REMAINING_KEY, newCount.toString());
         setScansRemaining(newCount);
         console.log('[ScanLimit] Added scans. New total:', newCount);

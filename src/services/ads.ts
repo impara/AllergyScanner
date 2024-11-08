@@ -29,17 +29,34 @@ class AdService {
     try {
       console.log('[AdService] Initializing Google Mobile Ads SDK...');
       
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       await mobileAds().setRequestConfiguration({
         maxAdContentRating: MaxAdContentRating.PG,
         tagForChildDirectedTreatment: false,
         tagForUnderAgeOfConsent: false,
       });
 
-      await mobileAds().initialize();
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      while (retryCount < maxRetries) {
+        try {
+          await mobileAds().initialize();
+          break;
+        } catch (error) {
+          console.warn(`[AdService] Initialization attempt ${retryCount + 1} failed:`, error);
+          retryCount++;
+          if (retryCount === maxRetries) {
+            throw error;
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+
       this.isInitialized = true;
       console.log('[AdService] SDK initialized successfully');
 
-      // Create and load the first ad
       const adUnitId = __DEV__ 
         ? TestIds.REWARDED 
         : Platform.select({
@@ -56,12 +73,28 @@ class AdService {
         keywords: ['test']
       });
 
-      // Load initial ad
-      await this.loadAd();
-      console.log('[AdService] Initial ad loaded successfully');
+      let adLoadRetries = 0;
+      const maxAdLoadRetries = 2;
+      
+      while (adLoadRetries < maxAdLoadRetries) {
+        try {
+          await this.loadAd();
+          console.log('[AdService] Initial ad loaded successfully');
+          break;
+        } catch (error) {
+          console.warn(`[AdService] Ad load attempt ${adLoadRetries + 1} failed:`, error);
+          adLoadRetries++;
+          if (adLoadRetries === maxAdLoadRetries) {
+            throw error;
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+
     } catch (error) {
       console.error('[AdService] Initialization error:', error);
       this.isInitialized = false;
+      throw error;
     }
   }
 
@@ -114,7 +147,6 @@ class AdService {
       return false;
     }
 
-    // Ensure ad is loaded before showing
     if (this.isLoading) {
       console.log('[AdService] Ad is still loading, waiting...');
       try {
@@ -144,7 +176,6 @@ class AdService {
           if (unsubscribeClosed) unsubscribeClosed();
           if (unsubscribeEarned) unsubscribeEarned();
           
-          // Preload next ad
           this.loadAd().catch(error => {
             console.error('[AdService] Failed to preload next ad:', error);
           });
