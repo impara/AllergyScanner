@@ -49,6 +49,16 @@ module.exports = ({ config }) => {
                 "INTERNET",
                 "ACCESS_NETWORK_STATE"
             ],
+            intentFilters: [
+                {
+                    action: "VIEW",
+                    data: {
+                        scheme: "com.googleusercontent.apps.${process.env.GOOGLE_ANDROID_CLIENT_ID}",
+                        host: "oauth2callback"
+                    },
+                    category: ["BROWSABLE", "DEFAULT"]
+                }
+            ],
             config: {
                 googleMobileAds: {
                     delayAppMeasurementInit: true

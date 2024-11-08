@@ -41,7 +41,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // Initialize Firebase first
+        // Initialize Firebase
         await firebase.initializeFirebase();
         console.log('Firebase initialized successfully.');
 
@@ -49,22 +49,15 @@ const App: React.FC = () => {
         initializeGoogleSignIn();
         console.log('Google Sign-In initialized successfully.');
 
-        // Set app as ready
-        setAppReady(true);
-
-        // Initialize Ads with proper timing
+        // Initialize Ads
         if (Platform.OS !== 'web') {
-          // Longer delay for ad initialization
           await new Promise(resolve => setTimeout(resolve, 3000));
-          try {
-            // First initialize the wrapper
-            await adsWrapper.initialize();
-            // Then initialize the service
-            await adService.initialize();
-          } catch (error) {
-            console.warn('Ad initialization failed:', error);
-          }
+          await adsWrapper.initialize();
+          await adService.initialize();
+          console.log('Ads initialized successfully.');
         }
+
+        setAppReady(true);
       } catch (error) {
         console.error('Critical initialization error:', error);
         setError(error as Error);
@@ -75,20 +68,14 @@ const App: React.FC = () => {
     initializeApp();
   }, []);
 
-  if (error) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Error: {error.message}</Text>
-      </View>
-    );
+  if (!isAppReady) {
+    // Render a loading screen or splash screen
+    return null;
   }
 
-  if (!isAppReady) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
+  if (error) {
+    // Render an error screen or message
+    return null;
   }
 
   return (
