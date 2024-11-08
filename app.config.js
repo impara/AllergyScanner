@@ -95,7 +95,12 @@ module.exports = ({ config }) => {
                     minSdkVersion: 23,
                     hermesEnabled: true,
                     kotlinVersion: "1.8.0",
-                    enableProguardInReleaseBuilds: true
+                    enableProguardInReleaseBuilds: true,
+                    extraProguardRules: `
+                        -keepclassmembers class com.google.android.gms.ads.** { *; }
+                        -keep public class com.google.android.gms.ads.** {*;}
+                        -keep public class com.google.ads.** {*;}
+                    `
                 },
                 ios: {
                     deploymentTarget: "13.4",
@@ -107,11 +112,28 @@ module.exports = ({ config }) => {
                 androidAppId: process.env.ADMOB_ANDROID_APP_ID,
                 iosAppId: process.env.ADMOB_IOS_APP_ID,
                 delay: 3000,
-                userTrackingPermission: "This identifier will be used to deliver personalized ads to you."
+                userTrackingPermission: "This identifier will be used to deliver personalized ads to you.",
+                android: {
+                    delayAdLoad: true,
+                    appId: process.env.ADMOB_ANDROID_APP_ID
+                },
+                ios: {
+                    delayAdLoad: true,
+                    appId: process.env.ADMOB_IOS_APP_ID
+                }
             }]
         ],
         updates: {
             url: "https://u.expo.dev/c2ceb6a3-210e-4d75-b3cf-38878dd25b98"
         },
+        expo: {
+            android: {
+                config: {
+                    googleMobileAds: {
+                        delayAppMeasurementInit: true
+                    }
+                }
+            }
+        }
     };
 };

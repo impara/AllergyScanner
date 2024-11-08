@@ -13,6 +13,7 @@ import * as firebase from './src/config/firebase';
 import { LogBox } from 'react-native';
 import { adService } from './src/services/ads';
 import { initializeGoogleSignIn } from './src/config/googleSignIn';
+import adsWrapper from './src/services/adsWrapper';
 
 // Ignore specific warnings
 LogBox.ignoreLogs(['Setting a timer for a long period of time']);
@@ -48,15 +49,21 @@ const App: React.FC = () => {
         initializeGoogleSignIn();
         console.log('Google Sign-In initialized successfully.');
 
-        // Set app as ready before initializing ads
+        // Set app as ready
         setAppReady(true);
 
-        // Initialize Ads after a delay
+        // Initialize Ads with proper timing
         if (Platform.OS !== 'web') {
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          await adService.initialize().catch(error => {
+          // Longer delay for ad initialization
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          try {
+            // First initialize the wrapper
+            await adsWrapper.initialize();
+            // Then initialize the service
+            await adService.initialize();
+          } catch (error) {
             console.warn('Ad initialization failed:', error);
-          });
+          }
         }
       } catch (error) {
         console.error('Critical initialization error:', error);
