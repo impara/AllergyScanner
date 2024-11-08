@@ -38,7 +38,7 @@ const ScanScreen: React.FC = () => {
   const [isScannerEnabled, setScannerEnabled] = useState(true);
   const scannerRef = useRef<BarCodeScanner>(null);
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const { scansRemaining, useOneScan, watchAdForScans } = useScanLimit();
+  const { scansRemaining, useOneScan, watchAdForScans, isAdLoading } = useScanLimit();
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -121,13 +121,14 @@ const ScanScreen: React.FC = () => {
           i18n.t('scan.watchAdPrompt'),
           [
             {
-              text: i18n.t('scan.watchAdButton'),
+              text: isAdLoading ? 'Loading...' : i18n.t('scan.watchAdButton'),
               onPress: watchAdForScans,
+              disabled: isAdLoading
             },
             {
-              text: 'Cancel',
-              style: 'cancel',
-            },
+              text: i18n.t('common.cancel'),
+              style: 'cancel'
+            }
           ]
         );
         return;
@@ -363,6 +364,17 @@ const ScanScreen: React.FC = () => {
     };
   }, []);
 
+  const renderAdLoadingOverlay = () => {
+    if (!isAdLoading) return null;
+    
+    return (
+      <View style={styles.adLoadingOverlay}>
+        <ActivityIndicator size="large" color="#fff" />
+        <Text style={styles.loadingText}>{i18n.t('ads.loading')}</Text>
+      </View>
+    );
+  };
+
   if (hasPermission === null) {
     return (
       <View style={styles.permissionContainer}>
@@ -417,6 +429,7 @@ const ScanScreen: React.FC = () => {
           {i18n.t('scan.scansRemaining', { count: scansRemaining })}
         </Text>
       </View>
+      {renderAdLoadingOverlay()}
     </SafeAreaView>
   );
 };
@@ -495,6 +508,17 @@ const styles = StyleSheet.create({
   scanCounterText: {
     color: colors.surface,
     fontSize: 16,
+  },
+  adLoadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 4,
   },
 });
 

@@ -10,6 +10,7 @@ interface ScanLimitContextType {
   resetDaily: () => Promise<void>;
   useOneScan: () => Promise<boolean>;
   watchAdForScans: () => Promise<void>;
+  isAdLoading: boolean;
 }
 
 const ScanLimitContext = createContext<ScanLimitContextType>({
@@ -17,6 +18,7 @@ const ScanLimitContext = createContext<ScanLimitContextType>({
   resetDaily: async () => {},
   useOneScan: async () => false,
   watchAdForScans: async () => {},
+  isAdLoading: false,
 });
 
 const DAILY_SCAN_LIMIT = 5;
@@ -26,6 +28,7 @@ const SCANS_REMAINING_KEY = '@scansRemaining';
 
 export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [scansRemaining, setScansRemaining] = useState(DAILY_SCAN_LIMIT);
+  const [isAdLoading, setIsAdLoading] = useState(false);
 
   useEffect(() => {
     initializeScanLimit();
@@ -103,14 +106,14 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const watchAdForScans = async () => {
     try {
-      // Check if ads are available and try to reinitialize if they're not
+      setIsAdLoading(true);
+
       if (!adService.getInitializationStatus()) {
         console.log('[ScanLimit] Ads not initialized, attempting to initialize...');
         try {
           await adService.initialize();
         } catch (error) {
           console.error('[ScanLimit] Failed to initialize ads:', error);
-          // Only auto-grant scans for web platform
           if (Platform.OS === 'web') {
             console.log('[ScanLimit] Web platform detected, auto-granting scans');
             const newCount = scansRemaining + SCANS_PER_AD;
@@ -118,7 +121,6 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             setScansRemaining(newCount);
             return;
           }
-          // For other platforms, show error to user
           Alert.alert(
             'Ad Service Unavailable',
             'Unable to load ad service. Please try again later.',
@@ -157,6 +159,8 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         'There was an error showing the ad. Please try again later.',
         [{ text: 'OK' }]
       );
+    } finally {
+      setIsAdLoading(false);
     }
   };
 
@@ -166,6 +170,7 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       resetDaily,
       useOneScan,
       watchAdForScans,
+      isAdLoading,
     }}>
       {children}
     </ScanLimitContext.Provider>

@@ -93,7 +93,7 @@ module.exports = ({ config }) => {
                     targetSdkVersion: 34,
                     buildToolsVersion: "34.0.0",
                     minSdkVersion: 23,
-                    hermesEnabled: true,
+                    hermesEnabled: false,
                     kotlinVersion: "1.8.0",
                     enableProguardInReleaseBuilds: true,
                     extraProguardRules: `
@@ -104,7 +104,7 @@ module.exports = ({ config }) => {
                 },
                 ios: {
                     deploymentTarget: "13.4",
-                    hermesEnabled: true
+                    hermesEnabled: false
                 }
             }],
             ["@react-native-google-signin/google-signin"],

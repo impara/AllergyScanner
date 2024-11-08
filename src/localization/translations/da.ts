@@ -51,7 +51,7 @@ export default {
     notFound: 'Ingrediens ikke fundet',
     notFoundDesc: 'Denne ingrediens er ikke genkendt i taksonomien.',
     deleteConfirm: 'Slet ingrediens',
-    deleteConfirmDesc: 'Haluatko varmasti poistaa %{name} listaltasi?',
+    deleteConfirmDesc: 'Er du sikker på, at du vil slette %{name} fra din liste?',
     cancel: 'Annuller',
     delete: 'Slet',
     undo: 'Fortryd',

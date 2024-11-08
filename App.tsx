@@ -13,7 +13,6 @@ import * as firebase from './src/config/firebase';
 import { LogBox } from 'react-native';
 import { adService } from './src/services/ads';
 import { initializeGoogleSignIn } from './src/config/googleSignIn';
-import adsWrapper from './src/services/adsWrapper';
 
 // Ignore specific warnings
 LogBox.ignoreLogs(['Setting a timer for a long period of time']);
@@ -41,17 +40,18 @@ const App: React.FC = () => {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // Run Firebase and Google Sign-In initialization in parallel
+        // First initialize Firebase and Google Sign-In
         await Promise.all([
           firebase.initializeFirebase(),
           initializeGoogleSignIn(),
         ]);
+        console.log('Firebase and Google Sign-In initialized');
 
-        // Remove the artificial delay for ads initialization
+        // Then initialize AdMob
         if (Platform.OS !== 'web') {
-          // Remove the setTimeout
-          await adsWrapper.initialize();
+          console.log('Initializing AdMob...');
           await adService.initialize();
+          console.log('AdMob initialized');
         }
 
         setAppReady(true);
