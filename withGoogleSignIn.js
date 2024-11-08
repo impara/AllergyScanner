@@ -82,6 +82,13 @@ const withGoogleSignIn = (config) => {
                     path.join(androidAppDir, 'google-services.json')
                 );
                 console.log('Successfully copied google-services.json for local development');
+
+                // Ensure that Google Mobile Ads initialization is included
+                fs.copyFileSync(
+                    path.join(process.cwd(), 'google-services.json'),
+                    path.join(androidAppDir, 'google-services.json')
+                );
+                console.log('Google Mobile Ads initialized');
             }
 
             if (hasGoogleServiceInfoPlist) {

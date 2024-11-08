@@ -71,7 +71,8 @@ module.exports = ({ config }) => {
                         ]
                     }
                 ]
-            }
+            },
+            hermesEnabled: false
         },
         plugins: [
             ...(config.plugins || []),
