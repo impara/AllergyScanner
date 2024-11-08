@@ -30,7 +30,7 @@ module.exports = ({ config }) => {
         ADMOB_IOS_APP_ID: process.env.ADMOB_IOS_APP_ID || null,
         ADMOB_ANDROID_REWARDED_AD_UNIT_ID: process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID || null,
         ADMOB_IOS_REWARDED_AD_UNIT_ID: process.env.ADMOB_IOS_REWARDED_AD_UNIT_ID || null,
-        DATABASE_URL: process.env.FIREBASE_DATABASE_URL || null,
+        FIREBASE_DATABASE_URL: process.env.FIREBASE_DATABASE_URL || null,
     };
 
     return {
@@ -70,7 +70,7 @@ module.exports = ({ config }) => {
                     {
                         CFBundleURLSchemes: [
                             "pureplate",
-                            "com.googleusercontent.apps.474564174366-nrjoiqf0n76rqstngp2a9pnvnq89na4j"
+                            `com.googleusercontent.apps.${process.env.GOOGLE_IOS_CLIENT_ID}`
                         ]
                     }
                 ]

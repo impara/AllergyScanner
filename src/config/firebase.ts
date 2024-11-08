@@ -15,7 +15,7 @@ const {
   FIREBASE_MESSAGING_SENDER_ID,
   FIREBASE_APP_ID,
   FIREBASE_MEASUREMENT_ID,
-  DATABASE_URL,
+  FIREBASE_DATABASE_URL,
 } = Constants.expoConfig?.extra || {};
 
 const firebaseConfig = {
@@ -26,7 +26,7 @@ const firebaseConfig = {
   messagingSenderId: FIREBASE_MESSAGING_SENDER_ID,
   appId: FIREBASE_APP_ID,
   measurementId: FIREBASE_MEASUREMENT_ID,
-  databaseURL: DATABASE_URL,
+  databaseURL: FIREBASE_DATABASE_URL,
 };
 
 /**

@@ -5,106 +5,94 @@ const fs = require('fs');
 const path = require('path');
 
 const withGoogleSignIn = (config) => {
+    // Check for EAS build environment variables first
     const googleServicesJson = process.env.GOOGLE_SERVICES_JSON;
     const googleServiceInfoPlist = process.env.GOOGLE_SERVICE_INFO_PLIST;
 
-    // For local development
-    const isLocalDev = process.env.NODE_ENV === 'development';
-    if (isLocalDev) {
+    // For EAS builds
+    if (googleServicesJson || googleServiceInfoPlist) {
+        console.log('Using EAS secrets for Google Services configuration');
+
+        if (googleServicesJson) {
+            config = withDangerousMod(config, [
+                'android',
+                async (config) => {
+                    try {
+                        const modRequest = config.modRequest;
+                        if (!modRequest?.projectRoot) {
+                            throw new Error('Project root not found');
+                        }
+
+                        const decodedJson = Buffer.from(googleServicesJson, 'base64').toString('utf-8');
+                        const androidAppDir = path.join(modRequest.projectRoot, 'android', 'app');
+                        fs.mkdirSync(androidAppDir, { recursive: true });
+                        fs.writeFileSync(path.join(androidAppDir, 'google-services.json'), decodedJson);
+                        console.log('Successfully wrote google-services.json from EAS secrets');
+                    } catch (error) {
+                        console.error('Error writing google-services.json:', error);
+                        throw error;
+                    }
+                    return config;
+                },
+            ]);
+        }
+
+        if (googleServiceInfoPlist) {
+            config = withDangerousMod(config, [
+                'ios',
+                async (config) => {
+                    try {
+                        const modRequest = config.modRequest;
+                        if (!modRequest?.projectRoot) {
+                            throw new Error('Project root not found');
+                        }
+
+                        const decodedPlist = Buffer.from(googleServiceInfoPlist, 'base64').toString('utf-8');
+                        const iosDir = path.join(modRequest.projectRoot, 'ios');
+                        fs.mkdirSync(iosDir, { recursive: true });
+                        fs.writeFileSync(path.join(iosDir, 'GoogleService-Info.plist'), decodedPlist);
+                        console.log('Successfully wrote GoogleService-Info.plist from EAS secrets');
+                    } catch (error) {
+                        console.error('Error writing GoogleService-Info.plist:', error);
+                        throw error;
+                    }
+                    return config;
+                },
+            ]);
+        }
+    } else {
+        // For local development, check for files in project root
         try {
-            // Use fs to check if files exist instead of require
             const hasGoogleServicesJson = fs.existsSync('./google-services.json');
             const hasGoogleServiceInfoPlist = fs.existsSync('./GoogleService-Info.plist');
 
             if (hasGoogleServicesJson) {
-                const jsonContent = fs.readFileSync('./google-services.json', 'utf8');
-                process.env.GOOGLE_SERVICES_JSON = Buffer.from(jsonContent).toString('base64');
+                const androidAppDir = path.join(process.cwd(), 'android', 'app');
+                fs.mkdirSync(androidAppDir, { recursive: true });
+                fs.copyFileSync(
+                    path.join(process.cwd(), 'google-services.json'),
+                    path.join(androidAppDir, 'google-services.json')
+                );
+                console.log('Successfully copied google-services.json for local development');
             }
 
             if (hasGoogleServiceInfoPlist) {
-                const plistContent = fs.readFileSync('./GoogleService-Info.plist', 'utf8');
-                process.env.GOOGLE_SERVICE_INFO_PLIST = Buffer.from(plistContent).toString('base64');
+                const iosDir = path.join(process.cwd(), 'ios');
+                fs.mkdirSync(iosDir, { recursive: true });
+                fs.copyFileSync(
+                    path.join(process.cwd(), 'GoogleService-Info.plist'),
+                    path.join(iosDir, 'GoogleService-Info.plist')
+                );
+                console.log('Successfully copied GoogleService-Info.plist for local development');
             }
 
             console.log('Local development config:', {
                 hasAndroidConfig: hasGoogleServicesJson,
                 hasIOSConfig: hasGoogleServiceInfoPlist
             });
-
-            return config;
         } catch (error) {
             console.warn('Local Google Services files not found:', error.message);
-            return config;
         }
-    }
-
-    // Add debug logging
-    console.log('Google Services Config:', {
-        hasAndroidConfig: !!googleServicesJson,
-        hasIOSConfig: !!googleServiceInfoPlist
-    });
-
-    if (!googleServicesJson && !googleServiceInfoPlist) {
-        console.warn('Google Services environment variables are not set.');
-        return config;
-    }
-
-    // Handle Android
-    if (googleServicesJson) {
-        config = withDangerousMod(config, [
-            'android',
-            async (config) => {
-                try {
-                    const modRequest = config.modRequest;
-                    if (!modRequest?.projectRoot) {
-                        throw new Error('Project root not found');
-                    }
-
-                    // Decode base64 content
-                    const decodedJson = Buffer.from(googleServicesJson, 'base64').toString('utf-8');
-
-                    // Write to android/app/google-services.json
-                    const androidAppDir = path.join(modRequest.projectRoot, 'android', 'app');
-                    fs.mkdirSync(androidAppDir, { recursive: true });
-                    fs.writeFileSync(path.join(androidAppDir, 'google-services.json'), decodedJson);
-
-                    console.log('Successfully wrote google-services.json');
-                } catch (error) {
-                    console.error('Error writing google-services.json:', error);
-                    throw error;
-                }
-                return config;
-            },
-        ]);
-    }
-
-    // Handle iOS
-    if (googleServiceInfoPlist) {
-        config = withDangerousMod(config, [
-            'ios',
-            async (config) => {
-                try {
-                    const modRequest = config.modRequest;
-                    if (!modRequest?.projectRoot) {
-                        throw new Error('Project root not found');
-                    }
-
-                    // Decode base64 content
-                    const decodedPlist = Buffer.from(googleServiceInfoPlist, 'base64').toString('utf-8');
-
-                    // Write to ios directory
-                    const iosDir = path.join(modRequest.projectRoot, 'ios');
-                    fs.mkdirSync(iosDir, { recursive: true });
-                    fs.writeFileSync(path.join(iosDir, 'GoogleService-Info.plist'), decodedPlist);
-
-                    console.log('Successfully wrote GoogleService-Info.plist');
-                } catch (error) {
-                    console.error('Error writing GoogleService-Info.plist:', error);
-                    throw error;
-                }
-                return config;
-            },
-        ]);
     }
 
     return config;
