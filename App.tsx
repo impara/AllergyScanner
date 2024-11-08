@@ -8,8 +8,8 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { theme, colors } from './src/theme';
 import { AuthProvider } from './src/context/AuthContext';
 import { LanguageProvider } from './src/context/LanguageContext';
-import { View, ActivityIndicator, Platform } from 'react-native';
-import { initializeFirebase } from './src/config/firebase';
+import { View, ActivityIndicator, Platform, Text } from 'react-native';
+import * as firebase from './src/config/firebase';
 import { LogBox } from 'react-native';
 import { adService } from './src/services/ads';
 import { initializeGoogleSignIn } from './src/config/googleSignIn';
@@ -35,36 +35,44 @@ const paperTheme = {
 
 const App: React.FC = () => {
   const [isAppReady, setAppReady] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     const initializeApp = async () => {
       try {
         // Initialize Firebase first
-        await initializeFirebase();
+        await firebase.initializeFirebase();
         console.log('Firebase initialized successfully.');
 
         // Initialize Google Sign-In
         initializeGoogleSignIn();
         console.log('Google Sign-In initialized successfully.');
 
-        // Set app as ready
         setAppReady(true);
 
         // Initialize Ads if not on web
         if (Platform.OS !== 'web') {
-          await new Promise(resolve => setTimeout(resolve, 3000));
           await adService.initialize().catch(error => {
             console.warn('Ad initialization failed:', error);
           });
         }
       } catch (error) {
         console.error('Critical initialization error:', error);
+        setError(error as Error);
         setAppReady(true);
       }
     };
 
     initializeApp();
   }, []);
+
+  if (error) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Error: {error.message}</Text>
+      </View>
+    );
+  }
 
   if (!isAppReady) {
     return (

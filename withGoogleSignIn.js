@@ -8,6 +8,36 @@ const withGoogleSignIn = (config) => {
     const googleServicesJson = process.env.GOOGLE_SERVICES_JSON;
     const googleServiceInfoPlist = process.env.GOOGLE_SERVICE_INFO_PLIST;
 
+    // For local development
+    const isLocalDev = process.env.NODE_ENV === 'development';
+    if (isLocalDev) {
+        try {
+            // Use fs to check if files exist instead of require
+            const hasGoogleServicesJson = fs.existsSync('./google-services.json');
+            const hasGoogleServiceInfoPlist = fs.existsSync('./GoogleService-Info.plist');
+
+            if (hasGoogleServicesJson) {
+                const jsonContent = fs.readFileSync('./google-services.json', 'utf8');
+                process.env.GOOGLE_SERVICES_JSON = Buffer.from(jsonContent).toString('base64');
+            }
+
+            if (hasGoogleServiceInfoPlist) {
+                const plistContent = fs.readFileSync('./GoogleService-Info.plist', 'utf8');
+                process.env.GOOGLE_SERVICE_INFO_PLIST = Buffer.from(plistContent).toString('base64');
+            }
+
+            console.log('Local development config:', {
+                hasAndroidConfig: hasGoogleServicesJson,
+                hasIOSConfig: hasGoogleServiceInfoPlist
+            });
+
+            return config;
+        } catch (error) {
+            console.warn('Local Google Services files not found:', error.message);
+            return config;
+        }
+    }
+
     // Add debug logging
     console.log('Google Services Config:', {
         hasAndroidConfig: !!googleServicesJson,
