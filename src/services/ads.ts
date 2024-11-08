@@ -127,45 +127,41 @@ class AdService {
 
   async showRewardedAd(): Promise<boolean> {
     if (!this.isInitialized || !this.rewardedAd) {
-      console.log('Ad not initialized. Attempting to reinitialize...');
-      // Try to reinitialize
-      try {
-        await this.initialize();
-      } catch (error) {
-        console.error('Failed to reinitialize ads:', error);
-        return false;
-      }
-      if (!this.isInitialized || !this.rewardedAd) {
-        return false;
-      }
+      console.log('Ad not initialized');
+      return false;
     }
 
     return new Promise((resolve) => {
+      let hasEarnedReward = false;
+
       const unsubscribeEarned = this.rewardedAd?.addAdEventListener(
         RewardedAdEventType.EARNED_REWARD,
         () => {
-          if (unsubscribeEarned) {
-            unsubscribeEarned();
-            this.unsubscribeCallbacks = this.unsubscribeCallbacks.filter(cb => cb !== unsubscribeEarned);
-          }
-          resolve(true);
+          console.log('User earned reward');
+          hasEarnedReward = true;
         }
       );
 
       const unsubscribeClosed = this.rewardedAd?.addAdEventListener(
         AdEventType.CLOSED,
         () => {
-          if (unsubscribeClosed) {
-            unsubscribeClosed();
-            this.unsubscribeCallbacks = this.unsubscribeCallbacks.filter(cb => cb !== unsubscribeClosed);
-          }
-          this.loadAd(); // Preload the next ad
-          resolve(false);
+          if (unsubscribeClosed) unsubscribeClosed();
+          if (unsubscribeEarned) unsubscribeEarned();
+          this.loadAd(); // Preload next ad
+          resolve(hasEarnedReward);
         }
       );
 
-      if (unsubscribeEarned) this.unsubscribeCallbacks.push(unsubscribeEarned);
-      if (unsubscribeClosed) this.unsubscribeCallbacks.push(unsubscribeClosed);
+      const unsubscribeError = this.rewardedAd?.addAdEventListener(
+        AdEventType.ERROR,
+        (error) => {
+          console.error('Ad error:', error);
+          if (unsubscribeClosed) unsubscribeClosed();
+          if (unsubscribeEarned) unsubscribeEarned();
+          if (unsubscribeError) unsubscribeError();
+          resolve(false);
+        }
+      );
 
       this.rewardedAd?.show();
     });
