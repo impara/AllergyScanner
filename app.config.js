@@ -127,6 +127,12 @@ module.exports = ({ config }) => {
             url: "https://u.expo.dev/c2ceb6a3-210e-4d75-b3cf-38878dd25b98"
         },
         expo: {
+            ...config.expo,
+            extra: {
+                eas: {
+                    projectId: 'c2ceb6a3-210e-4d75-b3cf-38878dd25b98'
+                }
+            },
             android: {
                 config: {
                     googleMobileAds: {
