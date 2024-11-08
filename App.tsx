@@ -2,13 +2,13 @@
 import 'react-native-gesture-handler';
 import React, { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { ThemeProvider } from 'styled-components/native';
+import { ThemeProvider, DefaultTheme } from 'styled-components/native';
 import { Provider as PaperProvider, MD3LightTheme } from 'react-native-paper';
 import AppNavigator from './src/navigation/AppNavigator';
 import { theme, colors } from './src/theme';
 import { AuthProvider } from './src/context/AuthContext';
 import { LanguageProvider } from './src/context/LanguageContext';
-import { View, ActivityIndicator, Platform, Text } from 'react-native';
+import { View, ActivityIndicator, Platform, Text, StyleSheet } from 'react-native';
 import * as firebase from './src/config/firebase';
 import { LogBox } from 'react-native';
 import { adService } from './src/services/ads';
@@ -66,13 +66,19 @@ const App: React.FC = () => {
   }, []);
 
   if (!isAppReady) {
-    // Render a loading screen or splash screen
-    return null;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
   }
 
   if (error) {
-    // Render an error screen or message
-    return null;
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error.message}</Text>
+      </View>
+    );
   }
 
   return (
@@ -89,5 +95,25 @@ const App: React.FC = () => {
     </GestureHandlerRootView>
   );
 };
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    padding: 20,
+  },
+  errorText: {
+    color: colors.error,
+    textAlign: 'center',
+  },
+});
 
 export default App;

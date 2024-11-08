@@ -14,9 +14,12 @@ export type RootStackParamList = {
     screen?: 'Scan' | 'Ingredients' | 'Settings';
   };
   ProductInfo: {
-    productInfo: any; // Replace 'any' with the actual type if you have one
-    detectedIngredients: DetectedIngredient[];
-    ingredientsList: string[];
+    productInfo: any; // Replace 'any' with proper product type
+    detectedIngredients?: Array<{ id: string; lang?: string }>;
+    ingredientsList?: string[];
+  };
+  IngredientsProfile: {
+    ingredientId: string;
   };
 };
 

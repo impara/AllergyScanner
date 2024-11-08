@@ -13,7 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import { Text, Chip, IconButton, Divider } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RouteProp, useRoute } from '@react-navigation/core';
 import { RootStackParamList } from '../../types/navigation';
 import { getIngredientName } from '../../utils/ingredientUtils';
@@ -34,7 +34,7 @@ const DRAG_THRESHOLD = 100;
 const ANIMATION_DURATION = 300;
 
 const ProductInfoScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<ProductInfoScreenRouteProp>();
   const {
     productInfo: product,
@@ -132,7 +132,7 @@ const ProductInfoScreen: React.FC = () => {
         <IconButton
           icon={isSafe ? 'check-circle' : 'alert-circle'}
           size={32}
-          color={isSafe ? colors.success : colors.warning}
+          iconColor={isSafe ? colors.success : colors.warning}
         />
         <View style={styles.safetyTextContainer}>
           <Text style={[
@@ -169,7 +169,7 @@ const ProductInfoScreen: React.FC = () => {
               <IconButton
                 icon="chevron-down"
                 size={32}
-                color={colors.text}
+                iconColor={colors.text}
               />
             </TouchableOpacity>
             <Text style={styles.headerTitle} numberOfLines={1}>
@@ -196,7 +196,11 @@ const ProductInfoScreen: React.FC = () => {
                         key={index}
                         style={styles.chip}
                         textStyle={styles.chipText}
-                        onPress={() => navigation.navigate('IngredientProfile', { ingredientId })}
+                        onPress={() => 
+                          navigation.navigate('IngredientsProfile', {
+                            ingredientId: ingredientId
+                          })
+                        }
                       >
                         {getIngredientName(ingredientId, locale) || i18n.t('ingredient.unknown')}
                       </Chip>
