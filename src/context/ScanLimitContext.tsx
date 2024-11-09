@@ -124,14 +124,24 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
 
       if (!adService.isAdReady()) {
-        console.log('[ScanLimit] Ad not ready, waiting for load...');
-        // Show loading state to user
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Give some time for ad to load
-        
-        if (!adService.isAdReady()) {
+        console.log('[ScanLimit] Ad not ready, attempting to load...');
+        try {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          if (!adService.isAdReady()) {
+            console.log('[ScanLimit] Ad still not ready after waiting');
+            Alert.alert(
+              'Ad Not Available',
+              'No ads are available right now. Please try again in a few minutes.',
+              [{ text: 'OK' }]
+            );
+            return;
+          }
+        } catch (error) {
+          console.error('[ScanLimit] Error loading ad:', error);
           Alert.alert(
-            'Ad Not Ready',
-            'Please wait a moment and try again.',
+            'Ad Loading Error',
+            'Failed to load the ad. Please try again later.',
             [{ text: 'OK' }]
           );
           return;
@@ -140,18 +150,26 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       console.log('[ScanLimit] Attempting to show rewarded ad...');
       const success = await adService.showRewardedAd();
-      console.log('[ScanLimit] Ad result:', success);
-      
-      await logRewardedAdWatch(success);
-      
+
       if (success) {
-        const currentScans = await AsyncStorage.getItem(SCANS_REMAINING_KEY);
-        const currentCount = currentScans ? parseInt(currentScans, 10) : 0;
-        const newCount = currentCount + SCANS_PER_AD;
-        
-        await AsyncStorage.setItem(SCANS_REMAINING_KEY, newCount.toString());
-        setScansRemaining(newCount);
-        console.log('[ScanLimit] Added scans. New total:', newCount);
+        console.log('[ScanLimit] Ad completed successfully, adding scans');
+        try {
+          const newCount = Math.min(DAILY_SCAN_LIMIT, (scansRemaining || 0) + 3);
+          await AsyncStorage.setItem(SCANS_REMAINING_KEY, newCount.toString());
+          setScansRemaining(newCount);
+          Alert.alert(
+            'Reward Earned',
+            'You earned 3 additional scans!',
+            [{ text: 'OK' }]
+          );
+        } catch (error) {
+          console.error('[ScanLimit] Error updating scans after ad:', error);
+          Alert.alert(
+            'Error',
+            'Failed to add reward scans. Please contact support.',
+            [{ text: 'OK' }]
+          );
+        }
       } else {
         console.log('[ScanLimit] Ad was not completed successfully');
         Alert.alert(
@@ -162,9 +180,14 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     } catch (error) {
       console.error('[ScanLimit] Error in watchAdForScans:', error);
+      
+      const errorMessage = error instanceof Error && error.message.includes('no-fill')
+        ? 'No ads are available right now. Please try again later.'
+        : 'There was an error showing the ad. Please try again later.';
+      
       Alert.alert(
         'Ad Error',
-        'There was an error showing the ad. Please try again later.',
+        errorMessage,
         [{ text: 'OK' }]
       );
     } finally {
