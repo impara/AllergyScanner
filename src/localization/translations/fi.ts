@@ -149,7 +149,8 @@ export default {
     cancel: 'Peruuta',
     ok: 'OK',
     error: 'Virhe',
-    loading: 'Ladataan...'
+    loading: 'Ladataan...',
+    undo: 'Kumoa'
   },
   camera: {
     permission: 'Kameran Käyttöoikeus Vaaditaan',

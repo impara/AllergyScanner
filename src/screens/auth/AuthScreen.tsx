@@ -146,7 +146,7 @@ const AuthScreen: React.FC = () => {
               onPress={handleEmailAuth}
               style={styles.button}
               contentStyle={styles.buttonContent}
-              labelStyle={styles.buttonLabel}
+              labelStyle={[styles.buttonLabel, { color: colors.surface }]}
             >
               {isRegistering ? i18n.t('auth.signUp') : i18n.t('auth.signIn')}
             </Button>

@@ -148,7 +148,8 @@ export default {
     cancel: 'Cancel',
     ok: 'OK',
     error: 'Error',
-    loading: 'Loading...'
+    loading: 'Loading...',
+    undo: 'Undo'
   },
   camera: {
     permission: 'Camera Permission Required',

@@ -149,7 +149,8 @@ export default {
     cancel: 'Annuller',
     ok: 'OK',
     error: 'Fejl',
-    loading: 'Indlæser...'
+    loading: 'Indlæser...',
+    undo: 'Fortryd'
   },
   camera: {
     permission: 'Kameratilladelse Påkrævet',

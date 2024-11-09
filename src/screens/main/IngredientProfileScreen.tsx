@@ -367,7 +367,7 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
               };
 
               showToast(i18n.t('ingredients.ingredientDeleted', { 
-                name: ingredientName
+                name: ingredientName 
               }));
             } catch (error) {
               console.error('Error deleting ingredient:', error);
