@@ -51,109 +51,82 @@ class AdService {
         return false;
       }
 
-      // Log initialization details
-      console.log('[AdService] Initializing with:', { 
-        appId, 
-        rewardedAdUnitId,
-        isDev: __DEV__,
-        platform: Platform.OS 
-      });
-
       // Initialize the SDK with configuration
       await mobileAds().setRequestConfiguration({
-        // This is the COPPA setting
         tagForChildDirectedTreatment: false,
-        // This is for GDPR
         tagForUnderAgeOfConsent: false,
-        // Set max ad content rating
         maxAdContentRating: MaxAdContentRating.PG,
       });
 
-      await mobileAds().initialize();
-      
-      // Create the rewarded ad instance
-      this.rewardedAd = RewardedAd.createForAdRequest(
-        __DEV__ ? TestIds.REWARDED : rewardedAdUnitId,
-        {
-          requestNonPersonalizedAdsOnly: true,
-          keywords: ['health', 'food', 'nutrition']
-        }
-      );
+      const initStatus = await mobileAds().initialize();
+      console.log('[AdService] SDK initialization status:', initStatus);
 
-      // Attempt to load the first ad
-      await this.loadRewardedAd();
-      
-      this.isInitialized = true;
-      return true;
+      // Create and load the rewarded ad
+      const adUnitId = __DEV__ ? TestIds.REWARDED : rewardedAdUnitId;
+      this.rewardedAd = RewardedAd.createForAdRequest(adUnitId, {
+        requestNonPersonalizedAdsOnly: true,
+        keywords: ['health', 'food', 'nutrition']
+      });
+
+      try {
+        await this.loadRewardedAd();
+        this.isInitialized = true;
+        return true;
+      } catch (error: any) {
+        console.error('[AdService] Initial ad load failed:', error);
+        if (error.message?.includes('no-fill')) {
+          this.isInitialized = true;
+          return true;
+        }
+        return false;
+      }
     } catch (error) {
       console.error('[AdService] Initialization error:', error);
       return false;
     }
   }
 
-  private async initializeRewardedAd() {
-    const adUnitId = __DEV__ 
-      ? TestIds.REWARDED 
-      : Platform.select({
-          ios: ADMOB_IOS_REWARDED_AD_UNIT_ID,
-          android: ADMOB_ANDROID_REWARDED_AD_UNIT_ID,
-        });
-
-    if (!adUnitId) throw new Error('No valid Rewarded Ad Unit ID found');
-
-    this.rewardedAd = RewardedAd.createForAdRequest(adUnitId, {
-      requestNonPersonalizedAdsOnly: true,
-      keywords: ['test']
-    });
-
-    await this.loadRewardedAd();
-  }
-
-  private async initializeInterstitialAd() {
-    const adUnitId = __DEV__ 
-      ? TestIds.INTERSTITIAL 
-      : Platform.select({
-          ios: ADMOB_IOS_REWARDED_AD_UNIT_ID, // Replace with actual interstitial ID
-          android: ADMOB_ANDROID_REWARDED_AD_UNIT_ID, // Replace with actual interstitial ID
-        });
-
-    if (!adUnitId) throw new Error('No valid Interstitial Ad Unit ID found');
-
-    this.interstitialAd = InterstitialAd.createForAdRequest(adUnitId, {
-      requestNonPersonalizedAdsOnly: true,
-    });
-
-    await this.loadInterstitialAd();
-  }
-
   private async loadRewardedAd(): Promise<void> {
-    if (!this.rewardedAd || this.isLoading) {
-      return this.adLoadPromise || Promise.reject('Rewarded ad not ready');
+    if (!this.rewardedAd) {
+      return Promise.reject(new Error('Rewarded ad not initialized'));
+    }
+
+    if (this.isLoading) {
+      return this.adLoadPromise || Promise.reject(new Error('Ad load already in progress'));
     }
 
     this.isLoading = true;
-    
-    // Get device info for debugging
-    const deviceInfo = {
+    console.log('[AdService] Starting to load rewarded ad...', {
       adUnitId: this.rewardedAd.adUnitId,
       isDev: __DEV__,
       platform: Platform.OS,
-    };
-    
-    console.log('[AdService] Starting to load rewarded ad...', deviceInfo);
+    });
 
     this.adLoadPromise = new Promise((resolve, reject) => {
-      const timeoutId = setTimeout(() => {
-        reject(new Error('Ad load timeout'));
+      const cleanup = () => {
         this.isLoading = false;
+        this.adLoadPromise = null;
+        if (timeoutId) clearTimeout(timeoutId);
+        if (unsubscribeLoaded) {
+          this.unsubscribeCallbacks = this.unsubscribeCallbacks.filter(cb => cb !== unsubscribeLoaded);
+          unsubscribeLoaded();
+        }
+        if (unsubscribeError) {
+          this.unsubscribeCallbacks = this.unsubscribeCallbacks.filter(cb => cb !== unsubscribeError);
+          unsubscribeError();
+        }
+      };
+
+      const timeoutId = setTimeout(() => {
+        cleanup();
+        reject(new Error('Ad load timeout'));
       }, 15000);
 
       const unsubscribeLoaded = this.rewardedAd?.addAdEventListener(
         RewardedAdEventType.LOADED,
         () => {
           console.log('[AdService] Rewarded ad loaded successfully');
-          this.isLoading = false;
-          clearTimeout(timeoutId);
+          cleanup();
           resolve();
         }
       );
@@ -162,55 +135,22 @@ class AdService {
         AdEventType.ERROR,
         (error) => {
           console.error('[AdService] Rewarded ad loading error:', error);
-          // Check if it's a "No fill" error
+          cleanup();
           if (error.message?.includes('no-fill')) {
-            console.log('[AdService] No ads available, will retry later');
-            this.isInitialized = true; // Still mark as initialized
-            resolve(); // Resolve instead of reject for no-fill
+            resolve(); // Resolve for no-fill errors
           } else {
             reject(error);
           }
-          this.isLoading = false;
-          clearTimeout(timeoutId);
         }
       );
 
+      this.rewardedAd?.load();
+
       if (unsubscribeLoaded) this.unsubscribeCallbacks.push(unsubscribeLoaded);
       if (unsubscribeError) this.unsubscribeCallbacks.push(unsubscribeError);
-
-      this.rewardedAd?.load();
     });
 
     return this.adLoadPromise;
-  }
-
-  private async loadInterstitialAd(): Promise<void> {
-    if (!this.interstitialAd) {
-      return Promise.reject('Interstitial ad not initialized');
-    }
-
-    return new Promise((resolve, reject) => {
-      const unsubscribeLoaded = this.interstitialAd?.addAdEventListener(
-        AdEventType.LOADED,
-        () => {
-          console.log('[AdService] Interstitial ad loaded successfully');
-          resolve();
-        }
-      );
-
-      const unsubscribeError = this.interstitialAd?.addAdEventListener(
-        AdEventType.ERROR,
-        (error) => {
-          console.error('[AdService] Interstitial ad loading error:', error);
-          reject(error);
-        }
-      );
-
-      if (unsubscribeLoaded) this.unsubscribeCallbacks.push(unsubscribeLoaded);
-      if (unsubscribeError) this.unsubscribeCallbacks.push(unsubscribeError);
-
-      this.interstitialAd?.load();
-    });
   }
 
   async showRewardedAd(): Promise<boolean> {
@@ -220,10 +160,48 @@ class AdService {
     }
 
     try {
-      await this.adLoadPromise;
-      
+      // Add loading state check
+      if (this.isLoading) {
+        console.log('[AdService] Ad is currently loading');
+        await this.adLoadPromise;
+      }
+
+      if (!this.rewardedAd.loaded) {
+        console.log('[AdService] Ad not loaded, attempting to load...');
+        await this.loadRewardedAd();
+        
+        if (!this.rewardedAd.loaded) {
+          console.log('[AdService] Failed to load ad');
+          return false;
+        }
+      }
+
       return new Promise((resolve) => {
         let hasEarnedReward = false;
+        let hasResolved = false;
+
+        const cleanup = () => {
+          if (unsubscribeEarned) {
+            this.unsubscribeCallbacks = this.unsubscribeCallbacks.filter(cb => cb !== unsubscribeEarned);
+            unsubscribeEarned();
+          }
+          if (unsubscribeClosed) {
+            this.unsubscribeCallbacks = this.unsubscribeCallbacks.filter(cb => cb !== unsubscribeClosed);
+            unsubscribeClosed();
+          }
+          if (unsubscribeError) {
+            this.unsubscribeCallbacks = this.unsubscribeCallbacks.filter(cb => cb !== unsubscribeError);
+            unsubscribeError();
+          }
+          if (!hasResolved) {
+            hasResolved = true;
+            resolve(hasEarnedReward);
+          }
+          // Attempt to preload next ad
+          this.loadRewardedAd().catch(error => 
+            console.error('[AdService] Failed to preload next ad:', error)
+          );
+        };
 
         const unsubscribeEarned = this.rewardedAd?.addAdEventListener(
           RewardedAdEventType.EARNED_REWARD,
@@ -237,20 +215,26 @@ class AdService {
           AdEventType.CLOSED,
           () => {
             console.log('[AdService] Rewarded ad closed');
-            if (unsubscribeClosed) unsubscribeClosed();
-            if (unsubscribeEarned) unsubscribeEarned();
-            
-            this.loadRewardedAd(); // Preload next ad
-            resolve(hasEarnedReward);
+            cleanup();
+          }
+        );
+
+        const unsubscribeError = this.rewardedAd?.addAdEventListener(
+          AdEventType.ERROR,
+          (error) => {
+            console.error('[AdService] Show rewarded ad error:', error);
+            cleanup();
           }
         );
 
         this.rewardedAd?.show().catch(error => {
           console.error('[AdService] Show rewarded ad error:', error);
-          if (unsubscribeClosed) unsubscribeClosed();
-          if (unsubscribeEarned) unsubscribeEarned();
-          resolve(false);
+          cleanup();
         });
+
+        if (unsubscribeEarned) this.unsubscribeCallbacks.push(unsubscribeEarned);
+        if (unsubscribeClosed) this.unsubscribeCallbacks.push(unsubscribeClosed);
+        if (unsubscribeError) this.unsubscribeCallbacks.push(unsubscribeError);
       });
     } catch (error) {
       console.error('[AdService] Error in showRewardedAd:', error);
@@ -258,51 +242,47 @@ class AdService {
     }
   }
 
-  async showInterstitialAd(): Promise<boolean> {
-    if (!this.isInitialized || !this.interstitialAd) {
-      console.log('[AdService] Cannot show interstitial ad: not initialized');
-      return false;
-    }
-
+  cleanup() {
     try {
-      return new Promise((resolve) => {
-        const unsubscribeClosed = this.interstitialAd?.addAdEventListener(
-          AdEventType.CLOSED,
-          () => {
-            console.log('[AdService] Interstitial ad closed');
-            if (unsubscribeClosed) unsubscribeClosed();
-            this.loadInterstitialAd(); // Preload next ad
-            resolve(true);
-          }
-        );
-
-        this.interstitialAd?.show().catch(error => {
-          console.error('[AdService] Show interstitial ad error:', error);
-          if (unsubscribeClosed) unsubscribeClosed();
-          resolve(false);
-        });
+      this.unsubscribeCallbacks.forEach(unsubscribe => {
+        try {
+          unsubscribe();
+        } catch (error) {
+          console.error('[AdService] Error unsubscribing:', error);
+        }
       });
     } catch (error) {
-      console.error('[AdService] Error in showInterstitialAd:', error);
-      return false;
+      console.error('[AdService] Error in cleanup:', error);
+    } finally {
+      this.unsubscribeCallbacks = [];
+      this.rewardedAd = null;
+      this.interstitialAd = null;
+      this.isLoading = false;
+      this.isInitialized = false;
+      this.adLoadPromise = null;
+      console.log('[AdService] Cleanup completed');
     }
-  }
-
-  cleanup() {
-    this.unsubscribeCallbacks.forEach(unsubscribe => unsubscribe());
-    this.unsubscribeCallbacks = [];
-    this.rewardedAd = null;
-    this.interstitialAd = null;
-    this.isLoading = false;
-    console.log('[AdService] Cleanup completed');
   }
 
   isAdReady(): boolean {
-    return (this.rewardedAd !== null || this.interstitialAd !== null) && !this.isLoading;
+    return this.rewardedAd?.loaded ?? false;
   }
 
   getInitializationStatus(): boolean {
     return this.isInitialized;
+  }
+
+  private resetState() {
+    this.isLoading = false;
+    this.adLoadPromise = null;
+  }
+
+  getLoadingStatus(): boolean {
+    return this.isLoading;
+  }
+
+  getAdUnitId(): string | undefined {
+    return this.rewardedAd?.adUnitId;
   }
 }
 

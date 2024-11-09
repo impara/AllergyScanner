@@ -123,6 +123,21 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
       }
 
+      if (!adService.isAdReady()) {
+        console.log('[ScanLimit] Ad not ready, waiting for load...');
+        // Show loading state to user
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Give some time for ad to load
+        
+        if (!adService.isAdReady()) {
+          Alert.alert(
+            'Ad Not Ready',
+            'Please wait a moment and try again.',
+            [{ text: 'OK' }]
+          );
+          return;
+        }
+      }
+
       console.log('[ScanLimit] Attempting to show rewarded ad...');
       const success = await adService.showRewardedAd();
       console.log('[ScanLimit] Ad result:', success);
