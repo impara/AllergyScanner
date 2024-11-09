@@ -1,29 +1,87 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { Pressable, TouchableOpacity, Text, StyleSheet, Platform, View } from 'react-native';
+import { colors, typography } from '../../theme';
+import { CustomTheme } from '../../types/theme';
 
-interface ButtonProps {
-  title: string;
+export interface ButtonProps {
+  title?: string;
+  children?: React.ReactNode;
   onPress: () => void;
+  variant?: 'primary' | 'secondary' | 'outline';
+  style?: object;
+  disabled?: boolean;
+  loading?: boolean;
+  theme?: CustomTheme;
 }
 
-const Button: React.FC<ButtonProps> = ({ title, onPress }) => {
+const Button: React.FC<ButtonProps> = ({ 
+  title, 
+  children, 
+  onPress, 
+  variant = 'primary',
+  style,
+  disabled,
+  loading,
+  theme
+}) => {
+  const ButtonComponent = Platform.select({
+    ios: TouchableOpacity as React.ComponentType<any>,
+    android: Pressable as React.ComponentType<any>,
+    default: Pressable as React.ComponentType<any>,
+  });
+
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress}>
-      <Text style={styles.text}>{title}</Text>
-    </TouchableOpacity>
+    <ButtonComponent
+      onPress={onPress}
+      disabled={disabled || loading}
+      style={({ pressed }: { pressed: boolean }) => [
+        styles.button,
+        variant && styles[variant],
+        pressed && styles.buttonPressed,
+        style
+      ]}
+    >
+      <Text style={[styles.text, variant && styles[`${variant}Text` as keyof typeof styles]]}>
+        {title || children}
+      </Text>
+    </ButtonComponent>
   );
 };
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#600EE6',
     padding: 10,
     borderRadius: 5,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primary: {
+    backgroundColor: colors.primary,
+  },
+  secondary: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  buttonPressed: {
+    opacity: 0.8,
   },
   text: {
-    color: 'white',
-    fontSize: 16,
+    ...typography.button,
+  },
+  primaryText: {
+    color: colors.surface,
+  },
+  secondaryText: {
+    color: colors.primary,
+  },
+  outline: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  outlineText: {
+    color: colors.primary,
   },
 });
 

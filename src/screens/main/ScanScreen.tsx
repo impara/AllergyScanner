@@ -17,18 +17,27 @@ import {
   getAlternateProductInfo,
 } from '../../services/api';
 import { getUserIngredients, IngredientsProfile } from '../../config/firebase';
-import { BottomTabNavigationProp, RootStackNavigationProp } from '../../types/navigation';
+import { RootStackNavigationProp, TabNavigationProp, DetectedIngredient } from '../../types/navigation';
 import { unifiedDetectIngredients, parseIngredients } from '../../utils/ingredientDetection';
-import { ProductInfo, AlternateProductInfo } from '../../types/ProductInfo';
+import { ProductInfo, AlternateProductInfo } from '../../types/product';
 import { colors } from '../../theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import i18n from '../../localization/i18n';
 import { useScanLimit } from '../../context/ScanLimitContext';
 import { logScan } from '../../services/analytics';
+import { Button } from '../../components';
+import { theme as defaultTheme } from '../../theme';
+import { CustomTheme } from '../../types/theme';
 
-type ScanScreenNavigationProp = BottomTabNavigationProp & RootStackNavigationProp;
+type ScanScreenNavigationProp = RootStackNavigationProp & TabNavigationProp;
 
-const ScanScreen: React.FC = () => {
+interface ScanScreenProps {
+  theme?: CustomTheme;
+}
+
+const ScanScreen: React.FC<ScanScreenProps> = ({ 
+  theme = defaultTheme 
+}) => {
   const navigation = useNavigation<ScanScreenNavigationProp>();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
@@ -277,7 +286,7 @@ const ScanScreen: React.FC = () => {
         return;
       }
 
-      const finalDetectedIngredients = unifiedDetectIngredients(
+      const finalDetectedIngredients: DetectedIngredient[] = unifiedDetectIngredients(
         ingredientsList,
         userIngredientsData,
         apiIngredientTags

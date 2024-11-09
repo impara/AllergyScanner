@@ -1,25 +1,43 @@
 import { DefaultTheme as PaperDefaultTheme } from 'react-native-paper';
-import { Theme as NavigationTheme } from '@react-navigation/native/lib/typescript/src/types';
 import { colors } from './colors';
 import { shadows } from './shadows';
 import { spacing } from './spacing';
 import { typography } from './typography';
+import { CustomTheme, Typography } from '../types/theme';
 
-// Define a custom theme that extends both Paper and Navigation themes
-export const theme: NavigationTheme = {
+// Create a properly typed typography object
+const typographyWithStyles: Typography = {
+  h1: typography.h1,
+  h2: typography.h2,
+  h3: typography.h3,
+  h4: typography.h4,
+  h5: typography.h5,
+  h6: typography.h6,
+  subtitle1: typography.subtitle1,
+  subtitle2: typography.subtitle2,
+  body: typography.body,
+  body1: typography.body1,
+  body2: typography.body2,
+  button: typography.button,
+  caption: typography.caption,
+  overline: typography.overline,
+};
+
+export const theme: CustomTheme = {
   ...PaperDefaultTheme,
   colors: {
     ...PaperDefaultTheme.colors,
-    primary: colors.primary,
-    background: colors.background,
-    card: colors.surface,
-    text: colors.text,
+    ...colors,
     border: colors.divider,
-    notification: colors.brightLemon,
+  },
+  typography: typographyWithStyles,
+  spacing,
+  shadows,
+  roundness: 4,
+  animation: {
+    scale: 1,
+    defaultAnimationDuration: 200,
   },
 };
 
-export { colors } from './colors';
-export { shadows } from './shadows';
-export { spacing } from './spacing';
-export { typography } from './typography';
+export { colors, spacing, typography, shadows };

@@ -1,26 +1,75 @@
 import React from 'react';
-import { TextInput, StyleSheet, TextInputProps } from 'react-native';
+import { TextInput, StyleSheet, TextInputProps, View, Text, ViewStyle, TextStyle } from 'react-native';
+import { colors, typography, spacing } from '../../theme';
+import { CustomTheme } from '../../types/theme';
 
-interface InputProps extends TextInputProps {
-  placeholderTextColor?: string;
+export interface InputProps extends TextInputProps {
+  error?: string;
+  containerStyle?: ViewStyle;
+  label?: string;
+  helperText?: string;
+  theme?: CustomTheme;
 }
 
-const Input: React.FC<InputProps> = ({ style, placeholderTextColor = '#A0A0A0', ...props }) => {
+const Input: React.FC<InputProps> = ({ 
+  style, 
+  error,
+  containerStyle,
+  label,
+  helperText,
+  placeholderTextColor = colors.textSecondary,
+  theme,
+  ...props 
+}) => {
+  const inputStyles = [
+    styles.input,
+    error && styles.inputError,
+    style
+  ].filter(Boolean) as TextStyle[];
+
   return (
-    <TextInput
-      style={[styles.input, style]}
-      placeholderTextColor={placeholderTextColor}
-      {...props}
-    />
+    <View style={[styles.container, containerStyle]}>
+      {label && <Text style={styles.label}>{label}</Text>}
+      <TextInput
+        style={inputStyles}
+        placeholderTextColor={placeholderTextColor}
+        {...props}
+      />
+      {error && <Text style={styles.errorText}>{error}</Text>}
+      {helperText && !error && <Text style={styles.helperText}>{helperText}</Text>}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+  },
+  label: {
+    ...typography.caption,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
   input: {
-    borderWidth: 0,
-    padding: 0,
-    margin: 0,
-    // Add any other default styles you want for your input
+    ...typography.body,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    borderRadius: 5,
+    padding: 10,
+    color: colors.text,
+  },
+  inputError: {
+    borderColor: colors.error,
+  },
+  errorText: {
+    ...typography.caption,
+    color: colors.error,
+    marginTop: 4,
+  },
+  helperText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginTop: 4,
   },
 });
 

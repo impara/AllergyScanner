@@ -16,17 +16,21 @@ import { List, Text, Switch, Title, Divider } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from '../../types/navigation';
+import { theme as defaultTheme } from '../../theme';
+import { CustomTheme } from '../../types/theme';
 
 // Local imports
 import { getUserIngredients, updateUserIngredients, IngredientsProfile } from '../../config/firebase';
-import Input from '../../components/common/Input';
-import Toast from '../../components/Toast';
+import { Input, Toast } from '../../components';
 import { findIngredientIdsWithLang } from '../../utils/ingredientDetection';
 import { findIngredientsByName } from '../../utils/ingredientUtils';
 import { getIngredientName, isAdditive, getENumber, getIngredientCategories } from '../../utils/ingredientUtils';
 import i18n from '../../localization/i18n';
 import { useLanguage } from '../../context/LanguageContext';
 import { colors, spacing, typography, shadows } from '../../theme';
+import { DetectedIngredient, IngredientData } from '../../types/navigation';
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -89,10 +93,18 @@ const useCategoryDefinitions = () => {
   };
 };
 
-const IngredientProfileScreen: React.FC = () => {
+interface IngredientProfileScreenProps {
+  theme?: CustomTheme;
+  navigation: NavigationProp<RootStackParamList>;
+}
+
+const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({ 
+  theme = defaultTheme,
+  navigation 
+}) => {
   const { forceRender } = useLanguage();
   const categoryDefinitions = useCategoryDefinitions(); // Use the hook here
-  const [checkedIngredients, setCheckedIngredients] = useState<IngredientsProfile>({});
+  const [checkedIngredients, setCheckedIngredients] = useState<Record<string, IngredientData>>({});
   const [ingredientList, setIngredientList] = useState<string[]>([]);
   const [isSnackbarVisible, setIsSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -102,10 +114,13 @@ const IngredientProfileScreen: React.FC = () => {
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [isGroupModalVisible, setIsGroupModalVisible] = useState(false);
-  const [tempIngredient, setTempIngredient] = useState<{ id: string; name: string; lang?: string }>({ id: '', name: '' });
+  const [tempIngredient, setTempIngredient] = useState<DetectedIngredient>({ 
+    id: '', 
+    name: '' 
+  });
   // Add a new state to track group toggle status
   const [groupToggleStatus, setGroupToggleStatus] = useState<Record<string, boolean>>({});
-  const [searchResults, setSearchResults] = useState<Array<{ id: string; name: string; lang?: string }>>([]);
+  const [searchResults, setSearchResults] = useState<DetectedIngredient[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
 
   // Reload data when language changes
@@ -523,12 +538,11 @@ const IngredientProfileScreen: React.FC = () => {
   const handleGroupSelection = (groupName: string) => {
     const { id: ingredientId, name, lang } = tempIngredient;
     
-    // Include the language in the ingredient data
-    const ingredientData = {
-      name,
-      lang, // Store the language
+    const ingredientData: IngredientData = {
       selected: true,
-      ...(groupName !== 'other' && { category: groupName })
+      name: name || '',
+      lang,
+      category: groupName !== 'other' ? groupName : undefined
     };
     
     setIngredientList([ingredientId, ...ingredientList]);
@@ -543,7 +557,10 @@ const IngredientProfileScreen: React.FC = () => {
     });
 
     setIsGroupModalVisible(false);
-    showToast(`${name} added to ${groupName}`);
+    showToast(i18n.t('ingredients.ingredientAdded', { 
+      name: name || ingredientId,
+      group: groupName 
+    }));
   };
 
   const GroupSelectionModal = () => (
@@ -594,7 +611,10 @@ const IngredientProfileScreen: React.FC = () => {
     }
   };
 
-  const handleSearchResultSelect = (result: { id: string; name: string; lang?: string }) => {
+  const handleSearchResultSelect = (result: DetectedIngredient) => {
+    if (!result.name) {
+      return;
+    }
     // Check if ingredient already exists
     if (ingredientList.includes(result.id)) {
       Alert.alert(
@@ -717,8 +737,8 @@ const IngredientProfileScreen: React.FC = () => {
 
         <Toast
           message={snackbarMessage}
-          isVisible={isSnackbarVisible}
-          onHide={onDismissToast}
+          visible={isSnackbarVisible}
+          onDismiss={onDismissToast}
           onUndo={undoActionRef.current ? handleUndo : undefined}
         />
       </View>

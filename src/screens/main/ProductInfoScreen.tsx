@@ -15,32 +15,33 @@ import {
 import { Text, Chip, IconButton, Divider } from 'react-native-paper';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RouteProp, useRoute } from '@react-navigation/core';
-import { RootStackParamList } from '../../types/navigation';
+import { RootStackParamList, ProductInfoScreenRouteProp, DetectedIngredient } from '../../types/navigation';
 import { getIngredientName } from '../../utils/ingredientUtils';
 import i18n from '../../localization/i18n';
 import { useLanguage } from '../../context/LanguageContext';
 import { colors } from '../../theme/colors';
 import { spacing, typography } from '../../theme';
 import { shadows } from '../../theme/shadows';
-
-type ProductInfoScreenRouteProp = RouteProp<RootStackParamList, 'ProductInfo'>;
-
-interface DetectedIngredient {
-  id: string;
-  lang?: string;
-}
+import { Button, Input } from '../../components';
+import { CustomTheme } from '../../types/theme';
+import { ProductInfo } from '../../types/product';
+import { theme as defaultTheme } from '../../theme';
 
 const DRAG_THRESHOLD = 100;
 const ANIMATION_DURATION = 300;
 
-const ProductInfoScreen: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const route = useRoute<ProductInfoScreenRouteProp>();
-  const {
-    productInfo: product,
-    detectedIngredients = [],
-    ingredientsList = [],
-  } = route.params;
+interface ProductInfoScreenProps {
+  theme?: CustomTheme;
+  route: ProductInfoScreenRouteProp;
+  navigation: NavigationProp<RootStackParamList>;
+}
+
+const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({ 
+  theme = defaultTheme, 
+  route, 
+  navigation 
+}) => {
+  const { productInfo, detectedIngredients } = route.params;
   const { locale } = useLanguage();
 
   const [modalVisible, setModalVisible] = useState(true);
@@ -57,25 +58,25 @@ const ProductInfoScreen: React.FC = () => {
   const getLocalizedProductName = () => {
     const langSpecificNameKey = `product_name_${locale}`;
     return (
-      product[langSpecificNameKey] ||
-      product.product_name ||
-      product.name ||
+      productInfo[langSpecificNameKey] ||
+      productInfo.product_name ||
+      productInfo.name ||
       i18n.t('product.unavailable')
     );
   };
 
   const getLocalizedIngredients = () => {
     const langSpecificKey = `ingredients_text_${locale}`;
-    if (product[langSpecificKey]) {
-      return product[langSpecificKey].split(',').map((i) => i.trim());
+    if (productInfo[langSpecificKey]) {
+      return productInfo[langSpecificKey].split(',').map((i) => i.trim());
     }
-    if (product.ingredients_text_en) {
-      return product.ingredients_text_en.split(',').map((i) => i.trim());
+    if (productInfo.ingredients_text_en) {
+      return productInfo.ingredients_text_en.split(',').map((i) => i.trim());
     }
-    if (product.ingredients_text) {
-      return product.ingredients_text.split(',').map((i) => i.trim());
+    if (productInfo.ingredients_text) {
+      return productInfo.ingredients_text.split(',').map((i) => i.trim());
     }
-    return ingredientsList || [];
+    return productInfo.ingredientsList || [];
   };
 
   const panResponder = React.useRef(
@@ -180,7 +181,7 @@ const ProductInfoScreen: React.FC = () => {
           <ScrollView style={styles.scrollView} bounces={false}>
             <View style={styles.contentContainer}>
               <Text style={styles.brandText}>
-                {product.brands || product.brand || i18n.t('product.unknownBrand')}
+                {productInfo.brands || productInfo.brand || i18n.t('product.unknownBrand')}
               </Text>
 
               {renderSafetyIndicator()}
@@ -224,7 +225,7 @@ const ProductInfoScreen: React.FC = () => {
                 </Text>
               </View>
 
-              {product.nutriments && (
+              {productInfo.nutriments && (
                 <>
                   <Divider style={styles.divider} />
                   <View style={styles.section}>
@@ -235,8 +236,8 @@ const ProductInfoScreen: React.FC = () => {
                       {['energy-kcal', 'proteins', 'carbohydrates', 'fat'].map((nutrient) => (
                         <Text key={nutrient} style={styles.nutrientText}>
                           {i18n.t(`product.nutriments.${nutrient}`, {
-                            value: product.nutriments[nutrient] || i18n.t('product.nutriments.na'),
-                            unit: nutrient === 'energy-kcal' ? product.nutriments[`${nutrient}_unit`] : 'g'
+                            value: productInfo.nutriments?.[nutrient] || i18n.t('product.nutriments.na'),
+                            unit: nutrient === 'energy-kcal' ? productInfo.nutriments?.[`${nutrient}_unit`] : 'g'
                           })}
                         </Text>
                       ))}

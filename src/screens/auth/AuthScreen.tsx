@@ -14,7 +14,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from '../../config/firebase';
-import Toast from '../../components/Toast';
+import { Toast } from '../../components';
 import { spacing, shadows, typography } from '../../theme/theme';
 import { colors } from '../../theme/colors';
 import { Provider as PaperProvider } from 'react-native-paper';
@@ -123,7 +123,7 @@ const AuthScreen: React.FC = () => {
               style={styles.input}
               mode="outlined"
               theme={inputTheme}
-              left={<TextInput.Icon name="email" color={colors.coolGray} />}
+              left={<TextInput.Icon icon="email" color={colors.coolGray} />}
               outlineColor={colors.coolGray}
               activeOutlineColor={colors.primary}
               keyboardType="email-address"
@@ -137,7 +137,7 @@ const AuthScreen: React.FC = () => {
               style={styles.input}
               mode="outlined"
               theme={inputTheme}
-              left={<TextInput.Icon name="lock" color={colors.coolGray} />}
+              left={<TextInput.Icon icon="lock" color={colors.coolGray} />}
               outlineColor={colors.coolGray}
               activeOutlineColor={colors.primary}
             />
@@ -172,8 +172,8 @@ const AuthScreen: React.FC = () => {
         </ScrollView>
         <Toast
           message={toastMessage}
-          isVisible={toastVisible}
-          onHide={() => setToastVisible(false)}
+          visible={toastVisible}
+          onDismiss={() => setToastVisible(false)}
           duration={3000}
         />
       </KeyboardAvoidingView>
