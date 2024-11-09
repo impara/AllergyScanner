@@ -188,27 +188,45 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
   const loadIngredientProfile = async () => {
     try {
       const userIngredients: IngredientsProfile = await getUserIngredients();
-      setCheckedIngredients(userIngredients);
+      
+      // Clean the loaded ingredients
+      const cleanedIngredients = Object.fromEntries(
+        Object.entries(userIngredients)
+          .map(([key, value]) => [
+            key,
+            {
+              selected: Boolean(value?.selected),
+              name: value?.name || '',
+              lang: value?.lang || undefined,
+              ...(value?.category && value.category !== 'other' && 
+                  Object.keys(categoryDefinitions).includes(value.category) 
+                  ? { category: value.category } 
+                  : {})
+            }
+          ])
+      );
 
-      const allUserIngredients = Object.keys(userIngredients);
-      setIngredientList(allUserIngredients);
+      setCheckedIngredients(cleanedIngredients);
+      setIngredientList(Object.keys(cleanedIngredients));
 
-      // Update group toggle status using translated categories
-      const translatedCategories = getTranslatedCategories();
+      // Update group toggle status
       const newGroupToggleStatus: Record<string, boolean> = {};
-      Object.entries(translatedCategories).forEach(([groupName, groupData]) => {
+      Object.keys(categoryDefinitions).forEach((groupName) => {
         const groupIngredients = groupName === 'other'
-          ? ingredientList.filter(id => 
-              !Object.keys(translatedCategories).filter((name) => name !== 'other').includes(id)
+          ? Object.keys(cleanedIngredients).filter(id => 
+              !cleanedIngredients[id].category || 
+              !Object.keys(categoryDefinitions).includes(cleanedIngredients[id].category!)
             )
-          : ingredientList.filter(id => getIngredientCategories(id, checkedIngredients).includes(groupName));
-        const areAllSelected = groupIngredients.every(
-          ingredientId => userIngredients[ingredientId]?.selected
-        );
+          : Object.keys(cleanedIngredients).filter(id => 
+              cleanedIngredients[id].category === groupName
+            );
+
+        const areAllSelected = groupIngredients.length > 0 && 
+          groupIngredients.every(id => cleanedIngredients[id].selected);
         newGroupToggleStatus[groupName] = areAllSelected;
       });
+      
       setGroupToggleStatus(newGroupToggleStatus);
-
     } catch (error) {
       console.error('Error loading ingredient profile:', error);
     } finally {
@@ -233,9 +251,25 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
 
   const saveIngredientProfile = async (ingredients: IngredientsProfile) => {
     try {
+      // Deep clean the ingredients object
       const cleanedIngredients = Object.fromEntries(
-        Object.entries(ingredients).filter(([_, value]) => value !== undefined)
+        Object.entries(ingredients)
+          .filter(([_, value]) => value !== undefined && value !== null)
+          .map(([key, value]) => [
+            key,
+            {
+              selected: Boolean(value.selected),
+              name: value.name || '',
+              lang: value.lang || undefined,
+              // Only include category if it exists, isn't 'other', and is a valid category
+              ...(value.category && value.category !== 'other' && 
+                  Object.keys(categoryDefinitions).includes(value.category) 
+                  ? { category: value.category } 
+                  : {})
+            }
+          ])
       );
+
       console.log('Saving cleanedIngredients:', cleanedIngredients);
       await updateUserIngredients(cleanedIngredients);
       console.log('Ingredient profile saved successfully.');
@@ -538,23 +572,25 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
   const handleGroupSelection = (groupName: string) => {
     const { id: ingredientId, name, lang } = tempIngredient;
     
+    // Create ingredient data with null instead of undefined for Firebase
     const ingredientData: IngredientData = {
       selected: true,
       name: name || '',
-      lang,
-      category: groupName !== 'other' ? groupName : undefined
+      lang: lang || undefined,
+      ...(groupName !== 'other' ? { category: groupName } : {})
+    };
+    
+    // Create new ingredients object with the new ingredient
+    const updatedIngredients = {
+      ...checkedIngredients,
+      [ingredientId]: ingredientData,
     };
     
     setIngredientList([ingredientId, ...ingredientList]);
-    setCheckedIngredients(prev => ({
-      ...prev,
-      [ingredientId]: ingredientData,
-    }));
+    setCheckedIngredients(updatedIngredients);
 
-    saveIngredientProfile({
-      ...checkedIngredients,
-      [ingredientId]: ingredientData,
-    });
+    // Save the profile with the cleaned data
+    saveIngredientProfile(updatedIngredients);
 
     setIsGroupModalVisible(false);
     showToast(i18n.t('ingredients.ingredientAdded', { 
@@ -763,6 +799,7 @@ const styles = StyleSheet.create({
     zIndex: 1000,
     elevation: Platform.OS === 'android' ? 1000 : undefined,
     position: 'relative',
+    minHeight: 120,
   },
   headerTitle: {
     ...typography.h1,
@@ -775,6 +812,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     zIndex: 1001,
     elevation: Platform.OS === 'android' ? 1001 : undefined,
+    marginTop: spacing.xs,
+    paddingBottom: spacing.xs,
   },
   searchInput: {
     flex: 1,
@@ -784,6 +823,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     ...typography.body,
     color: colors.text,
+    maxWidth: '85%',
   },
   addButton: {
     width: 48,
@@ -792,6 +832,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+    flexShrink: 0,
   },
   rightAction: {
     backgroundColor: colors.error,
