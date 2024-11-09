@@ -37,6 +37,8 @@ class AdService {
         android: Constants.expoConfig?.extra?.ADMOB_ANDROID_APP_ID,
       });
 
+      console.log('[AdService] Initializing with App ID:', appId);
+
       const rewardedAdUnitId = Platform.select({
         ios: Constants.expoConfig?.extra?.ADMOB_IOS_REWARDED_AD_UNIT_ID,
         android: Constants.expoConfig?.extra?.ADMOB_ANDROID_REWARDED_AD_UNIT_ID,
@@ -283,6 +285,16 @@ class AdService {
 
   getAdUnitId(): string | undefined {
     return this.rewardedAd?.adUnitId;
+  }
+
+  private handleError(error: any, context: string) {
+    console.error(`[AdService] Error in ${context}:`, error);
+    if (error.message?.includes('no-fill')) {
+      console.log('[AdService] No fill error - will retry later');
+      return;
+    }
+    this.cleanup(); // Clean up on critical errors
+    this.isInitialized = false;
   }
 }
 

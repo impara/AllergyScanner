@@ -13,6 +13,7 @@ import * as firebase from './src/config/firebase';
 import { LogBox } from 'react-native';
 import { adService } from './src/services/ads';
 import { initializeGoogleSignIn } from './src/config/googleSignIn';
+import Constants from 'expo-constants';
 
 // Ignore specific warnings
 LogBox.ignoreLogs(['Setting a timer for a long period of time']);
@@ -49,15 +50,20 @@ const App: React.FC = () => {
 
         // Then initialize AdMob with more detailed logging
         if (Platform.OS !== 'web') {
-          console.log('Initializing AdMob...', {
+          const adMobConfig = {
             appId: Platform.select({
-              android: process.env.ADMOB_ANDROID_APP_ID,
-              ios: process.env.ADMOB_IOS_APP_ID,
+              android: Constants.expoConfig?.extra?.ADMOB_ANDROID_APP_ID,
+              ios: Constants.expoConfig?.extra?.ADMOB_IOS_APP_ID,
             }),
-            hasRewardedId: !!Platform.select({
-              android: process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID,
-              ios: process.env.ADMOB_IOS_REWARDED_AD_UNIT_ID,
+            rewardedId: Platform.select({
+              android: Constants.expoConfig?.extra?.ADMOB_ANDROID_REWARDED_AD_UNIT_ID,
+              ios: Constants.expoConfig?.extra?.ADMOB_IOS_REWARDED_AD_UNIT_ID,
             }),
+          };
+
+          console.log('Initializing AdMob...', {
+            appId: adMobConfig.appId,
+            hasRewardedId: !!adMobConfig.rewardedId,
           });
           
           const adInitResult = await adService.initialize();
