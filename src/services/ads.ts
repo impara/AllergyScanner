@@ -33,59 +33,60 @@ class AdService {
 
     try {
       const appId = Platform.select({
-        ios: ADMOB_IOS_APP_ID,
-        android: ADMOB_ANDROID_APP_ID,
-        default: '',
+        ios: Constants.expoConfig?.extra?.ADMOB_IOS_APP_ID,
+        android: Constants.expoConfig?.extra?.ADMOB_ANDROID_APP_ID,
       });
 
-      if (!appId) {
-        throw new Error('No valid AdMob App ID found');
+      const rewardedAdUnitId = Platform.select({
+        ios: Constants.expoConfig?.extra?.ADMOB_IOS_REWARDED_AD_UNIT_ID,
+        android: Constants.expoConfig?.extra?.ADMOB_ANDROID_REWARDED_AD_UNIT_ID,
+      });
+
+      if (!appId || !rewardedAdUnitId) {
+        console.error('[AdService] Missing required AdMob IDs:', { 
+          appId, 
+          rewardedAdUnitId,
+          environment: __DEV__ ? 'development' : 'production'
+        });
+        return false;
       }
 
-      console.log('[AdService] Initializing with App ID:', appId);
+      // Log initialization details
+      console.log('[AdService] Initializing with:', { 
+        appId, 
+        rewardedAdUnitId,
+        isDev: __DEV__,
+        platform: Platform.OS 
+      });
 
-      // Set configuration
+      // Initialize the SDK with configuration
       await mobileAds().setRequestConfiguration({
-        maxAdContentRating: MaxAdContentRating.PG,
+        // This is the COPPA setting
         tagForChildDirectedTreatment: false,
+        // This is for GDPR
         tagForUnderAgeOfConsent: false,
+        // Set max ad content rating
+        maxAdContentRating: MaxAdContentRating.PG,
       });
 
-      // Initialize with retry logic
-      let retryCount = 0;
-      const maxRetries = 3;
+      await mobileAds().initialize();
       
-      while (retryCount < maxRetries) {
-        try {
-          const result = await Promise.race([
-            mobileAds().initialize(),
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Initialization timeout')), 5000)
-            )
-          ]);
-
-          console.log('[AdService] SDK initialized successfully');
-          this.isInitialized = true;
-
-          // Initialize Rewarded Ad
-          await this.initializeRewardedAd();
-          
-          // Initialize Interstitial Ad
-          await this.initializeInterstitialAd();
-
-          return result;
-        } catch (error) {
-          console.warn(`[AdService] Initialization attempt ${retryCount + 1} failed:`, error);
-          retryCount++;
-          if (retryCount === maxRetries) throw error;
-          await new Promise(resolve => setTimeout(resolve, 2000));
+      // Create the rewarded ad instance
+      this.rewardedAd = RewardedAd.createForAdRequest(
+        __DEV__ ? TestIds.REWARDED : rewardedAdUnitId,
+        {
+          requestNonPersonalizedAdsOnly: true,
+          keywords: ['health', 'food', 'nutrition']
         }
-      }
+      );
+
+      // Attempt to load the first ad
+      await this.loadRewardedAd();
       
-      return false;
+      this.isInitialized = true;
+      return true;
     } catch (error) {
       console.error('[AdService] Initialization error:', error);
-      this.isInitialized = false;
       return false;
     }
   }
@@ -131,7 +132,15 @@ class AdService {
     }
 
     this.isLoading = true;
-    console.log('[AdService] Starting to load rewarded ad...');
+    
+    // Get device info for debugging
+    const deviceInfo = {
+      adUnitId: this.rewardedAd.adUnitId,
+      isDev: __DEV__,
+      platform: Platform.OS,
+    };
+    
+    console.log('[AdService] Starting to load rewarded ad...', deviceInfo);
 
     this.adLoadPromise = new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
@@ -153,9 +162,16 @@ class AdService {
         AdEventType.ERROR,
         (error) => {
           console.error('[AdService] Rewarded ad loading error:', error);
+          // Check if it's a "No fill" error
+          if (error.message?.includes('no-fill')) {
+            console.log('[AdService] No ads available, will retry later');
+            this.isInitialized = true; // Still mark as initialized
+            resolve(); // Resolve instead of reject for no-fill
+          } else {
+            reject(error);
+          }
           this.isLoading = false;
           clearTimeout(timeoutId);
-          reject(error);
         }
       );
 

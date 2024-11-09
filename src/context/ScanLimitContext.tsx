@@ -114,16 +114,9 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           await adService.initialize();
         } catch (error) {
           console.error('[ScanLimit] Failed to initialize ads:', error);
-          if (Platform.OS === 'web') {
-            console.log('[ScanLimit] Web platform detected, auto-granting scans');
-            const newCount = scansRemaining + SCANS_PER_AD;
-            await AsyncStorage.setItem(SCANS_REMAINING_KEY, newCount.toString());
-            setScansRemaining(newCount);
-            return;
-          }
           Alert.alert(
-            'Ad Service Unavailable',
-            'Unable to load ad service. Please try again later.',
+            'Ads Unavailable',
+            'Sorry, ads are not available right now. Please try again later.',
             [{ text: 'OK' }]
           );
           return;

@@ -47,11 +47,21 @@ const App: React.FC = () => {
         ]);
         console.log('Firebase and Google Sign-In initialized');
 
-        // Then initialize AdMob
+        // Then initialize AdMob with more detailed logging
         if (Platform.OS !== 'web') {
-          console.log('Initializing AdMob...');
-          await adService.initialize();
-          console.log('AdMob initialized');
+          console.log('Initializing AdMob...', {
+            appId: Platform.select({
+              android: process.env.ADMOB_ANDROID_APP_ID,
+              ios: process.env.ADMOB_IOS_APP_ID,
+            }),
+            hasRewardedId: !!Platform.select({
+              android: process.env.ADMOB_ANDROID_REWARDED_AD_UNIT_ID,
+              ios: process.env.ADMOB_IOS_REWARDED_AD_UNIT_ID,
+            }),
+          });
+          
+          const adInitResult = await adService.initialize();
+          console.log('AdMob initialization result:', adInitResult);
         }
 
         setAppReady(true);

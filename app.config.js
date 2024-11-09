@@ -8,6 +8,23 @@ if (!process.env.ADMOB_ANDROID_APP_ID || !process.env.ADMOB_IOS_APP_ID) {
     throw new Error("AdMob App IDs are not set. Please define ADMOB_ANDROID_APP_ID and ADMOB_IOS_APP_ID in your environment variables.");
 }
 
+// Add this at the top of your app.config.js
+const validateAdMobConfig = () => {
+    const requiredVars = [
+        'ADMOB_ANDROID_APP_ID',
+        'ADMOB_IOS_APP_ID',
+        'ADMOB_ANDROID_REWARDED_AD_UNIT_ID',
+        'ADMOB_IOS_REWARDED_AD_UNIT_ID'
+    ];
+
+    const missing = requiredVars.filter(varName => !process.env[varName]);
+    if (missing.length > 0) {
+        console.warn('Missing AdMob configuration:', missing.join(', '));
+    }
+};
+
+validateAdMobConfig();
+
 module.exports = ({ config }) => {
     // Add validation for Google Sign-In configuration
     if (!process.env.GOOGLE_ANDROID_CLIENT_ID || !process.env.GOOGLE_EXPO_CLIENT_ID) {
