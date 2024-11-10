@@ -159,7 +159,9 @@ export default {
     ok: 'OK',
     error: 'Virhe',
     loading: 'Ladataan...',
-    undo: 'Kumoa'
+    undo: 'Kumoa',
+    pullToRefresh: 'Vedä päivittääksesi',
+    errorRefreshing: 'Virhe päivitettäessä tietoja',
   },
   camera: {
     permission: 'Kameran Käyttöoikeus Vaaditaan',

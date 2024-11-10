@@ -12,6 +12,8 @@ import {
   TouchableWithoutFeedback,
   Platform,
   Keyboard,
+  TextInput,
+  RefreshControl,
 } from 'react-native';
 import { List, Text, Switch, Title, Divider } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -123,6 +125,8 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
   const [groupToggleStatus, setGroupToggleStatus] = useState<Record<string, boolean>>({});
   const [searchResults, setSearchResults] = useState<DetectedIngredient[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   // Reload data when language changes
   useEffect(() => {
@@ -708,6 +712,24 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
     };
   }, []);
 
+  // Add refresh handler
+  const handleRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await loadIngredientProfile();
+    } catch (error) {
+      console.error('Error refreshing:', error);
+      showToast(i18n.t('common.errorRefreshing'));
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
+  // Add scroll to top handler
+  const scrollToTop = () => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -717,89 +739,130 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
-        <View style={[styles.header, platformStyles.shadow]}>
-          <Text style={styles.headerTitle}>{i18n.t('ingredients.title')}</Text>
+        <View style={styles.header}>
+          {/* Make header title tappable */}
+          <TouchableOpacity 
+            onPress={scrollToTop}
+            style={styles.headerTitleContainer}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.headerTitle}>
+              {i18n.t('ingredients.title')}
+            </Text>
+            <MaterialCommunityIcons 
+              name="chevron-up" 
+              size={20} 
+              color={colors.text}
+              style={styles.headerIcon}
+            />
+          </TouchableOpacity>
+          
           <View style={styles.searchWrapper}>
             <View style={styles.searchContainer}>
-              <Input
+              <TextInput
+                style={[
+                  styles.searchInput,
+                  Platform.OS === 'android' && {
+                    elevation: 2,
+                    borderWidth: 1,
+                    borderColor: colors.divider,
+                  }
+                ]}
                 value={newIngredient}
                 onChangeText={handleIngredientSearch}
                 placeholder={i18n.t('ingredients.addCustom')}
                 placeholderTextColor={colors.placeholder}
-                style={styles.searchInput}
                 onFocus={() => setShowSearchResults(true)}
               />
               <TouchableOpacity 
+                style={[
+                  styles.addButton,
+                  Platform.OS === 'android' && {
+                    elevation: 8,
+                    borderWidth: 1,
+                    borderColor: colors.divider,
+                  }
+                ]}
                 onPress={addCustomIngredient}
-                style={[styles.addButton, platformStyles.shadow]}
-                {...platformStyles.ripple}
               >
-                <MaterialCommunityIcons 
-                  name="plus" 
-                  size={24} 
-                  color={colors.surface} 
-                />
+                <MaterialCommunityIcons name="plus" size={24} color={colors.surface} />
               </TouchableOpacity>
             </View>
 
-            {/* Search results dropdown */}
-            {showSearchResults && searchResults.length > 0 && (
-              <View style={styles.searchResultsContainer}>
-                <ScrollView 
-                  style={styles.searchResults}
-                  keyboardShouldPersistTaps="handled"
-                  showsVerticalScrollIndicator={true}
-                  bounces={false}
-                  nestedScrollEnabled={true}
-                  contentContainerStyle={styles.searchResultsContent}
-                >
-                  {searchResults.map((result, index) => (
-                    <React.Fragment key={result.id}>
-                      <TouchableOpacity
-                        style={styles.searchResultItem}
-                        onPress={() => {
-                          handleSearchResultSelect(result);
-                          Keyboard.dismiss();
-                        }}
-                      >
-                        <View style={styles.searchResultContent}>
-                          <Text style={styles.searchResultText} numberOfLines={1}>
-                            {result.name}
-                          </Text>
-                          {isAdditive(result.id) && (
-                            <View style={styles.additiveContainer}>
-                              <Text style={styles.additiveIndicator}>
-                                {getENumber(result.id) ? `E${getENumber(result.id)}` : 'Additive'}
-                              </Text>
-                            </View>
-                          )}
-                        </View>
-                      </TouchableOpacity>
-                      {index < searchResults.length - 1 && (
-                        <Divider style={styles.resultDivider} />
-                      )}
-                    </React.Fragment>
-                  ))}
-                </ScrollView>
-              </View>
+            {/* Search Results Dropdown with improved scrolling */}
+            {showSearchResults && (
+              <>
+                <View style={styles.overlay} />
+                <View style={styles.searchResultsContainer}>
+                  <ScrollView
+                    style={styles.searchResults}
+                    contentContainerStyle={styles.searchResultsContent}
+                    keyboardShouldPersistTaps="handled"
+                    keyboardDismissMode="on-drag"
+                    nestedScrollEnabled={true}
+                    bounces={false}
+                  >
+                    {searchResults.map((result, index) => (
+                      <React.Fragment key={result.id}>
+                        <TouchableOpacity
+                          style={styles.searchResultItem}
+                          onPress={() => {
+                            handleSearchResultSelect(result);
+                            Keyboard.dismiss();
+                          }}
+                        >
+                          <View style={styles.searchResultContent}>
+                            <Text style={styles.searchResultText} numberOfLines={1}>
+                              {result.name}
+                            </Text>
+                            {isAdditive(result.id) && (
+                              <View style={styles.additiveContainer}>
+                                <Text style={styles.additiveIndicator}>
+                                  {getENumber(result.id) ? `E${getENumber(result.id)}` : 'Additive'}
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+                        </TouchableOpacity>
+                        {index < searchResults.length - 1 && (
+                          <Divider style={styles.resultDivider} />
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </ScrollView>
+                </View>
+              </>
             )}
           </View>
         </View>
 
-        {/* Main scrollable content */}
-        <TouchableWithoutFeedback onPress={dismissSearchResults}>
-          <ScrollView 
-            style={styles.scrollView}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-          >
-            {Object.entries(getTranslatedCategories()).map(([groupName, groupData]) => 
-              renderGroup(groupName, groupData)
-            )}
-          </ScrollView>
-        </TouchableWithoutFeedback>
+        {/* Update ScrollView with refresh control and ref */}
+        <ScrollView 
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={true}
+          bounces={true} // Enable bouncing for pull to refresh
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={[colors.primary]} // Android
+              tintColor={colors.primary} // iOS
+              title={i18n.t('common.pullToRefresh')} // iOS
+              titleColor={colors.text} // iOS
+            />
+          }
+        >
+          {Object.entries(getTranslatedCategories()).map(([groupName, groupData]) => 
+            renderGroup(groupName, groupData)
+          )}
+          <View style={styles.bottomSpacing} />
+        </ScrollView>
 
         <Toast
           message={snackbarMessage}
@@ -820,30 +883,55 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    // Reduce horizontal padding to prevent button overflow
+    paddingHorizontal: Platform.OS === 'android' ? spacing.xs / 2 : 0,
   },
   header: {
     backgroundColor: colors.surface,
-    padding: spacing.md,
-    borderBottomWidth: 1,
+    paddingTop: Platform.OS === 'android' ? spacing.md : spacing.sm,
+    paddingBottom: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderBottomWidth: Platform.select({ ios: 0.5, android: 0 }),
     borderBottomColor: colors.divider,
-    zIndex: 2,
-    elevation: Platform.OS === 'android' ? 2 : undefined,
-    position: 'relative',
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.xs,
   },
   headerTitle: {
     ...typography.h1,
     color: colors.text,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs, // Reduced margin for icon
+  },
+  headerIcon: {
+    marginLeft: spacing.xs,
+    opacity: 0.7,
   },
   searchWrapper: {
     position: 'relative',
     zIndex: 3,
-    elevation: Platform.OS === 'android' ? 3 : undefined,
+    paddingHorizontal: spacing.xs,
+    ...(Platform.OS === 'android' && {
+      elevation: 3,
+    }),
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.xs,
+    marginHorizontal: -spacing.xs,
   },
   searchInput: {
     flex: 1,
@@ -854,6 +942,12 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
     ...typography.body,
     color: colors.text,
+    minWidth: 100,
+    ...(Platform.OS === 'android' && {
+      elevation: 2,
+      borderWidth: 1,
+      borderColor: colors.divider,
+    }),
   },
   addButton: {
     width: 48,
@@ -862,6 +956,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: spacing.xs,
     ...Platform.select({
       ios: {
         shadowColor: colors.shadow,
@@ -1027,17 +1122,22 @@ const styles = StyleSheet.create({
     top: '100%',
     left: spacing.xs,
     right: spacing.xs,
+    maxHeight: 250, // Increased max height
     backgroundColor: colors.surface,
     borderRadius: 12,
-    maxHeight: 200,
     marginTop: 4,
+    zIndex: 1000,
     ...Platform.select({
       ios: {
-        ...shadows.medium,
+        shadowColor: colors.shadow,
         shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
       },
       android: {
-        elevation: 4,
+        elevation: 8,
+        borderWidth: 1,
+        borderColor: colors.divider,
       },
     }),
   },
@@ -1075,8 +1175,13 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    zIndex: 1,
-    elevation: Platform.OS === 'android' ? 1 : undefined,
+  },
+  scrollContent: {
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xl * 2, // Extra padding at bottom for better UX
+  },
+  bottomSpacing: {
+    height: spacing.xl,
   },
 });
 

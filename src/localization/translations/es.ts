@@ -159,7 +159,9 @@ export default {
     ok: 'OK',
     error: 'Error',
     loading: 'Cargando...',
-    undo: 'Deshacer'
+    undo: 'Deshacer',
+    pullToRefresh: 'Desliza para actualizar',
+    errorRefreshing: 'Error al actualizar los datos',
   },
   camera: {
     permission: 'Permiso de Cámara Requerido',

@@ -83,7 +83,7 @@ const App: React.FC = () => {
               if (adInitResult) {
                 break;
               }
-              throw new Error('AdMob initialization incomplete');
+              throw new Error('AdMob initialization incomplete, do you use an adblocker?');
             } catch (error) {
               retryCount++;
               console.warn(`AdMob initialization attempt ${retryCount} failed:`, error);

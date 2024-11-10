@@ -159,7 +159,9 @@ export default {
     ok: 'OK',
     error: 'Error',
     loading: 'Loading...',
-    undo: 'Undo'
+    undo: 'Undo',
+    pullToRefresh: 'Pull to refresh',
+    errorRefreshing: 'Error refreshing data',
   },
   camera: {
     permission: 'Camera Permission Required',

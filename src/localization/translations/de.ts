@@ -159,7 +159,9 @@ export default {
     ok: 'OK',
     error: 'Fehler',
     loading: 'Laden...',
-    undo: 'Rückgängig'
+    undo: 'Rückgängig',
+    pullToRefresh: 'Zum Aktualisieren ziehen',
+    errorRefreshing: 'Fehler beim Aktualisieren der Daten',
   },
   camera: {
     permission: 'Kamerazugriff Erforderlich',

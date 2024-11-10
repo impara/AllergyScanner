@@ -151,17 +151,26 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
   };
 
   const hasNutrientValues = () => {
-    if (!productInfo.nutriments) return false;
+    if (!productInfo.product?.nutriments) {
+      console.log('No nutriments object found');
+      return false;
+    }
     
     // Check if any of the key nutrients have valid values
-    const nutrients = ['energy-kcal', 'energy', 'proteins', 'carbohydrates', 'fat'];
-    return nutrients.some(nutrient => {
-      const value = productInfo.nutriments?.[nutrient];
-      return value != null && 
-             value !== '' && 
-             !isNaN(Number(value)) && 
-             Number(value) !== 0;
+    const nutrients = ['energy-kcal', 'proteins', 'carbohydrates', 'fat'];
+    const hasValues = nutrients.some(nutrient => {
+      const value = productInfo.product.nutriments?.[nutrient] || 
+                   productInfo.product.nutriments?.[`${nutrient}_100g`] ||
+                   (nutrient === 'energy-kcal' && productInfo.product.nutriments?.['energy']);
+      const hasValidValue = value != null && 
+                           value !== '' && 
+                           !isNaN(Number(value)) && 
+                           Number(value) > 0;
+      console.log(`Nutrient ${nutrient}:`, value, 'isValid:', hasValidValue);
+      return hasValidValue;
     });
+    
+    return hasValues;
   };
 
   return (
@@ -248,16 +257,23 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
                     </Text>
                     <View style={styles.nutrientsContainer}>
                       {['energy-kcal', 'proteins', 'carbohydrates', 'fat'].map((nutrient) => {
-                        const value = productInfo.nutriments?.[nutrient];
-                        if (!value || isNaN(Number(value)) || Number(value) === 0) return null;
+                        const value = productInfo.product.nutriments?.[nutrient] || 
+                                     productInfo.product.nutriments?.[`${nutrient}_100g`] ||
+                                     (nutrient === 'energy-kcal' && productInfo.product.nutriments?.['energy']);
+                        
+                        const unit = nutrient === 'energy-kcal' ? 
+                          (productInfo.product.nutriments?.[`${nutrient}_unit`] || 'kcal') : 
+                          'g';
+                        
+                        if (!value || isNaN(Number(value)) || Number(value) <= 0) {
+                          return null;
+                        }
                         
                         return (
                           <Text key={nutrient} style={styles.nutrientText}>
                             {i18n.t(`product.nutriments.${nutrient}`, {
-                              value: value,
-                              unit: nutrient === 'energy-kcal' ? 
-                                (productInfo.nutriments?.[`${nutrient}_unit`] || 'kcal') : 
-                                'g'
+                              value: Number(value).toFixed(1),
+                              unit: nutrient === 'energy-kcal' ? unit : ''
                             })}
                           </Text>
                         );

@@ -159,7 +159,9 @@ export default {
     ok: 'OK',
     error: 'Fejl',
     loading: 'Indlæser...',
-    undo: 'Fortryd'
+    undo: 'Fortryd',
+    pullToRefresh: 'Træk for at opdatere',
+    errorRefreshing: 'Fejl ved opdatering af data',
   },
   camera: {
     permission: 'Kameratilladelse Påkrævet',
