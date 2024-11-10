@@ -11,6 +11,7 @@ import {
   Modal,
   TouchableWithoutFeedback,
   Platform,
+  Keyboard,
 } from 'react-native';
 import { List, Text, Switch, Title, Divider } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -668,6 +669,7 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
   };
 
   const dismissSearchResults = () => {
+    Keyboard.dismiss();
     setShowSearchResults(false);
   };
 
@@ -688,6 +690,23 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
     });
     setGroupToggleStatus(newGroupToggleStatus);
   }, [checkedIngredients, ingredientList]);
+
+  // Add keyboard handling
+  useEffect(() => {
+    const keyboardDidHideListener = Platform.select({
+      ios: Keyboard.addListener('keyboardDidHide', () => {
+        setShowSearchResults(false);
+      }),
+      android: Keyboard.addListener('keyboardDidHide', () => {
+        // Add small delay for Android to prevent flickering
+        setTimeout(() => setShowSearchResults(false), 100);
+      }),
+    });
+
+    return () => {
+      keyboardDidHideListener?.remove();
+    };
+  }, []);
 
   if (isLoading) {
     return (
@@ -732,7 +751,9 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
                 <ScrollView 
                   style={styles.searchResults}
                   keyboardShouldPersistTaps="handled"
-                  showsVerticalScrollIndicator={false}
+                  showsVerticalScrollIndicator={true}
+                  bounces={false}
+                  nestedScrollEnabled={true}
                 >
                   {searchResults.map((result, index) => (
                     <React.Fragment key={result.id}>
@@ -809,11 +830,11 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    zIndex: 1001,
-    elevation: Platform.OS === 'android' ? 1001 : undefined,
     marginTop: spacing.xs,
     paddingBottom: spacing.xs,
+    paddingHorizontal: spacing.md,
+    zIndex: 1001,
+    elevation: Platform.OS === 'android' ? 1001 : undefined,
   },
   searchInput: {
     flex: 1,
@@ -821,6 +842,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderRadius: 12,
     paddingHorizontal: spacing.md,
+    marginRight: spacing.sm,
     ...typography.body,
     color: colors.text,
   },
@@ -831,7 +853,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    flexShrink: 0,
   },
   rightAction: {
     backgroundColor: colors.error,
@@ -1001,6 +1022,7 @@ const styles = StyleSheet.create({
   },
   searchResults: {
     borderRadius: 12,
+    paddingBottom: spacing.sm,
   },
   searchResultItem: {
     paddingVertical: spacing.sm,
