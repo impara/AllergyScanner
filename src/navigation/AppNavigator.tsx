@@ -6,6 +6,7 @@ import AppStackNavigator from './AppStackNavigator';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthContext } from '../context/AuthContext';
 import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
+import { colors } from '../theme';
 
 const AppNavigator: React.FC = () => {
   const { isAuthenticated, loading } = useContext(AuthContext);
@@ -13,7 +14,7 @@ const AppNavigator: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
