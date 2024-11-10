@@ -102,9 +102,9 @@ interface IngredientProfileScreenProps {
 }
 
 const SearchBackdrop: React.FC<{ onPress: () => void }> = ({ onPress }) => (
-  <TouchableOpacity onPress={onPress}>
-    <View style={styles.overlay} />
-  </TouchableOpacity>
+  <TouchableWithoutFeedback onPress={onPress}>
+    <View style={[styles.overlay, { height: '100%' }]} />
+  </TouchableWithoutFeedback>
 );
 
 const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({ 
@@ -780,7 +780,6 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
                 onChangeText={handleIngredientSearch}
                 placeholder={i18n.t('ingredients.addCustom')}
                 placeholderTextColor={colors.placeholder}
-                onFocus={() => setShowSearchResults(true)}
               />
               <TouchableOpacity 
                 style={[
@@ -798,7 +797,7 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
             </View>
 
             {/* Search Results Dropdown with improved scrolling */}
-            {showSearchResults && (
+            {showSearchResults && searchResults.length > 0 && (
               <>
                 <SearchBackdrop onPress={dismissSearchResults} />
                 <View style={styles.searchResultsContainer}>
@@ -812,31 +811,30 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
                     showsVerticalScrollIndicator={true}
                   >
                     {searchResults.map((result, index) => (
-                      <React.Fragment key={result.id}>
-                        <TouchableOpacity
-                          style={styles.searchResultItem}
-                          onPress={() => {
-                            handleSearchResultSelect(result);
-                            Keyboard.dismiss();
-                          }}
-                        >
-                          <View style={styles.searchResultContent}>
-                            <Text style={styles.searchResultText} numberOfLines={1}>
-                              {result.name}
-                            </Text>
-                            {isAdditive(result.id) && (
-                              <View style={styles.additiveContainer}>
-                                <Text style={styles.additiveIndicator}>
-                                  {getENumber(result.id) ? `E${getENumber(result.id)}` : 'Additive'}
-                                </Text>
-                              </View>
-                            )}
-                          </View>
-                        </TouchableOpacity>
+                      <TouchableOpacity
+                        key={result.id}
+                        style={styles.searchResultItem}
+                        onPress={() => {
+                          handleSearchResultSelect(result);
+                          Keyboard.dismiss();
+                        }}
+                      >
+                        <View style={styles.searchResultContent}>
+                          <Text style={styles.searchResultText} numberOfLines={1}>
+                            {result.name}
+                          </Text>
+                          {isAdditive(result.id) && (
+                            <View style={styles.additiveContainer}>
+                              <Text style={styles.additiveIndicator}>
+                                {getENumber(result.id) ? `E${getENumber(result.id)}` : 'Additive'}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
                         {index < searchResults.length - 1 && (
                           <Divider style={styles.resultDivider} />
                         )}
-                      </React.Fragment>
+                      </TouchableOpacity>
                     ))}
                   </ScrollView>
                 </View>
@@ -1118,9 +1116,9 @@ const styles = StyleSheet.create({
   overlay: {
     position: 'absolute',
     top: '100%',
-    left: -spacing.md,
-    right: -spacing.md,
-    bottom: -1000,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     zIndex: 999,
   },
@@ -1134,6 +1132,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginTop: 4,
     zIndex: 1000,
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: colors.shadow,
@@ -1149,10 +1148,10 @@ const styles = StyleSheet.create({
     }),
   },
   searchResults: {
-    maxHeight: 200,
+    flex: 1,
   },
   searchResultsContent: {
-    paddingVertical: spacing.xs,
+    flexGrow: 1,
   },
   searchResultItem: {
     paddingVertical: spacing.sm,
