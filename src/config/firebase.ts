@@ -100,6 +100,7 @@ export const signInWithGoogleCredential = async (
       // Create Firestore document for new user
       await userDocRef.set({
         ingredients: {},
+        hasSelectedLanguage: false,
         createdAt: firestore.FieldValue.serverTimestamp(),
         lastLoginAt: firestore.FieldValue.serverTimestamp(),
       });
@@ -162,7 +163,10 @@ export const createUserWithEmailAndPassword = async (
     const db = getFirebaseDb();
     const userDocRef = db.collection('users').doc(user.uid);
     await userDocRef.set(
-      { ingredients: {} },
+      { 
+        ingredients: {},
+        hasSelectedLanguage: false,
+      },
       { merge: true }
     );
   } catch (error: any) {

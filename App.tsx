@@ -1,12 +1,12 @@
 // App.tsx
 import 'react-native-gesture-handler';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider, DefaultTheme } from 'styled-components/native';
 import { Provider as PaperProvider, MD3LightTheme } from 'react-native-paper';
 import AppNavigator from './src/navigation/AppNavigator';
 import { theme, colors } from './src/theme';
-import { AuthProvider } from './src/context/AuthContext';
+import { AuthProvider, AuthContext } from './src/context/AuthContext';
 import { LanguageProvider } from './src/context/LanguageContext';
 import { View, ActivityIndicator, Platform, Text, StyleSheet } from 'react-native';
 import * as firebase from './src/config/firebase';
@@ -14,6 +14,7 @@ import { LogBox } from 'react-native';
 import { adService } from './src/services/ads';
 import { initializeGoogleSignIn } from './src/config/googleSignIn';
 import Constants from 'expo-constants';
+import LanguageSelectionModal from './src/components/LanguageSelectionModal';
 
 // Ignore specific warnings
 LogBox.ignoreLogs(['Setting a timer for a long period of time']);
@@ -37,6 +38,7 @@ const paperTheme = {
 const App: React.FC = () => {
   const [isAppReady, setAppReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const { showLanguageSelection, setShowLanguageSelection } = useContext(AuthContext);
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -104,6 +106,10 @@ const App: React.FC = () => {
           <LanguageProvider>
             <AuthProvider>
               <AppNavigator />
+              <LanguageSelectionModal
+                visible={showLanguageSelection}
+                onDismiss={() => setShowLanguageSelection(false)}
+              />
             </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>
