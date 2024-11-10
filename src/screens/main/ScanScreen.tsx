@@ -47,7 +47,7 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
   const [isScannerEnabled, setScannerEnabled] = useState(true);
   const scannerRef = useRef<BarCodeScanner>(null);
   const scaleAnim = useRef(new Animated.Value(1)).current;
-  const { scansRemaining, useOneScan, watchAdForScans, isAdLoading } = useScanLimit();
+  const { scansRemaining, useOneScan, watchAdForScans, isAdLoading, isAdReady } = useScanLimit();
   const isMountedRef = useRef(true);
 
   useEffect(() => {

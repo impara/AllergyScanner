@@ -11,6 +11,7 @@ interface ScanLimitContextType {
   useOneScan: () => Promise<boolean>;
   watchAdForScans: () => Promise<void>;
   isAdLoading: boolean;
+  isAdReady: boolean;
 }
 
 const ScanLimitContext = createContext<ScanLimitContextType>({
@@ -19,6 +20,7 @@ const ScanLimitContext = createContext<ScanLimitContextType>({
   useOneScan: async () => false,
   watchAdForScans: async () => {},
   isAdLoading: false,
+  isAdReady: false,
 });
 
 const DAILY_SCAN_LIMIT = 5;
@@ -29,6 +31,7 @@ const SCANS_REMAINING_KEY = '@scansRemaining';
 export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [scansRemaining, setScansRemaining] = useState(DAILY_SCAN_LIMIT);
   const [isAdLoading, setIsAdLoading] = useState(false);
+  const [isAdReady, setIsAdReady] = useState(false);
 
   useEffect(() => {
     initializeScanLimit();
@@ -36,6 +39,23 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // Cleanup ads when component unmounts
       adService.cleanup();
     };
+  }, []);
+
+  useEffect(() => {
+    const checkAdStatus = () => {
+      if (Platform.OS !== 'web') {
+        const ready = adService.isAdReady();
+        setIsAdReady(ready);
+      }
+    };
+
+    // Check initially
+    checkAdStatus();
+
+    // Set up interval to check periodically
+    const interval = setInterval(checkAdStatus, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const initializeScanLimit = async () => {
@@ -202,6 +222,7 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       useOneScan,
       watchAdForScans,
       isAdLoading,
+      isAdReady,
     }}>
       {children}
     </ScanLimitContext.Provider>

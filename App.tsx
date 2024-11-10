@@ -48,7 +48,7 @@ const App: React.FC = () => {
         ]);
         console.log('Firebase and Google Sign-In initialized');
 
-        // Then initialize AdMob with more detailed logging
+        // Separate AdMob initialization with better error handling
         if (Platform.OS !== 'web') {
           const adMobConfig = {
             appId: Platform.select({
@@ -61,13 +61,39 @@ const App: React.FC = () => {
             }),
           };
 
+          if (!adMobConfig.appId) {
+            throw new Error('AdMob App ID not configured');
+          }
+
           console.log('Initializing AdMob...', {
             appId: adMobConfig.appId,
             hasRewardedId: !!adMobConfig.rewardedId,
           });
           
-          const adInitResult = await adService.initialize();
-          console.log('AdMob initialization result:', adInitResult);
+          // Add retry logic for AdMob initialization
+          let retryCount = 0;
+          const maxRetries = 3;
+          
+          while (retryCount < maxRetries) {
+            try {
+              const adInitResult = await adService.initialize();
+              console.log('AdMob initialization result:', adInitResult);
+              
+              // Since adInitResult is a boolean, we check it directly
+              if (adInitResult) {
+                break;
+              }
+              throw new Error('AdMob initialization incomplete');
+            } catch (error) {
+              retryCount++;
+              console.warn(`AdMob initialization attempt ${retryCount} failed:`, error);
+              if (retryCount === maxRetries) {
+                throw error;
+              }
+              // Wait before retry
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+          }
         }
 
         setAppReady(true);
