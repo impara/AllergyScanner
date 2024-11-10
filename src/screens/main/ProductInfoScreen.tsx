@@ -154,9 +154,14 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
     if (!productInfo.nutriments) return false;
     
     // Check if any of the key nutrients have values
-    return ['energy-kcal', 'proteins', 'carbohydrates', 'fat'].some(
-      nutrient => productInfo.nutriments?.[nutrient] != null && 
-                  productInfo.nutriments[nutrient] !== ''
+    return ['energy-kcal', 'energy', 'proteins', 'carbohydrates', 'fat'].some(
+      nutrient => {
+        const value = productInfo.nutriments?.[nutrient];
+        return value != null && 
+               value !== '' && 
+               value !== 0 &&
+               !isNaN(Number(value));
+      }
     );
   };
 
@@ -243,14 +248,21 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
                       {i18n.t('product.nutriments.title')}
                     </Text>
                     <View style={styles.nutrientsContainer}>
-                      {['energy-kcal', 'proteins', 'carbohydrates', 'fat'].map((nutrient) => (
-                        <Text key={nutrient} style={styles.nutrientText}>
-                          {i18n.t(`product.nutriments.${nutrient}`, {
-                            value: productInfo.nutriments?.[nutrient] || i18n.t('product.nutriments.na'),
-                            unit: nutrient === 'energy-kcal' ? productInfo.nutriments?.[`${nutrient}_unit`] : 'g'
-                          })}
-                        </Text>
-                      ))}
+                      {['energy-kcal', 'proteins', 'carbohydrates', 'fat'].map((nutrient) => {
+                        const value = productInfo.nutriments?.[nutrient];
+                        if (!value || isNaN(Number(value))) return null;
+                        
+                        return (
+                          <Text key={nutrient} style={styles.nutrientText}>
+                            {i18n.t(`product.nutriments.${nutrient}`, {
+                              value: value,
+                              unit: nutrient === 'energy-kcal' ? 
+                                (productInfo.nutriments?.[`${nutrient}_unit`] || 'kcal') : 
+                                'g'
+                            })}
+                          </Text>
+                        );
+                      }).filter(Boolean)}
                     </View>
                   </View>
                 </>
