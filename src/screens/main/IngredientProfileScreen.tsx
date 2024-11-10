@@ -101,6 +101,12 @@ interface IngredientProfileScreenProps {
   navigation: NavigationProp<RootStackParamList>;
 }
 
+const SearchBackdrop: React.FC<{ onPress: () => void }> = ({ onPress }) => (
+  <TouchableOpacity onPress={onPress}>
+    <View style={styles.overlay} />
+  </TouchableOpacity>
+);
+
 const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({ 
   theme = defaultTheme,
   navigation 
@@ -641,7 +647,7 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
   const handleIngredientSearch = (text: string) => {
     setNewIngredient(text);
     
-    if (text.trim().length >= 2) {
+    if (text.trim().length >= 3) {
       // Search for ingredients matching the input text
       const results = findIngredientsByName(text.trim(), i18n.locale);
       setSearchResults(results.slice(0, 15)); // Limit to top 15 results
@@ -794,7 +800,7 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
             {/* Search Results Dropdown with improved scrolling */}
             {showSearchResults && (
               <>
-                <View style={styles.overlay} />
+                <SearchBackdrop onPress={dismissSearchResults} />
                 <View style={styles.searchResultsContainer}>
                   <ScrollView
                     style={styles.searchResults}
@@ -803,6 +809,7 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
                     keyboardDismissMode="on-drag"
                     nestedScrollEnabled={true}
                     bounces={false}
+                    showsVerticalScrollIndicator={true}
                   >
                     {searchResults.map((result, index) => (
                       <React.Fragment key={result.id}>
@@ -1116,7 +1123,6 @@ const styles = StyleSheet.create({
     bottom: -1000,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     zIndex: 999,
-    elevation: Platform.OS === 'android' ? 999 : undefined,
   },
   searchResultsContainer: {
     position: 'absolute',
@@ -1128,7 +1134,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginTop: 4,
     zIndex: 1000,
-    elevation: Platform.OS === 'android' ? 1000 : undefined,
     ...Platform.select({
       ios: {
         shadowColor: colors.shadow,
