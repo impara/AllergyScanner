@@ -38,12 +38,10 @@ const paperTheme = {
 const App: React.FC = () => {
   const [isAppReady, setAppReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const { showLanguageSelection, setShowLanguageSelection } = useContext(AuthContext);
 
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // First initialize Firebase and Google Sign-In
         await Promise.all([
           firebase.initializeFirebase(),
           initializeGoogleSignIn(),
@@ -103,18 +101,29 @@ const App: React.FC = () => {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <PaperProvider theme={paperTheme}>
         <ThemeProvider theme={theme}>
-          <LanguageProvider>
-            <AuthProvider>
-              <AppNavigator />
-              <LanguageSelectionModal
-                visible={showLanguageSelection}
-                onDismiss={() => setShowLanguageSelection(false)}
-              />
-            </AuthProvider>
-          </LanguageProvider>
+          <AuthProvider>
+            <LanguageProvider>
+              <AppContent />
+            </LanguageProvider>
+          </AuthProvider>
         </ThemeProvider>
       </PaperProvider>
     </GestureHandlerRootView>
+  );
+};
+
+// Create a new component to handle the content that needs both contexts
+const AppContent: React.FC = () => {
+  const { showLanguageSelection, setShowLanguageSelection } = useContext(AuthContext);
+  
+  return (
+    <>
+      <AppNavigator />
+      <LanguageSelectionModal
+        visible={showLanguageSelection}
+        onDismiss={() => setShowLanguageSelection(false)}
+      />
+    </>
   );
 };
 

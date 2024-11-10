@@ -14,6 +14,7 @@ export default {
     privacyPolicy: 'Privatlivspolitik',
     termsOfService: 'Servicevilkår',
     appearance: 'Udseende',
+    languagePrompt: 'Vælg dit foretrukne sprog til appen',
   },
   scan: {
     title: 'Scan',

@@ -14,6 +14,7 @@ export default {
     privacyPolicy: 'Datenschutzerklärung',
     termsOfService: 'Nutzungsbedingungen',
     appearance: 'Erscheinungsbild',
+    languagePrompt: 'Wählen Sie Ihre bevorzugte Sprache für die App',
   },
   scan: {
     title: 'Scannen',

@@ -14,6 +14,7 @@ export default {
     privacyPolicy: 'Tietosuojakäytäntö',
     termsOfService: 'Käyttöehdot',
     appearance: 'Ulkoasu',
+    languagePrompt: 'Valitse sovelluksen kieli',
   },
   scan: {
     title: 'Skannaa',

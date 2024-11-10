@@ -19,11 +19,11 @@ const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
   const { locale, setLocale } = useLanguage();
 
   const languages = [
-    { code: 'en', name: 'English', flag: '🇬🇧' },
-    { code: 'es', name: 'Español', flag: '🇪🇸' },
-    { code: 'fi', name: 'Suomi', flag: '🇫🇮' },
-    { code: 'da', name: 'Dansk', flag: '🇩🇰' },
-    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+    { code: 'en', name: i18n.t('settings.english'), flag: '🇬🇧' },
+    { code: 'es', name: i18n.t('settings.spanish'), flag: '🇪🇸' },
+    { code: 'fi', name: i18n.t('settings.finnish'), flag: '🇫🇮' },
+    { code: 'da', name: i18n.t('settings.danish'), flag: '🇩🇰' },
+    { code: 'de', name: i18n.t('settings.german'), flag: '🇩🇪' },
   ];
 
   const handleLanguageChange = async (languageCode: string) => {
@@ -49,11 +49,11 @@ const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
     <Portal>
       <Dialog visible={visible} onDismiss={onDismiss} style={styles.dialog}>
         <Dialog.Title style={styles.dialogTitle}>
-          Select Your Language
+          {i18n.t('settings.selectLanguage')}
         </Dialog.Title>
         <Dialog.Content>
           <Text style={styles.subtitle}>
-            Choose your preferred language for the app
+            {i18n.t('settings.languagePrompt')}
           </Text>
           <RadioButton.Group onValueChange={handleLanguageChange} value={locale}>
             {languages.map(lang => (

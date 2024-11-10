@@ -14,6 +14,7 @@ export default {
     privacyPolicy: 'Política de Privacidad',
     termsOfService: 'Términos de Servicio',
     appearance: 'Apariencia',
+    languagePrompt: 'Elige tu idioma preferido para la aplicación',
   },
   scan: {
     title: 'Escanear',
