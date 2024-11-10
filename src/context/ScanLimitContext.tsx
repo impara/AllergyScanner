@@ -129,41 +129,25 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setIsAdLoading(true);
 
       if (!adService.getInitializationStatus()) {
-        console.log('[ScanLimit] Ads not initialized, attempting to initialize...');
-        try {
-          await adService.initialize();
-        } catch (error) {
-          console.error('[ScanLimit] Failed to initialize ads:', error);
-          Alert.alert(
-            'Ads Unavailable',
-            'Sorry, ads are not available right now. Please try again later.',
-            [{ text: 'OK' }]
-          );
-          return;
-        }
+        console.log('[ScanLimit] Ads not initialized, proceeding with reward...');
+        // Instead of showing error, proceed with reward
+        await grantExtraScans();
+        return;
       }
 
       if (!adService.isAdReady()) {
-        console.log('[ScanLimit] Ad not ready, attempting to load...');
+        console.log('[ScanLimit] Ad not ready, proceeding with reward...');
         try {
           await new Promise(resolve => setTimeout(resolve, 1000));
           
           if (!adService.isAdReady()) {
-            console.log('[ScanLimit] Ad still not ready after waiting');
-            Alert.alert(
-              'Ad Not Available',
-              'No ads are available right now. Please try again in a few minutes.',
-              [{ text: 'OK' }]
-            );
+            console.log('[ScanLimit] Ad still not ready, granting reward anyway');
+            await grantExtraScans();
             return;
           }
         } catch (error) {
-          console.error('[ScanLimit] Error loading ad:', error);
-          Alert.alert(
-            'Ad Loading Error',
-            'Failed to load the ad. Please try again later.',
-            [{ text: 'OK' }]
-          );
+          console.error('[ScanLimit] Error loading ad, granting reward:', error);
+          await grantExtraScans();
           return;
         }
       }
@@ -173,45 +157,38 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       if (success) {
         console.log('[ScanLimit] Ad completed successfully, adding scans');
-        try {
-          const newCount = Math.min(DAILY_SCAN_LIMIT, (scansRemaining || 0) + 3);
-          await AsyncStorage.setItem(SCANS_REMAINING_KEY, newCount.toString());
-          setScansRemaining(newCount);
-          Alert.alert(
-            'Reward Earned',
-            'You earned 3 additional scans!',
-            [{ text: 'OK' }]
-          );
-        } catch (error) {
-          console.error('[ScanLimit] Error updating scans after ad:', error);
-          Alert.alert(
-            'Error',
-            'Failed to add reward scans. Please contact support.',
-            [{ text: 'OK' }]
-          );
-        }
+        await grantExtraScans();
       } else {
-        console.log('[ScanLimit] Ad was not completed successfully');
-        Alert.alert(
-          'Ad Not Completed',
-          'Please watch the entire ad to receive additional scans.',
-          [{ text: 'OK' }]
-        );
+        console.log('[ScanLimit] Ad was not completed, granting reward anyway');
+        await grantExtraScans();
       }
     } catch (error) {
       console.error('[ScanLimit] Error in watchAdForScans:', error);
-      
-      const errorMessage = error instanceof Error && error.message.includes('no-fill')
-        ? 'No ads are available right now. Please try again later.'
-        : 'There was an error showing the ad. Please try again later.';
-      
-      Alert.alert(
-        'Ad Error',
-        errorMessage,
-        [{ text: 'OK' }]
-      );
+      // Even on error, grant the reward
+      await grantExtraScans();
     } finally {
       setIsAdLoading(false);
+    }
+  };
+
+  // Helper function to grant extra scans
+  const grantExtraScans = async () => {
+    try {
+      const newCount = Math.min(DAILY_SCAN_LIMIT, (scansRemaining || 0) + SCANS_PER_AD);
+      await AsyncStorage.setItem(SCANS_REMAINING_KEY, newCount.toString());
+      setScansRemaining(newCount);
+      Alert.alert(
+        'Extra Scans Added',
+        `You received ${SCANS_PER_AD} additional scans!`,
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('[ScanLimit] Error updating scans:', error);
+      Alert.alert(
+        'Error',
+        'Failed to add extra scans. Please try again.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
