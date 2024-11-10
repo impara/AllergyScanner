@@ -366,9 +366,9 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
                 });
               };
 
-              showToast(i18n.t('ingredients.ingredientDeleted', { 
-                name: ingredientName 
-              }));
+              const deletedText = i18n.t('ingredients.deleted');
+              const message = `${ingredientName} ${deletedText}`;
+              showToast(message);
             } catch (error) {
               console.error('Error deleting ingredient:', error);
               Alert.alert('Error', 'Failed to delete ingredient. Please try again.');
@@ -823,7 +823,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     ...typography.body,
     color: colors.text,
-    maxWidth: '85%',
   },
   addButton: {
     width: 48,
@@ -832,7 +831,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
     flexShrink: 0,
   },
   rightAction: {
