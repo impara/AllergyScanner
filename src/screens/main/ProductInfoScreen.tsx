@@ -153,16 +153,15 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
   const hasNutrientValues = () => {
     if (!productInfo.nutriments) return false;
     
-    // Check if any of the key nutrients have values
-    return ['energy-kcal', 'energy', 'proteins', 'carbohydrates', 'fat'].some(
-      nutrient => {
-        const value = productInfo.nutriments?.[nutrient];
-        return value != null && 
-               value !== '' && 
-               value !== 0 &&
-               !isNaN(Number(value));
-      }
-    );
+    // Check if any of the key nutrients have valid values
+    const nutrients = ['energy-kcal', 'energy', 'proteins', 'carbohydrates', 'fat'];
+    return nutrients.some(nutrient => {
+      const value = productInfo.nutriments?.[nutrient];
+      return value != null && 
+             value !== '' && 
+             !isNaN(Number(value)) && 
+             Number(value) !== 0;
+    });
   };
 
   return (
@@ -250,7 +249,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
                     <View style={styles.nutrientsContainer}>
                       {['energy-kcal', 'proteins', 'carbohydrates', 'fat'].map((nutrient) => {
                         const value = productInfo.nutriments?.[nutrient];
-                        if (!value || isNaN(Number(value))) return null;
+                        if (!value || isNaN(Number(value)) || Number(value) === 0) return null;
                         
                         return (
                           <Text key={nutrient} style={styles.nutrientText}>
@@ -262,7 +261,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
                             })}
                           </Text>
                         );
-                      }).filter(Boolean)}
+                      })}
                     </View>
                   </View>
                 </>

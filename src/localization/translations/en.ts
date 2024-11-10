@@ -80,7 +80,8 @@ export default {
     noNutritionalInfo: 'Nutritional information not available.',
     nutriments: {
       title: 'Nutritional Information:',
-      energy: 'Calories: {value} {unit}',
+      'energy-kcal': 'Calories: {value} {unit}',
+      'energy': 'Calories: {value} {unit}',
       proteins: 'Protein: {value}g',
       carbohydrates: 'Carbs: {value}g',
       fat: 'Fat: {value}g',
