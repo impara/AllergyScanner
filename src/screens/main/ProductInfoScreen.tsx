@@ -150,6 +150,16 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
     );
   };
 
+  const hasNutrientValues = () => {
+    if (!productInfo.nutriments) return false;
+    
+    // Check if any of the key nutrients have values
+    return ['energy-kcal', 'proteins', 'carbohydrates', 'fat'].some(
+      nutrient => productInfo.nutriments?.[nutrient] != null && 
+                  productInfo.nutriments[nutrient] !== ''
+    );
+  };
+
   return (
     <Modal
       animationType="slide"
@@ -225,7 +235,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
                 </Text>
               </View>
 
-              {productInfo.nutriments && (
+              {hasNutrientValues() && (
                 <>
                   <Divider style={styles.divider} />
                   <View style={styles.section}>
