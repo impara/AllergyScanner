@@ -893,6 +893,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderBottomWidth: Platform.select({ ios: 0.5, android: 0 }),
     borderBottomColor: colors.divider,
+    zIndex: 1000,
     ...Platform.select({
       ios: {
         shadowColor: colors.shadow,
@@ -922,10 +923,10 @@ const styles = StyleSheet.create({
   },
   searchWrapper: {
     position: 'relative',
-    zIndex: 3,
+    zIndex: 1000,
     paddingHorizontal: spacing.xs,
     ...(Platform.OS === 'android' && {
-      elevation: 3,
+      elevation: 1000,
     }),
   },
   searchContainer: {
@@ -1110,8 +1111,8 @@ const styles = StyleSheet.create({
   overlay: {
     position: 'absolute',
     top: '100%',
-    left: 0,
-    right: 0,
+    left: -spacing.md,
+    right: -spacing.md,
     bottom: -1000,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     zIndex: 999,
@@ -1122,11 +1123,12 @@ const styles = StyleSheet.create({
     top: '100%',
     left: spacing.xs,
     right: spacing.xs,
-    maxHeight: 250, // Increased max height
+    maxHeight: 250,
     backgroundColor: colors.surface,
     borderRadius: 12,
     marginTop: 4,
     zIndex: 1000,
+    elevation: Platform.OS === 'android' ? 1000 : undefined,
     ...Platform.select({
       ios: {
         shadowColor: colors.shadow,
@@ -1175,6 +1177,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    zIndex: 1,
   },
   scrollContent: {
     paddingTop: spacing.sm,
