@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { adService } from '../services';
 import { logRewardedAdWatch } from '../services/analytics';
 import { Platform, Alert } from 'react-native';
+import i18n from '../localization/i18n';
 
 
 interface ScanLimitContextType {
@@ -130,7 +131,11 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       if (!adService.getInitializationStatus()) {
         console.log('[ScanLimit] Ads not initialized, proceeding with reward...');
-        // Instead of showing error, proceed with reward
+        Alert.alert(
+          i18n.t('ads.notInitialized'),
+          i18n.t('ads.notInitializedDesc'),
+          [{ text: i18n.t('common.ok') }]
+        );
         await grantExtraScans();
         return;
       }
@@ -142,11 +147,21 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           
           if (!adService.isAdReady()) {
             console.log('[ScanLimit] Ad still not ready, granting reward anyway');
+            Alert.alert(
+              i18n.t('ads.notReady'),
+              i18n.t('ads.notReadyDesc'),
+              [{ text: i18n.t('common.ok') }]
+            );
             await grantExtraScans();
             return;
           }
         } catch (error) {
           console.error('[ScanLimit] Error loading ad, granting reward:', error);
+          Alert.alert(
+            i18n.t('ads.loadError'),
+            i18n.t('ads.loadErrorDesc'),
+            [{ text: i18n.t('common.ok') }]
+          );
           await grantExtraScans();
           return;
         }
@@ -160,11 +175,20 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         await grantExtraScans();
       } else {
         console.log('[ScanLimit] Ad was not completed, granting reward anyway');
+        Alert.alert(
+          i18n.t('ads.completionError'),
+          i18n.t('ads.completionErrorDesc'),
+          [{ text: i18n.t('common.ok') }]
+        );
         await grantExtraScans();
       }
     } catch (error) {
       console.error('[ScanLimit] Error in watchAdForScans:', error);
-      // Even on error, grant the reward
+      Alert.alert(
+        i18n.t('ads.loadError'),
+        i18n.t('ads.loadErrorDesc'),
+        [{ text: i18n.t('common.ok') }]
+      );
       await grantExtraScans();
     } finally {
       setIsAdLoading(false);
@@ -178,16 +202,16 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       await AsyncStorage.setItem(SCANS_REMAINING_KEY, newCount.toString());
       setScansRemaining(newCount);
       Alert.alert(
-        'Extra Scans Added',
-        `You received ${SCANS_PER_AD} additional scans!`,
-        [{ text: 'OK' }]
+        i18n.t('ads.rewarded'),
+        i18n.t('ads.rewardedDesc'),
+        [{ text: i18n.t('common.ok') }]
       );
     } catch (error) {
       console.error('[ScanLimit] Error updating scans:', error);
       Alert.alert(
-        'Error',
-        'Failed to add extra scans. Please try again.',
-        [{ text: 'OK' }]
+        i18n.t('common.error'),
+        i18n.t('ads.errorDesc'),
+        [{ text: i18n.t('common.ok') }]
       );
     }
   };

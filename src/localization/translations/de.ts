@@ -144,7 +144,15 @@ export default {
     errorDesc: 'Bitte versuchen Sie es später erneut',
     rewarded: 'Belohnung Erhalten',
     rewardedDesc: 'Sie haben 3 weitere Scans erhalten!',
-    ok: 'OK'
+    ok: 'OK',
+    notInitialized: 'Werbedienst Nicht Bereit',
+    notInitializedDesc: 'Du erhältst trotzdem deine Belohnung!',
+    notReady: 'Werbung Nicht Verfügbar',
+    notReadyDesc: 'Keine Sorge, hier ist deine Belohnung!',
+    loadError: 'Fehler beim Laden der Werbung',
+    loadErrorDesc: 'Keine Sorge, du erhältst trotzdem deine Belohnung!',
+    completionError: 'Werbung Nicht Abgeschlossen',
+    completionErrorDesc: 'Hier ist trotzdem deine Belohnung!',
   },
   common: {
     cancel: 'Abbrechen',

@@ -144,7 +144,15 @@ export default {
     errorDesc: 'Yritä myöhemmin uudelleen',
     rewarded: 'Palkkio Ansaittu',
     rewardedDesc: 'Sait 3 lisäskannausta!',
-    ok: 'OK'
+    ok: 'OK',
+    notInitialized: 'Mainospalvelu Ei Ole Valmis',
+    notInitializedDesc: 'Saat palkkiosi silti!',
+    notReady: 'Mainos Ei Ole Saatavilla',
+    notReadyDesc: 'Ei huolta, tässä palkkiosi!',
+    loadError: 'Mainoksen Latausvirhe',
+    loadErrorDesc: 'Ei huolta, saat silti palkkiosi!',
+    completionError: 'Mainosta Ei Suoritettu Loppuun',
+    completionErrorDesc: 'Tässä on palkkiosi silti!',
   },
   common: {
     cancel: 'Peruuta',

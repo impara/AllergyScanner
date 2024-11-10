@@ -144,7 +144,15 @@ export default {
     errorDesc: 'Por favor, inténtalo de nuevo más tarde',
     rewarded: 'Recompensa Obtenida',
     rewardedDesc: '¡Obtuviste 3 escaneos más!',
-    ok: 'OK'
+    ok: 'OK',
+    notInitialized: 'Servicio de Anuncios No Listo',
+    notInitializedDesc: '¡Igual recibirás tu recompensa!',
+    notReady: 'Anuncio No Disponible',
+    notReadyDesc: '¡No te preocupes, aquí está tu recompensa!',
+    loadError: 'Error al Cargar el Anuncio',
+    loadErrorDesc: '¡No te preocupes, igual recibirás tu recompensa!',
+    completionError: 'Anuncio No Completado',
+    completionErrorDesc: '¡Aquí está tu recompensa de todos modos!',
   },
   common: {
     cancel: 'Cancelar',

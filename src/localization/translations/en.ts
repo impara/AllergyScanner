@@ -143,7 +143,15 @@ export default {
     errorDesc: 'Please try again later',
     rewarded: 'Reward Earned',
     rewardedDesc: 'You got 3 more scans!',
-    ok: 'OK'
+    ok: 'OK',
+    notInitialized: 'Ad Service Not Ready',
+    notInitializedDesc: 'Getting your reward anyway!',
+    notReady: 'Ad Not Available',
+    notReadyDesc: 'No worries, here is your reward!',
+    loadError: 'Ad Loading Error',
+    loadErrorDesc: 'Do not worry, you still get your reward!',
+    completionError: 'Ad Not Completed',
+    completionErrorDesc: 'Here is your reward anyway!',
   },
   common: {
     cancel: 'Cancel',

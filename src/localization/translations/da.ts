@@ -144,7 +144,15 @@ export default {
     errorDesc: 'Prøv venligst igen senere',
     rewarded: 'Belønning Optjent',
     rewardedDesc: 'Du fik 3 flere scanninger!',
-    ok: 'OK'
+    ok: 'OK',
+    notInitialized: 'Annonceservice Ikke Klar',
+    notInitializedDesc: 'Du får din belønning alligevel!',
+    notReady: 'Annonce Ikke Tilgængelig',
+    notReadyDesc: 'Bare rolig, her er din belønning!',
+    loadError: 'Fejl Ved Indlæsning af Annonce',
+    loadErrorDesc: 'Bare rolig, du får stadig din belønning!',
+    completionError: 'Annonce Ikke Fuldført',
+    completionErrorDesc: 'Her er din belønning alligevel!',
   },
   common: {
     cancel: 'Annuller',
