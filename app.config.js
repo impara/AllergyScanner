@@ -8,7 +8,7 @@ if (!process.env.ADMOB_ANDROID_APP_ID || !process.env.ADMOB_IOS_APP_ID) {
     throw new Error("AdMob App IDs are not set. Please define ADMOB_ANDROID_APP_ID and ADMOB_IOS_APP_ID in your environment variables.");
 }
 
-// Add this at the top of your app.config.js
+// Validate AdMob Configuration
 const validateAdMobConfig = () => {
     const requiredVars = [
         'ADMOB_ANDROID_APP_ID',
@@ -26,7 +26,7 @@ const validateAdMobConfig = () => {
 validateAdMobConfig();
 
 module.exports = ({ config }) => {
-    // Add validation for Google Sign-In configuration
+    // Validate Google Sign-In Configuration
     if (!process.env.GOOGLE_ANDROID_CLIENT_ID || !process.env.GOOGLE_EXPO_CLIENT_ID) {
         console.warn('Google Sign-In configuration is incomplete:', {
             androidClientId: process.env.GOOGLE_ANDROID_CLIENT_ID,
@@ -34,11 +34,28 @@ module.exports = ({ config }) => {
         });
     }
 
+    // Increment build numbers safely
+    const incrementAndroidVersionCode = () => {
+        const currentVersionCode = config.android?.versionCode || 1;
+        return currentVersionCode + 1;
+    };
+
+    const incrementiOSBuildNumber = () => {
+        const currentBuildNumber = parseInt(config.ios?.buildNumber, 10) || 1;
+        return (currentBuildNumber + 1).toString();
+    };
+
+    const newAndroidVersionCode = incrementAndroidVersionCode();
+    const newiOSBuildNumber = incrementiOSBuildNumber();
+
+    // Define runtimeVersion based on app version and build numbers
+    const runtimeVersion = `${config.version}+${newAndroidVersionCode}`;
+
     return {
         ...config,
         name: "PurePlate",
         slug: "pureplate",
-        version: "1.0.1",
+        version: "1.0.1", // Update this manually as needed
         orientation: "portrait",
         icon: "./assets/icons/icon_1024x1024.png",
         splash: {
@@ -51,12 +68,12 @@ module.exports = ({ config }) => {
             enabled: true,
             checkAutomatically: "ON_LOAD"
         },
+        runtimeVersion: runtimeVersion, // Simple string for runtimeVersion
         android: {
+            ...config.android,
             package: "com.pureplate",
-            versionCode: 1,
-            runtimeVersion: {
-                policy: "appVersion"
-            },
+            versionCode: newAndroidVersionCode, // Updated versionCode
+            runtimeVersion: runtimeVersion, // Unique runtimeVersion per build
             adaptiveIcon: {
                 foregroundImage: "./assets/icons/icon_1024x1024.png",
                 backgroundColor: "#FFFFFF"
@@ -87,12 +104,11 @@ module.exports = ({ config }) => {
             }
         },
         ios: {
+            ...config.ios,
             bundleIdentifier: "com.pureplate",
-            buildNumber: "1",
+            buildNumber: newiOSBuildNumber, // Updated buildNumber
             deploymentTarget: "13.4",
-            runtimeVersion: {
-                policy: "appVersion"
-            },
+            runtimeVersion: runtimeVersion, // Unique runtimeVersion per build
             infoPlist: {
                 CFBundleURLTypes: [
                     {
