@@ -2,7 +2,6 @@ export default {
   settings: {
     title: 'Indstillinger',
     language: 'Sprog',
-    darkMode: 'Mørk tilstand',
     logout: 'Log ud',
     selectLanguage: 'Vælg sprog',
     english: 'Engelsk',
@@ -10,6 +9,7 @@ export default {
     finnish: 'Finsk',
     danish: 'Dansk',
     german: 'Tysk',
+    french: 'Fransk',
     policies: 'Politikker',
     privacyPolicy: 'Privatlivspolitik',
     termsOfService: 'Servicevilkår',

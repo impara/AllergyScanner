@@ -2,7 +2,6 @@ export default {
   settings: {
     title: 'Paramètres',
     language: 'Langue',
-    darkMode: 'Mode Sombre',
     logout: 'Déconnexion',
     selectLanguage: 'Sélectionner la Langue',
     english: 'Anglais',

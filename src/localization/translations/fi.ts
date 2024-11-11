@@ -2,7 +2,6 @@ export default {
   settings: {
     title: 'Asetukset',
     language: 'Kieli',
-    darkMode: 'Tumma Tila',
     logout: 'Kirjaudu Ulos',
     selectLanguage: 'Valitse Kieli',
     english: 'Englanti',
@@ -10,6 +9,7 @@ export default {
     finnish: 'Suomi',
     danish: 'Tanska',
     german: 'Saksa',
+    french: 'Ranska',
     policies: 'Käytännöt',
     privacyPolicy: 'Tietosuojakäytäntö',
     termsOfService: 'Käyttöehdot',

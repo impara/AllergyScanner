@@ -23,7 +23,6 @@ import { AppStackParamList } from '../../navigation/AppStackNavigator';
 
 const SettingsScreen: React.FC = () => {
   const { signOutUser } = useContext(AuthContext);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [languageDialogVisible, setLanguageDialogVisible] = useState(false);
   const { locale, setLocale } = useLanguage();
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
@@ -34,6 +33,7 @@ const SettingsScreen: React.FC = () => {
     { code: 'fi', name: i18n.t('settings.finnish'), flag: '🇫🇮' },
     { code: 'da', name: i18n.t('settings.danish'), flag: '🇩🇰' },
     { code: 'de', name: i18n.t('settings.german'), flag: '🇩🇪' },
+    { code: 'fr', name: i18n.t('settings.french'), flag: '🇫🇷' },
   ];
 
   const handleLanguageChange = async (languageCode: string) => {
@@ -88,16 +88,6 @@ const SettingsScreen: React.FC = () => {
             `${getCurrentLanguageFlag()} ${languages.find(lang => lang.code === locale)?.name}`,
             <MaterialCommunityIcons name="chevron-right" size={24} color={colors.text} />,
             () => setLanguageDialogVisible(true)
-          )}
-
-          {renderSettingsItem(
-            i18n.t('settings.darkMode'),
-            null,
-            <Switch
-              value={isDarkMode}
-              onValueChange={setIsDarkMode}
-              color={colors.primary}
-            />
           )}
         </View>
 

@@ -2,7 +2,6 @@ export default {
   settings: {
     title: 'Einstellungen',
     language: 'Sprache',
-    darkMode: 'Dunkelmodus',
     logout: 'Abmelden',
     selectLanguage: 'Sprache auswählen',
     english: 'Englisch',
@@ -10,6 +9,7 @@ export default {
     finnish: 'Finnisch',
     danish: 'Dänisch',
     german: 'Deutsch',
+    french: 'Französisch',
     policies: 'Richtlinien',
     privacyPolicy: 'Datenschutzerklärung',
     termsOfService: 'Nutzungsbedingungen',
