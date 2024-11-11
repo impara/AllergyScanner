@@ -79,6 +79,11 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
     return productInfo.ingredientsList || [];
   };
 
+  const hasIngredients = () => {
+    const ingredients = getLocalizedIngredients();
+    return ingredients.length > 0 && ingredients.some(ingredient => ingredient !== '');
+  };
+
   const panResponder = React.useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -182,23 +187,34 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
     >
       <Animated.View style={[styles.modalContainer, animatedStyle]} {...panResponder.panHandlers}>
         <SafeAreaView style={[styles.safeArea, platformShadow]}>
-          <View style={styles.headerContainer}>
+          <View style={[
+            styles.headerContainer,
+            detectedIngredients.length === 0 ? { backgroundColor: `${colors.success}15` } : { backgroundColor: `${colors.warning}15` }
+          ]}>
             <View style={styles.dragIndicator} />
-            <TouchableOpacity
-              accessibilityLabel={i18n.t('product.close')}
-              accessibilityRole="button"
-              onPress={closeModal}
-              style={styles.closeButton}
-            >
-              <IconButton
-                icon="chevron-down"
-                size={32}
-                iconColor={colors.text}
-              />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle} numberOfLines={1}>
-              {getLocalizedProductName()}
-            </Text>
+            <View style={styles.headerContent}>
+              <TouchableOpacity
+                accessibilityLabel={i18n.t('product.close')}
+                accessibilityRole="button"
+                onPress={closeModal}
+                style={styles.closeButton}
+              >
+                <IconButton
+                  icon="chevron-down"
+                  size={32}
+                  iconColor={detectedIngredients.length === 0 ? colors.success : colors.warning}
+                />
+              </TouchableOpacity>
+              <Text 
+                style={[
+                  styles.headerTitle,
+                  { color: detectedIngredients.length === 0 ? colors.success : colors.warning }
+                ]} 
+                numberOfLines={1}
+              >
+                {getLocalizedProductName()}
+              </Text>
+            </View>
           </View>
 
           <ScrollView style={styles.scrollView} bounces={false}>
@@ -239,14 +255,16 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
 
               <Divider style={styles.divider} />
 
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>
-                  {i18n.t('product.ingredients')}
-                </Text>
-                <Text style={styles.ingredientsText}>
-                  {getLocalizedIngredients().join(', ')}
-                </Text>
-              </View>
+              {hasIngredients() && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>
+                    {i18n.t('product.ingredients')}
+                  </Text>
+                  <Text style={styles.ingredientsText}>
+                    {getLocalizedIngredients().join(', ')}
+                  </Text>
+                </View>
+              )}
 
               {hasNutrientValues() && (
                 <>
@@ -304,11 +322,16 @@ const styles = StyleSheet.create({
     marginTop: 'auto',
   },
   headerContainer: {
-    backgroundColor: colors.surface,
     paddingTop: spacing.xs,
     paddingBottom: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.divider,
+    backgroundColor: `${colors.success}15`,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingRight: spacing.xl,
   },
   dragIndicator: {
     width: 40,
@@ -319,14 +342,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   closeButton: {
-    position: 'absolute',
-    left: spacing.xs,
-    bottom: spacing.xs,
+    padding: spacing.xs,
+    marginLeft: spacing.xs,
   },
   headerTitle: {
     ...typography.h6,
+    flex: 1,
     textAlign: 'center',
-    paddingHorizontal: spacing.xl,
+    marginLeft: spacing.md,
+    color: colors.success,
   },
   scrollView: {
     flex: 1,

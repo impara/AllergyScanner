@@ -1,11 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Portal, Dialog, TouchableRipple, Text, RadioButton } from 'react-native-paper';
+import { Portal, Dialog, TouchableRipple, Text, RadioButton, ActivityIndicator, Snackbar } from 'react-native-paper';
 import { colors, spacing, typography } from '../theme';
 import i18n from '../localization/i18n';
 import { useLanguage } from '../context/LanguageContext';
-import { getFirebaseDb } from '../config/firebase';
-import auth from '@react-native-firebase/auth';
 
 interface LanguageSelectionModalProps {
   visible: boolean;
@@ -17,6 +15,8 @@ const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
   onDismiss,
 }) => {
   const { locale, setLocale } = useLanguage();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const languages = [
     { code: 'en', name: i18n.t('settings.english'), flag: '🇬🇧' },
@@ -27,21 +27,17 @@ const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
   ];
 
   const handleLanguageChange = async (languageCode: string) => {
+    setLoading(true);
+    setError(null);
+    
     try {
       await setLocale(languageCode);
-      
-      // Update user's hasSelectedLanguage in Firebase
-      const currentUser = auth().currentUser;
-      if (currentUser) {
-        const db = getFirebaseDb();
-        await db.collection('users').doc(currentUser.uid).update({
-          hasSelectedLanguage: true,
-        });
-      }
-      
       onDismiss();
     } catch (error) {
       console.error('Error setting language:', error);
+      setError(i18n.t('settings.languageUpdateError'));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -55,22 +51,37 @@ const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
           <Text style={styles.subtitle}>
             {i18n.t('settings.languagePrompt')}
           </Text>
-          <RadioButton.Group onValueChange={handleLanguageChange} value={locale}>
-            {languages.map(lang => (
-              <TouchableRipple
-                key={lang.code}
-                onPress={() => handleLanguageChange(lang.code)}
-              >
-                <View style={styles.radioItem}>
-                  <RadioButton.Android value={lang.code} />
-                  <Text style={styles.radioLabel}>
-                    {`${lang.flag}  ${lang.name}`}
-                  </Text>
-                </View>
-              </TouchableRipple>
-            ))}
-          </RadioButton.Group>
+          {loading ? (
+            <ActivityIndicator style={styles.loader} />
+          ) : (
+            <RadioButton.Group onValueChange={handleLanguageChange} value={locale}>
+              {languages.map(lang => (
+                <TouchableRipple
+                  key={lang.code}
+                  onPress={() => handleLanguageChange(lang.code)}
+                  disabled={loading}
+                >
+                  <View style={styles.radioItem}>
+                    <RadioButton.Android value={lang.code} />
+                    <Text style={styles.radioLabel}>
+                      {`${lang.flag}  ${lang.name}`}
+                    </Text>
+                  </View>
+                </TouchableRipple>
+              ))}
+            </RadioButton.Group>
+          )}
         </Dialog.Content>
+        <Snackbar
+          visible={!!error}
+          onDismiss={() => setError(null)}
+          action={{
+            label: i18n.t('common.dismiss'),
+            onPress: () => setError(null),
+          }}
+        >
+          {error}
+        </Snackbar>
       </Dialog>
     </Portal>
   );
@@ -103,6 +114,9 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginLeft: spacing.sm,
   },
+  loader: {
+    marginVertical: spacing.xl,
+  }
 });
 
 export default LanguageSelectionModal; 

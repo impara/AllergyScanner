@@ -103,7 +103,7 @@ interface IngredientProfileScreenProps {
 
 const SearchBackdrop: React.FC<{ onPress: () => void }> = ({ onPress }) => (
   <TouchableWithoutFeedback onPress={onPress}>
-    <View style={[styles.overlay, { height: '100%' }]} />
+    <View/>
   </TouchableWithoutFeedback>
 );
 
@@ -1112,15 +1112,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  overlay: {
-    position: 'absolute',
-    top: '100%',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    zIndex: 999,
   },
   searchResultsContainer: {
     position: 'absolute',

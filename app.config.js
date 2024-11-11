@@ -69,10 +69,14 @@ module.exports = ({ config }) => {
             intentFilters: [
                 {
                     action: "VIEW",
-                    data: {
-                        scheme: "com.googleusercontent.apps.${process.env.GOOGLE_ANDROID_CLIENT_ID}",
-                        host: "oauth2callback"
-                    },
+                    data: [
+                        {
+                            scheme: process.env.GOOGLE_ANDROID_CLIENT_ID
+                                ? `com.googleusercontent.apps.${process.env.GOOGLE_ANDROID_CLIENT_ID}`
+                                : "placeholder_scheme",
+                            host: "oauth2callback"
+                        }
+                    ],
                     category: ["BROWSABLE", "DEFAULT"]
                 }
             ],
