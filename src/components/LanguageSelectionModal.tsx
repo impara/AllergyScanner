@@ -24,6 +24,7 @@ const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
     { code: 'fi', name: i18n.t('settings.finnish'), flag: '🇫🇮' },
     { code: 'da', name: i18n.t('settings.danish'), flag: '🇩🇰' },
     { code: 'de', name: i18n.t('settings.german'), flag: '🇩🇪' },
+    { code: 'fr', name: i18n.t('settings.french'), flag: '🇫🇷' },
   ];
 
   const handleLanguageChange = async (languageCode: string) => {

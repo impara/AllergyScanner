@@ -9,6 +9,7 @@ import es from './translations/es';
 import fi from './translations/fi';
 import da from './translations/da';
 import de from './translations/de';
+import fr from './translations/fr';
 
 // Set translations
 i18n.translations = {
@@ -17,10 +18,11 @@ i18n.translations = {
   fi,
   da,
   de,
+  fr,
 };
 
 // Supported languages
-export const supportedLanguages = ['en', 'es', 'fi', 'da', 'de'];
+export const supportedLanguages = ['en', 'es', 'fi', 'da', 'de', 'fr'];
 
 // Set the default locale
 i18n.defaultLocale = 'en';
