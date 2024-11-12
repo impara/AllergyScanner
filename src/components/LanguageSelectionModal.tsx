@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Portal, Dialog, TouchableRipple, Text, RadioButton, ActivityIndicator, Snackbar } from 'react-native-paper';
+import { Portal, Dialog, TouchableRipple, Text, RadioButton, ActivityIndicator } from 'react-native-paper';
 import { colors, spacing, typography } from '../theme';
 import i18n from '../localization/i18n';
 import { useLanguage } from '../context/LanguageContext';
@@ -16,7 +16,6 @@ const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
 }) => {
   const { locale, setLocale } = useLanguage();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const languages = [
     { code: 'en', name: i18n.t('settings.english'), flag: '🇬🇧' },
@@ -28,18 +27,25 @@ const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
   ];
 
   const handleLanguageChange = async (languageCode: string) => {
+    if (languageCode === locale) return;
+    
+    let mounted = true;
     setLoading(true);
-    setError(null);
     
     try {
       await setLocale(languageCode);
-      onDismiss();
+      if (mounted) {
+        onDismiss();
+      }
     } catch (error) {
-      console.error('Error setting language:', error);
-      setError(i18n.t('settings.languageUpdateError'));
+      console.error('Language change failed:', error);
     } finally {
-      setLoading(false);
+      if (mounted) {
+        setLoading(false);
+      }
     }
+    
+    return () => { mounted = false; };
   };
 
   return (
@@ -49,9 +55,6 @@ const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
           {i18n.t('settings.selectLanguage')}
         </Dialog.Title>
         <Dialog.Content>
-          <Text style={styles.subtitle}>
-            {i18n.t('settings.languagePrompt')}
-          </Text>
           {loading ? (
             <ActivityIndicator style={styles.loader} />
           ) : (
@@ -73,16 +76,6 @@ const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
             </RadioButton.Group>
           )}
         </Dialog.Content>
-        <Snackbar
-          visible={!!error}
-          onDismiss={() => setError(null)}
-          action={{
-            label: i18n.t('common.dismiss'),
-            onPress: () => setError(null),
-          }}
-        >
-          {error}
-        </Snackbar>
       </Dialog>
     </Portal>
   );

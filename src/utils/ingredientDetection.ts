@@ -3,6 +3,7 @@
 import { IngredientsProfile as IngredientProfile } from '../config/firebase';
 import ingredientsTaxonomyData from '../assets/taxonomies/ingredients.json';
 import additivesTaxonomyData from '../assets/taxonomies/additives.json';
+import i18n from '../localization/i18n';
 
 interface TaxonomyData {
   id: string;
@@ -28,50 +29,73 @@ const combinedTaxonomy: { [key: string]: TaxonomyData } = {
   ...additivesTaxonomy
 };
 
+// Helper function to find matches in a specific language
+const findInLanguage = (name: string, lang: string): { id: string; lang: string }[] => {
+  const matches: { id: string; lang: string }[] = [];
+  
+  Object.entries(combinedTaxonomy).forEach(([id, data]) => {
+    if (data.labels?.[lang]) {
+      const labels = data.labels[lang];
+      if (labels.some(label => label.toLowerCase().includes(name))) {
+        matches.push({ id, lang });
+      }
+    }
+    
+    if (data.synonyms?.[lang]) {
+      const synonyms = data.synonyms[lang];
+      if (synonyms.some(synonym => synonym.toLowerCase().includes(name))) {
+        matches.push({ id, lang });
+      }
+    }
+  });
+  
+  return matches;
+};
+
+// Helper function to find matches in all languages
+const findInAllLanguages = (name: string): { id: string; lang: string }[] => {
+  const matches: { id: string; lang: string }[] = [];
+  const languages = new Set(
+    Object.values(combinedTaxonomy).flatMap(data => 
+      Object.keys(data.labels || {})
+    )
+  );
+  
+  languages.forEach(lang => {
+    const langMatches = findInLanguage(name, lang);
+    matches.push(...langMatches);
+  });
+  
+  return matches;
+};
+
 /**
  * Function to find the standardized ingredient IDs given an ingredient name.
  * @param ingredientName - The ingredient name to find.
  * @returns An array of standardized ingredient IDs.
  */
 export const findIngredientIdsWithLang = (
-  ingredientName: string
+  ingredientName: string,
+  preferredLang: string = i18n.locale
 ): { id: string; lang: string }[] => {
   const lowerName = ingredientName.toLowerCase().trim();
-  const matchedIngredients: { id: string; lang: string }[] = [];
-
-  for (const [id, data] of Object.entries(combinedTaxonomy)) {
-    const ingredientData = data as TaxonomyData;
-    const labelsObj = ingredientData.labels || {};
-
-    // Check labels in all languages
-    for (const [lang, labels] of Object.entries(labelsObj)) {
-      for (const label of labels) {
-        const labelParts = label.split(',').map((part) => part.trim());
-        
-        for (const part of labelParts) {
-          if (part.toLowerCase() === lowerName) {
-            // Store the language in which we found the match
-            matchedIngredients.push({ id, lang });
-            break;
-          }
-        }
-      }
-    }
-
-    // Check synonyms with language tracking
-    if (!matchedIngredients.some((item) => item.id === id) && ingredientData.synonyms) {
-      const synonymsObj = ingredientData.synonyms || {};
-
-      for (const [lang, synonyms] of Object.entries(synonymsObj)) {
-        if (synonyms.some((synonym) => synonym.toLowerCase() === lowerName)) {
-          matchedIngredients.push({ id, lang });
-          break;
-        }
-      }
+  
+  // First try preferred language
+  const preferredMatches = findInLanguage(lowerName, preferredLang);
+  if (preferredMatches.length > 0) {
+    return preferredMatches;
+  }
+  
+  // Then try English as fallback
+  if (preferredLang !== 'en') {
+    const englishMatches = findInLanguage(lowerName, 'en');
+    if (englishMatches.length > 0) {
+      return englishMatches;
     }
   }
-
-  return matchedIngredients;
+  
+  // Finally try other languages
+  return findInAllLanguages(lowerName);
 };
 
 /**
@@ -91,7 +115,6 @@ export const parseIngredients = (ingredientsText: string): string[] => {
 
   // Remove phrases like "may contain", "contains", etc.
   const phrasesToRemove = [
-    // Add phrases in multiple languages
     'may contain',
     'contains',
     'free from',
@@ -102,7 +125,6 @@ export const parseIngredients = (ingredientsText: string): string[] => {
     'contient',
     'kann enthalten',
     'enthält',
-    // Add more phrases as needed
   ];
 
   let cleanedText = normalizedText;
