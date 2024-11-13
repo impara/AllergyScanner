@@ -16,6 +16,7 @@ const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
 }) => {
   const { locale, setLocale } = useLanguage();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const languages = [
     { code: 'en', name: i18n.t('settings.english'), flag: '🇬🇧' },
@@ -29,23 +30,18 @@ const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
   const handleLanguageChange = async (languageCode: string) => {
     if (languageCode === locale) return;
     
-    let mounted = true;
     setLoading(true);
+    setError(null);
     
     try {
       await setLocale(languageCode);
-      if (mounted) {
-        onDismiss();
-      }
+      onDismiss();
     } catch (error) {
       console.error('Language change failed:', error);
+      setError(i18n.t('settings.languageChangeError'));
     } finally {
-      if (mounted) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
-    
-    return () => { mounted = false; };
   };
 
   return (
@@ -55,6 +51,9 @@ const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
           {i18n.t('settings.selectLanguage')}
         </Dialog.Title>
         <Dialog.Content>
+          {error && (
+            <Text style={styles.errorText}>{error}</Text>
+          )}
           {loading ? (
             <ActivityIndicator style={styles.loader} />
           ) : (
@@ -110,7 +109,12 @@ const styles = StyleSheet.create({
   },
   loader: {
     marginVertical: spacing.xl,
-  }
+  },
+  errorText: {
+    color: colors.error,
+    marginBottom: spacing.md,
+    textAlign: 'center',
+  },
 });
 
 export default LanguageSelectionModal; 

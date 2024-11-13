@@ -15,6 +15,7 @@ export default {
     termsOfService: 'Servicevilkår',
     appearance: 'Udseende',
     languagePrompt: 'Vælg dit foretrukne sprog til appen',
+    languageChangeError: 'Sprogændring mislykkedes. Prøv venligst igen.',
   },
   scan: {
     title: 'Scan',

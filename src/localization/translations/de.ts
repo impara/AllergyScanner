@@ -15,6 +15,7 @@ export default {
     termsOfService: 'Nutzungsbedingungen',
     appearance: 'Erscheinungsbild',
     languagePrompt: 'Wählen Sie Ihre bevorzugte Sprache für die App',
+    languageChangeError: 'Sprachänderung fehlgeschlagen. Bitte versuchen Sie es erneut.',
   },
   scan: {
     title: 'Scannen',

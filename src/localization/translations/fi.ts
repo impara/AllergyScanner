@@ -15,6 +15,7 @@ export default {
     termsOfService: 'Käyttöehdot',
     appearance: 'Ulkoasu',
     languagePrompt: 'Valitse sovelluksen kieli',
+    languageChangeError: 'Kielen vaihto epäonnistui. Yritä uudelleen.',
   },
   scan: {
     title: 'Skannaa',

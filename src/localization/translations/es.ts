@@ -15,6 +15,7 @@ export default {
     termsOfService: 'Términos de Servicio',
     appearance: 'Apariencia',
     languagePrompt: 'Elige tu idioma preferido para la aplicación',
+    languageChangeError: 'Error al cambiar el idioma. Por favor, inténtalo de nuevo.',
   },
   scan: {
     title: 'Escanear',

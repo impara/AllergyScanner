@@ -15,6 +15,7 @@ export default {
     termsOfService: "Conditions d'Utilisation",
     appearance: 'Apparence',
     languagePrompt: "Choisissez votre langue préférée pour l'application",
+    languageChangeError: 'Échec du changement de langue. Veuillez réessayer.',
   },
   scan: {
     title: 'Scanner',

@@ -3,7 +3,7 @@ require('dotenv').config();
 const { withPlugins } = require('@expo/config-plugins');
 const withGoogleSignIn = require('./withGoogleSignIn');
 
-// Check if AdMob app IDs are set
+// Ensure AdMob app IDs are set
 if (!process.env.ADMOB_ANDROID_APP_ID || !process.env.ADMOB_IOS_APP_ID) {
     throw new Error("AdMob App IDs are not set. Please define ADMOB_ANDROID_APP_ID and ADMOB_IOS_APP_ID in your environment variables.");
 }
@@ -34,28 +34,22 @@ module.exports = ({ config }) => {
         });
     }
 
-    // Increment build numbers safely
-    const incrementAndroidVersionCode = () => {
-        const currentVersionCode = config.android?.versionCode || 1;
-        return currentVersionCode + 1;
-    };
+    // Manually set versioning
+    const newVersion = "1.0.4"; // Incremented version
+    const newAndroidVersionCode = 4; // Incremented versionCode
+    const newiOSBuildNumber = "4"; // Incremented buildNumber
+    const newRuntimeVersion = `${newVersion}+${newAndroidVersionCode}`; // "1.0.2+3"
 
-    const incrementiOSBuildNumber = () => {
-        const currentBuildNumber = parseInt(config.ios?.buildNumber, 10) || 1;
-        return (currentBuildNumber + 1).toString();
-    };
-
-    const newAndroidVersionCode = incrementAndroidVersionCode();
-    const newiOSBuildNumber = incrementiOSBuildNumber();
-
-    // Define runtimeVersion based on app version and build numbers
-    const runtimeVersion = `${config.version}+${newAndroidVersionCode}`;
+    console.log(`Setting version to: ${newVersion}`);
+    console.log(`Setting Android versionCode to: ${newAndroidVersionCode}`);
+    console.log(`Setting iOS buildNumber to: ${newiOSBuildNumber}`);
+    console.log(`Setting runtimeVersion to: ${newRuntimeVersion}`);
 
     return {
         ...config,
         name: "PurePlate",
         slug: "pureplate",
-        version: "1.0.1", // Update this manually as needed
+        version: newVersion,
         orientation: "portrait",
         icon: "./assets/icons/icon_1024x1024.png",
         splash: {
@@ -68,12 +62,12 @@ module.exports = ({ config }) => {
             enabled: true,
             checkAutomatically: "ON_LOAD"
         },
-        runtimeVersion: runtimeVersion, // Simple string for runtimeVersion
+        runtimeVersion: newRuntimeVersion, // "1.0.2+3"
         android: {
             ...config.android,
             package: "com.pureplate",
-            versionCode: newAndroidVersionCode, // Updated versionCode
-            runtimeVersion: runtimeVersion, // Unique runtimeVersion per build
+            versionCode: newAndroidVersionCode, // 3
+            runtimeVersion: newRuntimeVersion, // "1.0.2+3"
             adaptiveIcon: {
                 foregroundImage: "./assets/icons/icon_1024x1024.png",
                 backgroundColor: "#FFFFFF"
@@ -106,9 +100,9 @@ module.exports = ({ config }) => {
         ios: {
             ...config.ios,
             bundleIdentifier: "com.pureplate",
-            buildNumber: newiOSBuildNumber, // Updated buildNumber
+            buildNumber: newiOSBuildNumber, // "3"
             deploymentTarget: "13.4",
-            runtimeVersion: runtimeVersion, // Unique runtimeVersion per build
+            runtimeVersion: newRuntimeVersion, // "1.0.2+3"
             infoPlist: {
                 CFBundleURLTypes: [
                     {
