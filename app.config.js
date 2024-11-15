@@ -75,7 +75,8 @@ module.exports = ({ config }) => {
             permissions: [
                 "CAMERA",
                 "INTERNET",
-                "ACCESS_NETWORK_STATE"
+                "ACCESS_NETWORK_STATE",
+                "com.google.android.gms.permission.AD_ID"
             ],
             intentFilters: [
                 {

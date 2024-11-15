@@ -91,9 +91,27 @@ const PrivacyPolicyScreen: React.FC = () => {
           <BulletPoint title="Objection" description="You can object to the processing of your data for specific purposes." />
         </Section>
 
+        <Section title="Data Retention">
+          <Text style={styles.text}>
+            We retain your personal data only for as long as necessary to fulfill the purposes outlined in this Privacy Policy, unless a longer retention period is required or permitted by law.
+          </Text>
+        </Section>
+
+        <Section title="Security">
+          <Text style={styles.text}>
+            We implement appropriate technical and organizational measures to protect your data against unauthorized access, alteration, disclosure, or destruction.
+          </Text>
+        </Section>
+
+        <Section title="Changes to This Privacy Policy">
+          <Text style={styles.text}>
+            We may update this Privacy Policy from time to time. Any changes will be posted on this page, and where appropriate, notified to you via email or within the app.
+          </Text>
+        </Section>
+
         <Section title="Contact Us">
           <Text style={styles.text}>
-            If you have any questions about this Privacy Policy or our data practices, please contact us at support@pureplate.com
+            If you have any questions about this Privacy Policy or our data practices, please contact us at support@pureplate.com.
           </Text>
         </Section>
       </ScrollView>
