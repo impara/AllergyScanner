@@ -42,13 +42,18 @@ const App: React.FC = () => {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        await Promise.all([
-          firebase.initializeFirebase(),
-          initializeGoogleSignIn(),
-        ]);
-        console.log('Firebase and Google Sign-In initialized');
+        // Initialize Firebase first with retries
+        await firebase.initializeFirebase();
+        
+        // Only proceed with Google Sign-In after Firebase is ready
+        if (firebase.isFirebaseInitialized()) {
+          await initializeGoogleSignIn();
+          console.log('Firebase and Google Sign-In initialized successfully');
+        } else {
+          throw new Error('Firebase initialization check failed');
+        }
 
-        // Separate AdMob initialization with better error handling
+        // Initialize AdMob only after Firebase and Google Sign-In are ready
         if (Platform.OS !== 'web') {
           const adMobConfig = {
             appId: Platform.select({
@@ -99,6 +104,14 @@ const App: React.FC = () => {
         setAppReady(true);
       } catch (error) {
         console.error('Critical initialization error:', error);
+        // Log additional error details for debugging
+        if (error instanceof Error) {
+          console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+          });
+        }
         setError(error as Error);
         setAppReady(true);
       }

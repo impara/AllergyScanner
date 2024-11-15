@@ -29,29 +29,62 @@ const firebaseConfig = {
   databaseURL: FIREBASE_DATABASE_URL,
 };
 
+const validateFirebaseConfig = () => {
+  const required = [
+    'FIREBASE_API_KEY',
+    'FIREBASE_AUTH_DOMAIN',
+    'FIREBASE_PROJECT_ID',
+    'FIREBASE_DATABASE_URL'
+  ];
+  
+  const missing = required.filter(key => !firebaseConfig[key]);
+  if (missing.length > 0) {
+    throw new Error(`Missing Firebase configuration: ${missing.join(', ')}`);
+  }
+};
+
 /**
  * Initializes Firebase App and Analytics.
  * Should be called once during app startup.
  */
-export const initializeFirebase = async () => {
-  try {
-    if (!firebase.apps.length) {
-      await firebase.initializeApp(firebaseConfig);
-      console.log('Firebase initialized successfully');
-    }
-
-    // Initialize Analytics after Firebase is initialized
+export const initializeFirebase = async (maxRetries = 3) => {
+  validateFirebaseConfig();
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      await analytics().setAnalyticsCollectionEnabled(true);
-      console.log('Firebase Analytics initialized successfully');
-    } catch (error) {
-      console.warn('Analytics initialization error:', error);
-      // Continue even if analytics fails
+      if (!firebase.apps.length) {
+        await firebase.initializeApp(firebaseConfig);
+        console.log(`Firebase initialized successfully on attempt ${attempt}`);
+        
+        // Verify Firestore connection by making a test query
+        const db = firestore();
+        await db.collection('users').limit(1).get();
+        
+        console.log('Firestore connection verified');
+        return;
+      }
+    } catch (error: any) {
+      console.error(`Firebase initialization attempt ${attempt} failed:`, error);
+      
+      // Log specific error details for debugging
+      if (error.code) {
+        console.error('Error code:', error.code);
+      }
+      
+      if (attempt === maxRetries) {
+        throw new Error(`Firebase initialization failed after ${maxRetries} attempts: ${error.message}`);
+      }
+      
+      // Exponential backoff
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
+      console.log(`Retrying in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
-  } catch (error) {
-    console.error('Firebase initialization error:', error);
-    throw error;
   }
+};
+
+export const isFirebaseInitialized = () => {
+  return firebase.apps.length > 0;
 };
 
 export const getFirebaseAuth = () => {
