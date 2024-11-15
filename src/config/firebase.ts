@@ -31,11 +31,19 @@ const firebaseConfig = {
 
 const validateFirebaseConfig = () => {
   const required = [
-    'FIREBASE_API_KEY',
-    'FIREBASE_AUTH_DOMAIN',
-    'FIREBASE_PROJECT_ID',
-    'FIREBASE_DATABASE_URL'
+    'apiKey',
+    'authDomain',
+    'projectId',
+    'databaseURL'
   ];
+  
+  console.log('Firebase Config Debug:', {
+    apiKey: !!firebaseConfig.apiKey,
+    authDomain: !!firebaseConfig.authDomain,
+    projectId: !!firebaseConfig.projectId,
+    databaseURL: !!firebaseConfig.databaseURL,
+    rawConfig: firebaseConfig
+  });
   
   const missing = required.filter(key => !firebaseConfig[key]);
   if (missing.length > 0) {
