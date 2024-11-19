@@ -51,7 +51,7 @@ module.exports = ({ config }) => {
         slug: "pureplate",
         version: newVersion,
         orientation: "portrait",
-        icon: "./assets/icons/icon_1024x1024.png",
+        icon: "./assets/icons/icon_ios_1024x1024.png",
         splash: {
             image: "./assets/images/splash.png",
             resizeMode: "contain",
