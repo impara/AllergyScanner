@@ -69,8 +69,15 @@ module.exports = ({ config }) => {
             versionCode: newAndroidVersionCode, // 3
             runtimeVersion: newRuntimeVersion, // "1.0.2+3"
             adaptiveIcon: {
-                foregroundImage: "./assets/icons/icon_1024x1024.png",
+                foregroundImage: "./assets/icons/icon_android_192x192.png",
                 backgroundColor: "#FFFFFF"
+            },
+            icon: {
+                mdpi: "./assets/icons/icon_android_48x48.png",
+                hdpi: "./assets/icons/icon_android_72x72.png",
+                xhdpi: "./assets/icons/icon_android_96x96.png",
+                xxhdpi: "./assets/icons/icon_android_144x144.png",
+                xxxhdpi: "./assets/icons/icon_android_192x192.png",
             },
             permissions: [
                 "CAMERA",
@@ -104,15 +111,22 @@ module.exports = ({ config }) => {
             buildNumber: newiOSBuildNumber, // "3"
             deploymentTarget: "13.4",
             runtimeVersion: newRuntimeVersion, // "1.0.2+3"
+            icon: "./assets/icons/icon_ios_1024x1024.png",
             infoPlist: {
-                CFBundleURLTypes: [
-                    {
-                        CFBundleURLSchemes: [
-                            "pureplate",
-                            `com.googleusercontent.apps.${process.env.GOOGLE_IOS_CLIENT_ID}`
-                        ]
+                CFBundleIcons: {
+                    CFBundlePrimaryIcon: {
+                        CFBundleIconFiles: [
+                            "./assets/icons/icon_ios_60x60.png",
+                            "./assets/icons/icon_ios_76x76.png",
+                            "./assets/icons/icon_ios_83.5x83.5.png",
+                            "./assets/icons/icon_ios_120x120.png",
+                            "./assets/icons/icon_ios_152x152.png",
+                            "./assets/icons/icon_ios_167x167.png",
+                            "./assets/icons/icon_ios_180x180.png"
+                        ],
+                        UIPrerenderedIcon: true
                     }
-                ]
+                }
             },
             hermesEnabled: false
         },
