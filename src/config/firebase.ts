@@ -106,7 +106,33 @@ export type IngredientsProfile = Record<
   }
 >;
 
-// Update your authentication methods accordingly
+// Add retry configuration
+const MAX_RETRIES = 3;
+const INITIAL_RETRY_DELAY = 1000; // 1 second
+
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const withRetry = async <T>(
+  operation: () => Promise<T>,
+  retries = MAX_RETRIES,
+  delay = INITIAL_RETRY_DELAY
+): Promise<T> => {
+  try {
+    return await operation();
+  } catch (error: any) {
+    if (
+      retries > 0 && 
+      error?.code === 'firestore/unavailable'
+    ) {
+      console.log(`Retrying operation, ${retries} attempts remaining. Waiting ${delay}ms...`);
+      await wait(delay);
+      return withRetry(operation, retries - 1, delay * 2);
+    }
+    throw error;
+  }
+};
+
+// Update the sign in method with retry logic
 export const signInWithGoogleCredential = async (
   idToken: string,
   accessToken?: string
@@ -126,34 +152,35 @@ export const signInWithGoogleCredential = async (
 
     const db = getFirebaseDb();
 
-    // Check if user document exists
-    const userDocRef = db.collection('users').doc(user.uid);
-    const userDocSnap = await userDocRef.get();
+    // Wrap Firestore operations with retry logic
+    await withRetry(async () => {
+      const userDocRef = db.collection('users').doc(user.uid);
+      const userDocSnap = await userDocRef.get();
 
-    if (!userDocSnap.exists) {
-      // Create Firestore document for new user
-      await userDocRef.set({
-        ingredients: {},
-        hasSelectedLanguage: false,
-        createdAt: firestore.FieldValue.serverTimestamp(),
-        lastLoginAt: firestore.FieldValue.serverTimestamp(),
-      });
-      console.log(
-        'User signed in with Google and Firestore document initialized.'
-      );
-    } else {
-      // Update last login timestamp
-      await userDocRef.update({
-        lastLoginAt: firestore.FieldValue.serverTimestamp(),
-      });
-      console.log(
-        'User signed in with Google and Firestore document updated.'
-      );
-    }
+      if (!userDocSnap.exists) {
+        await userDocRef.set({
+          ingredients: {},
+          hasSelectedLanguage: false,
+          createdAt: firestore.FieldValue.serverTimestamp(),
+          lastLoginAt: firestore.FieldValue.serverTimestamp(),
+        });
+        console.log('User signed in with Google and Firestore document initialized.');
+      } else {
+        await userDocRef.update({
+          lastLoginAt: firestore.FieldValue.serverTimestamp(),
+        });
+        console.log('User signed in with Google and Firestore document updated.');
+      }
+    });
 
     return user;
-  } catch (error) {
-    console.error('Error signing in with Google', error);
+  } catch (error: any) {
+    console.error('Error signing in with Google:', error);
+    console.error('Error details:', {
+      code: error.code,
+      message: error.message,
+      fullError: JSON.stringify(error)
+    });
     throw error;
   }
 };
@@ -256,21 +283,18 @@ const isTransientFirestoreError = (error: any): boolean => {
   return error.code === 'firestore/unavailable';
 };
 
-/**
- * Example function to get user ingredients with retry logic
- */
+// Update getUserIngredients with retry logic
 export const getUserIngredients = async (): Promise<IngredientsProfile> => {
   const currentUser = auth().currentUser;
   if (!currentUser) {
-    throw new Error('No user is signed in');
+    throw new Error('No authenticated user');
   }
-  
-  return retryFirestoreOperation(async () => {
-    const snapshot = await firestore().collection('users').doc(currentUser.uid).get();
-    if (!snapshot.exists) {
-      throw new Error('User not found');
-    }
-    return snapshot.data() as IngredientsProfile;
+
+  return withRetry(async () => {
+    const db = getFirebaseDb();
+    const doc = await db.collection('users').doc(currentUser.uid).get();
+    const data = doc.data();
+    return (data?.ingredients || {}) as IngredientsProfile;
   });
 };
 

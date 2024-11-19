@@ -36,8 +36,8 @@
       "developmentClient": false,
       "distribution": "store",
       "android": {
-        "buildType": "app-bundle",
-        "gradleCommand": "app:bundleRelease"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
       },
       "channel": "production",
       "env": {
