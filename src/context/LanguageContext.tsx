@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import i18n, { changeLanguage, supportedLanguages } from '../localization/i18n';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import auth from '@react-native-firebase/auth';
@@ -10,6 +10,7 @@ interface LanguageContextType {
   setLocale: (locale: string) => Promise<void>;
   isInitialized: boolean;
   error: Error | null;
+  forceRender: () => void;
 }
 
 const LanguageContext = createContext<LanguageContextType>({
@@ -17,12 +18,18 @@ const LanguageContext = createContext<LanguageContextType>({
   setLocale: async () => {},
   isInitialized: false,
   error: null,
+  forceRender: () => {},
 });
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [locale, setLocale] = useState('en');
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [, setForceUpdate] = useState({});
+
+  const forceRender = useCallback(() => {
+    setForceUpdate({});
+  }, []);
 
   // Initialize language
   useEffect(() => {
@@ -107,7 +114,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         locale, 
         setLocale: handleSetLocale,
         isInitialized,
-        error 
+        error,
+        forceRender 
       }}
     >
       {children}

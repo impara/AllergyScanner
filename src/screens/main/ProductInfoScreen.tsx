@@ -26,15 +26,10 @@ import { Button, Input } from '../../components';
 import { CustomTheme } from '../../types/theme';
 import { ProductInfo } from '../../types/product';
 import { theme as defaultTheme } from '../../theme';
+import { ProductInfoScreenProps } from '../../navigation/AppStackNavigator';
 
 const DRAG_THRESHOLD = 100;
 const ANIMATION_DURATION = 300;
-
-interface ProductInfoScreenProps {
-  theme?: CustomTheme;
-  route: ProductInfoScreenRouteProp;
-  navigation: NavigationProp<RootStackParamList>;
-}
 
 const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({ 
   theme = defaultTheme, 

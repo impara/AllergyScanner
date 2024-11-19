@@ -37,7 +37,7 @@
       "distribution": "store",
       "android": {
         "buildType": "app-bundle",
-        "gradleCommand": ":app:assembleRelease"
+        "gradleCommand": "app:bundleRelease"
       },
       "channel": "production",
       "env": {

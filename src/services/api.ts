@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 import axios from 'axios';
-import { ProductInfo, AlternateProductInfo } from '../types/ProductInfo';
+import { ProductInfo, AlternateProductInfo } from '../types/product';
 
 const OPENFOODFACTS_BASE_URL = 'https://world.openfoodfacts.org/api/v0/product/';
 const FOOD_REPO_BASE_URL = 'https://www.foodrepo.org/api/v3';

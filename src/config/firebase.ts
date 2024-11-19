@@ -55,39 +55,32 @@ const validateFirebaseConfig = () => {
  * Initializes Firebase App and Analytics.
  * Should be called once during app startup.
  */
-export const initializeFirebase = async (maxRetries = 3) => {
-  validateFirebaseConfig();
-  
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      if (!firebase.apps.length) {
-        await firebase.initializeApp(firebaseConfig);
-        console.log(`Firebase initialized successfully on attempt ${attempt}`);
-        
-        // Verify Firestore connection by making a test query
-        const db = firestore();
-        await db.collection('users').limit(1).get();
-        
-        console.log('Firestore connection verified');
-        return;
-      }
-    } catch (error: any) {
-      console.error(`Firebase initialization attempt ${attempt} failed:`, error);
+export const initializeFirebase = async (attempt = 1, maxAttempts = 3): Promise<void> => {
+  try {
+    if (!firebase.apps.length) {
+      validateFirebaseConfig();
       
-      // Log specific error details for debugging
-      if (error.code) {
-        console.error('Error code:', error.code);
-      }
+      const app = await firebase.initializeApp(firebaseConfig);
+      console.log('Firebase initialized successfully on attempt', attempt);
       
-      if (attempt === maxRetries) {
-        throw new Error(`Firebase initialization failed after ${maxRetries} attempts: ${error.message}`);
-      }
+      // Initialize Firestore but don't test access yet
+      const db = firestore();
       
-      // Exponential backoff
+      // Don't test collection access here - it will fail without auth
+      return;
+    }
+  } catch (error: any) {
+    console.error(`Firebase initialization attempt ${attempt} failed:`, error);
+    console.error('Error code:', error.code);
+    
+    if (attempt < maxAttempts) {
       const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
       console.log(`Retrying in ${delay}ms...`);
       await new Promise(resolve => setTimeout(resolve, delay));
+      return initializeFirebase(attempt + 1, maxAttempts);
     }
+    
+    throw error;
   }
 };
 
@@ -232,14 +225,53 @@ export const signOut = () => {
   return auth().signOut();
 };
 
+/**
+ * Helper function to implement retry logic with exponential backoff
+ * @param fn - The Firestore function to retry
+ * @param retries - Number of retry attempts
+ * @param delay - Initial delay in milliseconds
+ */
+const retryFirestoreOperation = async (
+  fn: () => Promise<any>,
+  retries: number = 3,
+  delay: number = 1000
+): Promise<any> => {
+  try {
+    return await fn();
+  } catch (error: any) {
+    if (retries === 0 || !isTransientFirestoreError(error)) {
+      throw error;
+    }
+    console.warn(`Retrying Firestore operation due to error: ${error.message}`);
+    await new Promise(res => setTimeout(res, delay));
+    return retryFirestoreOperation(fn, retries - 1, delay * 2);
+  }
+};
+
+/**
+ * Determines if the Firestore error is transient
+ * @param error - The error thrown by Firestore
+ */
+const isTransientFirestoreError = (error: any): boolean => {
+  return error.code === 'firestore/unavailable';
+};
+
+/**
+ * Example function to get user ingredients with retry logic
+ */
 export const getUserIngredients = async (): Promise<IngredientsProfile> => {
   const currentUser = auth().currentUser;
   if (!currentUser) {
     throw new Error('No user is signed in');
   }
-  const db = getFirebaseDb();
-  const userDoc = await db.collection('users').doc(currentUser.uid).get();
-  return userDoc.data()?.ingredients || {};
+  
+  return retryFirestoreOperation(async () => {
+    const snapshot = await firestore().collection('users').doc(currentUser.uid).get();
+    if (!snapshot.exists) {
+      throw new Error('User not found');
+    }
+    return snapshot.data() as IngredientsProfile;
+  });
 };
 
 export const updateUserIngredients = async (

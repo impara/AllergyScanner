@@ -83,7 +83,9 @@ module.exports = ({ config }) => {
                 "CAMERA",
                 "INTERNET",
                 "ACCESS_NETWORK_STATE",
-                "com.google.android.gms.permission.AD_ID"
+                "com.google.android.gms.permission.AD_ID",
+                "android.permission.WAKE_LOCK",
+                "com.google.android.c2dm.permission.RECEIVE"
             ],
             intentFilters: [
                 {
@@ -109,7 +111,7 @@ module.exports = ({ config }) => {
             ...config.ios,
             bundleIdentifier: "com.pureplate",
             buildNumber: newiOSBuildNumber, // "3"
-            deploymentTarget: "13.4",
+            deploymentTarget: "15.1",
             runtimeVersion: newRuntimeVersion, // "1.0.2+3"
             icon: "./assets/icons/icon_ios_1024x1024.png",
             infoPlist: {
@@ -149,7 +151,7 @@ module.exports = ({ config }) => {
                     `
                 },
                 ios: {
-                    deploymentTarget: "13.4",
+                    deploymentTarget: "15.1",
                     hermesEnabled: false
                 }
             }],

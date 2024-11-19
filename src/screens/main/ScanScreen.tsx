@@ -66,13 +66,18 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
       }
 
       const fetchUserIngredients = async () => {
-        const ingredients = await getUserIngredients();
-        const normalizedIngredients = Object.keys(ingredients).reduce((acc, key) => {
-          acc[key.toLowerCase()] = ingredients[key];
-          return acc;
-        }, {} as IngredientsProfile);
-        if (isMountedRef.current) {
-          setUserIngredients(normalizedIngredients);
+        try {
+          const ingredients = await getUserIngredients();
+          const normalizedIngredients = Object.keys(ingredients).reduce((acc, key) => {
+            acc[key.toLowerCase()] = ingredients[key];
+            return acc;
+          }, {} as IngredientsProfile);
+          if (isMountedRef.current) {
+            setUserIngredients(normalizedIngredients);
+          }
+        } catch (error: any) {
+          console.error('Error loading ingredient profile:', error);
+          handleFirestoreError(error);
         }
       };
       fetchUserIngredients();
@@ -386,6 +391,22 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
         <Text style={styles.loadingText}>{i18n.t('ads.loading')}</Text>
       </View>
     );
+  };
+
+  const handleFirestoreError = (error: any) => {
+    if (error.code === 'firestore/permission-denied') {
+      Alert.alert(
+        i18n.t('error.title'),
+        i18n.t('error.permissionDenied'),
+        [{ text: i18n.t('common.ok') }]
+      );
+    } else {
+      Alert.alert(
+        i18n.t('error.title'),
+        i18n.t('error.unexpected'),
+        [{ text: i18n.t('common.ok') }]
+      );
+    }
   };
 
   if (hasPermission === null) {
