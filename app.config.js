@@ -74,13 +74,7 @@ module.exports = ({ config }) => {
                 foregroundImage: './assets/icons/icon_android_192x192.png',
                 backgroundColor: '#FFFFFF',
             },
-            icon: {
-                mdpi: './assets/icons/icon_android_48x48.png',
-                hdpi: './assets/icons/icon_android_72x72.png',
-                xhdpi: './assets/icons/icon_android_96x96.png',
-                xxhdpi: './assets/icons/icon_android_144x144.png',
-                xxxhdpi: './assets/icons/icon_android_192x192.png',
-            },
+            icon: './assets/icons/icon_android_192x192.png',
             permissions: [
                 'CAMERA',
                 'INTERNET',
