@@ -87,4 +87,18 @@ export const isPlayServicesAvailable = async () => {
     } catch (error) {
         return false;
     }
+};
+
+export const refreshGoogleToken = async () => {
+    try {
+        const { accessToken } = await GoogleSignin.getTokens();
+        if (!accessToken) {
+            await GoogleSignin.signInSilently();
+            return await GoogleSignin.getTokens();
+        }
+        return { accessToken };
+    } catch (error) {
+        console.error('Token refresh failed:', error);
+        throw error;
+    }
 }; 

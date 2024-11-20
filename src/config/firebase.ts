@@ -112,6 +112,13 @@ const INITIAL_RETRY_DELAY = 1000; // 1 second
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+const RETRYABLE_ERRORS = [
+  'firestore/unavailable',
+  'firestore/network-request-failed',
+  'firestore/deadline-exceeded',
+  'firestore/resource-exhausted'
+];
+
 const withRetry = async <T>(
   operation: () => Promise<T>,
   retries = MAX_RETRIES,
@@ -120,11 +127,8 @@ const withRetry = async <T>(
   try {
     return await operation();
   } catch (error: any) {
-    if (
-      retries > 0 && 
-      error?.code === 'firestore/unavailable'
-    ) {
-      console.log(`Retrying operation, ${retries} attempts remaining. Waiting ${delay}ms...`);
+    if (retries > 0 && RETRYABLE_ERRORS.includes(error?.code)) {
+      console.warn(`Retrying operation due to error: ${error.code}`);
       await wait(delay);
       return withRetry(operation, retries - 1, delay * 2);
     }
@@ -155,22 +159,24 @@ export const signInWithGoogleCredential = async (
     // Wrap Firestore operations with retry logic
     await withRetry(async () => {
       const userDocRef = db.collection('users').doc(user.uid);
-      const userDocSnap = await userDocRef.get();
-
-      if (!userDocSnap.exists) {
-        await userDocRef.set({
-          ingredients: {},
-          hasSelectedLanguage: false,
-          createdAt: firestore.FieldValue.serverTimestamp(),
-          lastLoginAt: firestore.FieldValue.serverTimestamp(),
-        });
-        console.log('User signed in with Google and Firestore document initialized.');
-      } else {
-        await userDocRef.update({
-          lastLoginAt: firestore.FieldValue.serverTimestamp(),
-        });
-        console.log('User signed in with Google and Firestore document updated.');
-      }
+      
+      // Use transaction for atomic operation
+      await db.runTransaction(async (transaction) => {
+        const doc = await transaction.get(userDocRef);
+        
+        if (!doc.exists) {
+          transaction.set(userDocRef, {
+            ingredients: {},
+            hasSelectedLanguage: false,
+            createdAt: firestore.FieldValue.serverTimestamp(),
+            lastLoginAt: firestore.FieldValue.serverTimestamp(),
+          });
+        } else {
+          transaction.update(userDocRef, {
+            lastLoginAt: firestore.FieldValue.serverTimestamp(),
+          });
+        }
+      });
     });
 
     return user;

@@ -37,9 +37,9 @@ module.exports = ({ config }) => {
     }
 
     // Manually set versioning
-    const newVersion = '1.0.4'; // Incremented version
-    const newAndroidVersionCode = 4; // Incremented versionCode
-    const newiOSBuildNumber = '4'; // Incremented buildNumber
+    const newVersion = '1.0.5'; // Incremented version
+    const newAndroidVersionCode = 5; // Incremented versionCode
+    const newiOSBuildNumber = '5'; // Incremented buildNumber
     const newRuntimeVersion = `${newVersion}+${newAndroidVersionCode}`; // "1.0.4+4"
 
     console.log(`Setting version to: ${newVersion}`);

@@ -37,13 +37,14 @@ const AuthScreen: React.FC = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   const handleGoogleSignIn = async () => {
+    if (isSigningIn) return;
+    
     try {
-      console.log('Starting Google Sign-In...');
+      setIsSigningIn(true);
       const { idToken, accessToken } = await signInWithGoogle();
-      console.log('Google Sign-In successful, got tokens');
-      
       if (idToken) {
         await signInWithGoogleCredential(idToken, accessToken);
         showToast(i18n.t('auth.googleSignInSuccess'));
@@ -64,6 +65,8 @@ const AuthScreen: React.FC = () => {
       } else {
         showToast(i18n.t('auth.googleSignInFailed'));
       }
+    } finally {
+      setIsSigningIn(false);
     }
   };
 
