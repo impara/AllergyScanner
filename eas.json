@@ -1,7 +1,7 @@
 {
   "cli": {
-    "version": ">= 12.4.1",
-    "appVersionSource": "remote"
+    "version": ">= 3.13.0",
+    "appVersionSource": "local"
   },
   "build": {
     "development": {
@@ -9,7 +9,8 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk",
-        "gradleCommand": ":app:assembleDebug"
+        "gradleCommand": ":app:assembleDebug",
+        "autoIncrement": false
       },
       "env": {
         "GOOGLE_SERVICES_JSON": "@secret/GOOGLE_SERVICES_JSON",
@@ -36,8 +37,8 @@
       "developmentClient": false,
       "distribution": "store",
       "android": {
-        "buildType": "apk",
-        "gradleCommand": ":app:assembleRelease"
+        "buildType": "app-bundle",
+        "autoIncrement": false
       },
       "channel": "production",
       "env": {
