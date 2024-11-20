@@ -62,7 +62,38 @@ export const initializeFirebase = async (attempt = 1, maxAttempts = 3): Promise<
 };
 
 export const isFirebaseInitialized = () => {
-  return firebase.apps.length > 0;
+  try {
+    // Check if Firebase app exists
+    const hasApp = firebase.apps.length > 0;
+    // Check if auth is initialized
+    const hasAuth = auth().app != null;
+    // Check if firestore is initialized
+    const hasFirestore = firestore().app != null;
+    
+    const isFullyInitialized = hasApp && hasAuth && hasFirestore;
+    console.log('Firebase initialization status:', {
+      hasApp,
+      hasAuth,
+      hasFirestore,
+      isFullyInitialized
+    });
+    
+    return isFullyInitialized;
+  } catch (error) {
+    console.error('Error checking Firebase initialization:', error);
+    return false;
+  }
+};
+
+export const waitForFirebaseInit = async (maxAttempts = 5): Promise<boolean> => {
+  for (let i = 0; i < maxAttempts; i++) {
+    if (isFirebaseInitialized()) {
+      return true;
+    }
+    // Wait 1 second between checks
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+  return false;
 };
 
 export const getFirebaseAuth = () => {
