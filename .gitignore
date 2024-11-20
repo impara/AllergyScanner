@@ -64,3 +64,19 @@ tekst.txt
 # Global TypeScript definitions
 config/global.d.ts
 global.d.ts
+
+# Production builds
+*.aab
+*.apk
+*.ipa
+
+# Environment files
+.env.*
+!.env.example
+
+# Coverage reports
+coverage/
+
+# Temporary files
+*.tmp
+*.temp

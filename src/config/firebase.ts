@@ -41,14 +41,6 @@ if (!validateFirebaseConfig(firebaseConfig)) {
  */
 export const initializeFirebase = async (attempt = 1, maxAttempts = 3): Promise<void> => {
   try {
-    // Add debug logging
-    console.log('Firebase Config Debug:', {
-      projectId: firebaseConfig.projectId,
-      configSource: process.env.EAS_BUILD ? 'EAS Secrets' : 'Local Env',
-      extraConfig: Constants.expoConfig?.extra,
-    });
-
-    // Check network status before attempting initialization
     const networkState = await NetInfo.fetch();
     if (!networkState.isConnected) {
       throw new Error('No network connection available');
@@ -56,35 +48,15 @@ export const initializeFirebase = async (attempt = 1, maxAttempts = 3): Promise<
 
     if (!firebase.apps.length) {
       validateFirebaseConfig(firebaseConfig);
-      
-      const app = await firebase.initializeApp(firebaseConfig);
-      console.log('Firebase initialized successfully on attempt', attempt, {
-        networkType: networkState.type,
-        isInternetReachable: networkState.isInternetReachable,
-        currentProjectId: app.options.projectId
-      });
-      
-      const db = firestore();
-      return;
+      await firebase.initializeApp(firebaseConfig);
+      firestore();
     }
   } catch (error: any) {
-    console.error(`Firebase initialization attempt ${attempt} failed:`, {
-      error,
-      code: error.code,
-      message: error.message,
-      currentConfig: {
-        projectId: firebaseConfig.projectId,
-        authDomain: firebaseConfig.authDomain
-      }
-    });
-    
     if (attempt < maxAttempts) {
       const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
-      console.log(`Retrying in ${delay}ms...`);
       await new Promise(resolve => setTimeout(resolve, delay));
       return initializeFirebase(attempt + 1, maxAttempts);
     }
-    
     throw error;
   }
 };

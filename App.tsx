@@ -16,9 +16,6 @@ import { initializeGoogleSignIn } from './src/config/googleSignIn';
 import Constants from 'expo-constants';
 import LanguageSelectionModal from './src/components/LanguageSelectionModal';
 
-// Ignore specific warnings
-LogBox.ignoreLogs(['Setting a timer for a long period of time']);
-
 // Create a custom theme that extends MD3LightTheme
 const paperTheme = {
   ...MD3LightTheme,

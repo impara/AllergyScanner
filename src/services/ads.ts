@@ -246,15 +246,9 @@ class AdService {
 
   cleanup() {
     try {
-      this.unsubscribeCallbacks.forEach(unsubscribe => {
-        try {
-          unsubscribe();
-        } catch (error) {
-          console.error('[AdService] Error unsubscribing:', error);
-        }
-      });
+      this.unsubscribeCallbacks.forEach(unsubscribe => unsubscribe());
     } catch (error) {
-      console.error('[AdService] Error in cleanup:', error);
+      console.error('[AdService] Cleanup error');
     } finally {
       this.unsubscribeCallbacks = [];
       this.rewardedAd = null;
@@ -262,7 +256,6 @@ class AdService {
       this.isLoading = false;
       this.isInitialized = false;
       this.adLoadPromise = null;
-      console.log('[AdService] Cleanup completed');
     }
   }
 
@@ -288,12 +281,8 @@ class AdService {
   }
 
   private handleError(error: any, context: string) {
-    console.error(`[AdService] Error in ${context}:`, error);
-    if (error.message?.includes('no-fill')) {
-      console.log('[AdService] No fill error - will retry later');
-      return;
-    }
-    this.cleanup(); // Clean up on critical errors
+    if (error.message?.includes('no-fill')) return;
+    this.cleanup();
     this.isInitialized = false;
   }
 }

@@ -39,11 +39,10 @@ module.exports = ({ config }) => {
     validateProjectConfig();
 
     console.log('Build Environment:', {
-        projectId: process.env.FIREBASE_PROJECT_ID,
+        projectId: !!process.env.FIREBASE_PROJECT_ID,
         isEAS: !!process.env.EAS_BUILD,
         hasGoogleServicesJson: !!process.env.GOOGLE_SERVICES_JSON,
         hasGoogleServiceInfoPlist: !!process.env.GOOGLE_SERVICE_INFO_PLIST,
-        // Don't log the actual values, just whether they exist
         hasSecrets: {
             androidClientId: !!process.env.GOOGLE_ANDROID_CLIENT_ID,
             iosClientId: !!process.env.GOOGLE_IOS_CLIENT_ID,
@@ -65,10 +64,7 @@ module.exports = ({ config }) => {
     const newiOSBuildNumber = '5'; // Incremented buildNumber
     const newRuntimeVersion = `${newVersion}+${newAndroidVersionCode}`; // "1.0.4+4"
 
-    console.log(`Setting version to: ${newVersion}`);
-    console.log(`Setting Android versionCode to: ${newAndroidVersionCode}`);
-    console.log(`Setting iOS buildNumber to: ${newiOSBuildNumber}`);
-    console.log(`Setting runtimeVersion to: ${newRuntimeVersion}`);
+    console.log(`Version: ${newVersion}, Android: ${newAndroidVersionCode}, iOS: ${newiOSBuildNumber}, Runtime: ${newRuntimeVersion}`);
 
     return {
         ...config,
