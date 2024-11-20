@@ -12,6 +12,8 @@ export interface ButtonProps {
   disabled?: boolean;
   loading?: boolean;
   theme?: CustomTheme;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 const Button: React.FC<ButtonProps> = ({ 
@@ -22,7 +24,9 @@ const Button: React.FC<ButtonProps> = ({
   style,
   disabled,
   loading,
-  theme
+  theme,
+  accessibilityLabel,
+  accessibilityHint,
 }) => {
   const ButtonComponent = Platform.select({
     ios: TouchableOpacity as React.ComponentType<any>,
@@ -40,6 +44,13 @@ const Button: React.FC<ButtonProps> = ({
         pressed && styles.buttonPressed,
         style
       ]}
+      accessible={true}
+      accessibilityLabel={accessibilityLabel || title}
+      accessibilityHint={accessibilityHint}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: disabled || loading }}
+      minHeight={48}
+      minWidth={48}
     >
       <Text style={[styles.text, variant && styles[`${variant}Text` as keyof typeof styles]]}>
         {title || children}
@@ -54,6 +65,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 48,
+    minWidth: 48,
   },
   primary: {
     backgroundColor: colors.primary,

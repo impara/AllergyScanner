@@ -131,7 +131,21 @@ export default {
       'weak-password': 'Das Passwort muss mindestens 6 Zeichen lang sein',
       'default': 'Bei der Anmeldung ist ein Fehler aufgetreten',
       'signUpFailed': 'Konto konnte nicht erstellt werden'
-    }
+    },
+    screenTitle: "Authentifizierungsbildschirm",
+    appLogo: "Anwendungslogo",
+    appLogoIcon: "Anwendungslogo-Symbol",
+    emailIcon: "E-Mail-Symbol",
+    passwordIcon: "Passwort-Symbol",
+    emailInput: "E-Mail-Eingabefeld",
+    emailInputHint: "Geben Sie Ihre E-Mail-Adresse ein",
+    passwordInput: "Passwort-Eingabefeld",
+    passwordInputHint: "Geben Sie Ihr Passwort ein",
+    signUpButton: "Registrierungsbutton",
+    signInButton: "Anmeldebutton",
+    googleSignInButton: "Google-Anmeldebutton",
+    haveAccountButton: "Zur Anmeldung wechseln",
+    noAccountButton: "Zur Registrierung wechseln",
   },
   navigation: {
     scan: 'Scannen',

@@ -131,7 +131,21 @@ export default {
       'weak-password': 'Le mot de passe doit contenir au moins 6 caractères',
       'default': 'Une erreur s\'est produite lors de la connexion',
       'signUpFailed': 'Échec de la création du compte'
-    }
+    },
+    screenTitle: "Écran d'authentification",
+    appLogo: "Logo de l'application",
+    appLogoIcon: "Icône du logo de l'application",
+    emailIcon: "Icône e-mail",
+    passwordIcon: "Icône mot de passe",
+    emailInput: "Champ de saisie e-mail",
+    emailInputHint: "Entrez votre adresse e-mail",
+    passwordInput: "Champ de saisie mot de passe",
+    passwordInputHint: "Entrez votre mot de passe",
+    signUpButton: "Bouton d'inscription",
+    signInButton: "Bouton de connexion",
+    googleSignInButton: "Bouton de connexion Google",
+    haveAccountButton: "Passer à la connexion",
+    noAccountButton: "Passer à l'inscription",
   },
   navigation: {
     scan: 'Scanner',

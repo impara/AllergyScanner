@@ -112,9 +112,24 @@ const AuthScreen: React.FC = () => {
         keyboardVerticalOffset={20}
       >
         <LinearGradient colors={[colors.primary, colors.secondary]} style={styles.gradient} />
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          <View style={styles.logoContainer}>
-            <MaterialCommunityIcons name="food-apple-outline" size={80} color={colors.surface} />
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent} 
+          keyboardShouldPersistTaps="handled"
+          accessible={true}
+          accessibilityLabel={i18n.t('auth.screenTitle')}
+        >
+          <View 
+            style={styles.logoContainer}
+            accessible={true}
+            accessibilityLabel={i18n.t('auth.appLogo')}
+          >
+            <MaterialCommunityIcons 
+              name="food-apple-outline" 
+              size={80} 
+              color={colors.surface}
+              accessible={true}
+              accessibilityLabel={i18n.t('auth.appLogoIcon')}
+            />
           </View>
           <View style={styles.content}>
             <Title style={styles.title}>{i18n.t('auth.welcome')}</Title>
@@ -126,11 +141,21 @@ const AuthScreen: React.FC = () => {
               style={styles.input}
               mode="outlined"
               theme={inputTheme}
-              left={<TextInput.Icon icon="email" color={colors.coolGray} />}
+              left={
+                <TextInput.Icon 
+                  icon="email" 
+                  color={colors.coolGray}
+                  style={styles.inputIcon}
+                  accessibilityLabel={i18n.t('auth.emailIcon')}
+                />
+              }
               outlineColor={colors.coolGray}
               activeOutlineColor={colors.primary}
               keyboardType="email-address"
               autoCapitalize="none"
+              accessible={true}
+              accessibilityLabel={i18n.t('auth.emailInput')}
+              accessibilityHint={i18n.t('auth.emailInputHint')}
             />
             <TextInput
               label={i18n.t('auth.password')}
@@ -140,9 +165,19 @@ const AuthScreen: React.FC = () => {
               style={styles.input}
               mode="outlined"
               theme={inputTheme}
-              left={<TextInput.Icon icon="lock" color={colors.coolGray} />}
+              left={
+                <TextInput.Icon 
+                  icon="lock" 
+                  color={colors.coolGray}
+                  style={styles.inputIcon}
+                  accessibilityLabel={i18n.t('auth.passwordIcon')}
+                />
+              }
               outlineColor={colors.coolGray}
               activeOutlineColor={colors.primary}
+              accessible={true}
+              accessibilityLabel={i18n.t('auth.passwordInput')}
+              accessibilityHint={i18n.t('auth.passwordInputHint')}
             />
             <Button
               mode="contained"
@@ -150,6 +185,9 @@ const AuthScreen: React.FC = () => {
               style={styles.button}
               contentStyle={styles.buttonContent}
               labelStyle={[styles.buttonLabel, { color: colors.surface }]}
+              accessible={true}
+              accessibilityLabel={isRegistering ? i18n.t('auth.signUpButton') : i18n.t('auth.signInButton')}
+              accessibilityRole="button"
             >
               {isRegistering ? i18n.t('auth.signUp') : i18n.t('auth.signIn')}
             </Button>
@@ -160,6 +198,9 @@ const AuthScreen: React.FC = () => {
               contentStyle={styles.buttonContent}
               labelStyle={[styles.buttonLabel, { color: colors.primary }]}
               icon="google"
+              accessible={true}
+              accessibilityLabel={i18n.t('auth.googleSignInButton')}
+              accessibilityRole="button"
             >
               {i18n.t('auth.googleSignIn')}
             </Button>
@@ -168,6 +209,9 @@ const AuthScreen: React.FC = () => {
               onPress={() => setIsRegistering(!isRegistering)}
               style={styles.switchButton}
               labelStyle={styles.switchButtonLabel}
+              accessible={true}
+              accessibilityLabel={isRegistering ? i18n.t('auth.haveAccountButton') : i18n.t('auth.noAccountButton')}
+              accessibilityRole="button"
             >
               {isRegistering ? i18n.t('auth.haveAccount') : i18n.t('auth.noAccount')}
             </Button>
@@ -216,13 +260,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     textAlign: 'center',
     color: colors.text,
+    fontSize: 24,
   },
   subtitle: {
     ...typography.body,
     textAlign: 'center',
     marginBottom: spacing.lg,
     color: colors.text,
-    opacity: 0.8,
+    fontSize: 16,
+    opacity: 0.87,
   },
   input: {
     marginBottom: spacing.md,
@@ -232,13 +278,17 @@ const styles = StyleSheet.create({
   button: {
     marginBottom: spacing.sm,
     borderRadius: 25,
+    minHeight: 48,
+    justifyContent: 'center',
   },
   buttonContent: {
-    height: 50,
+    height: 48,
+    minWidth: 48,
   },
   buttonLabel: {
     ...typography.button,
     fontWeight: 'bold',
+    fontSize: 16,
   },
   googleButton: {
     backgroundColor: colors.surface,
@@ -252,6 +302,13 @@ const styles = StyleSheet.create({
     ...typography.body,
     fontWeight: 'bold',
     color: colors.primary,
+    fontSize: 16,
+  },
+  inputIcon: {
+    height: 48,
+    width: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

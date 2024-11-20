@@ -131,7 +131,21 @@ export default {
       'weak-password': 'Password should be at least 6 characters',
       'default': 'An error occurred during sign in',
       'signUpFailed': 'Failed to create account'
-    }
+    },
+    screenTitle: "Authentication Screen",
+    appLogo: "Application Logo",
+    appLogoIcon: "App logo icon",
+    emailIcon: "Email icon",
+    passwordIcon: "Password icon",
+    emailInput: "Email input field",
+    emailInputHint: "Enter your email address",
+    passwordInput: "Password input field",
+    passwordInputHint: "Enter your password",
+    signUpButton: "Sign up button",
+    signInButton: "Sign in button",
+    googleSignInButton: "Sign in with Google button",
+    haveAccountButton: "Switch to sign in",
+    noAccountButton: "Switch to sign up",
   },
   navigation: {
     scan: 'Scan',

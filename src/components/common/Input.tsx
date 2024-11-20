@@ -9,6 +9,8 @@ export interface InputProps extends TextInputProps {
   label?: string;
   helperText?: string;
   theme?: CustomTheme;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 const Input: React.FC<InputProps> = ({ 
@@ -19,24 +21,59 @@ const Input: React.FC<InputProps> = ({
   helperText,
   placeholderTextColor = colors.textSecondary,
   theme,
+  accessibilityLabel,
+  accessibilityHint,
   ...props 
 }) => {
-  const inputStyles = [
-    styles.input,
-    error && styles.inputError,
-    style
-  ].filter(Boolean) as TextStyle[];
-
   return (
-    <View style={[styles.container, containerStyle]}>
-      {label && <Text style={styles.label}>{label}</Text>}
+    <View 
+      style={[styles.container, containerStyle]}
+      accessible={true}
+      accessibilityLabel={accessibilityLabel || label}
+      accessibilityHint={accessibilityHint}
+    >
+      {label && (
+        <Text 
+          style={styles.label}
+          accessibilityRole="text"
+        >
+          {label}
+        </Text>
+      )}
       <TextInput
-        style={inputStyles}
+        style={[
+          styles.input,
+          error && styles.inputError,
+          style
+        ]}
         placeholderTextColor={placeholderTextColor}
+        accessible={true}
+        importantForAccessibility="yes"
+        accessibilityLabel={accessibilityLabel || label}
+        accessibilityHint={accessibilityHint}
+        accessibilityState={{
+          disabled: props.editable === false,
+          selected: !!props.value,
+        }}
         {...props}
       />
-      {error && <Text style={styles.errorText}>{error}</Text>}
-      {helperText && !error && <Text style={styles.helperText}>{helperText}</Text>}
+      {error && (
+        <Text 
+          style={styles.errorText}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+        >
+          {error}
+        </Text>
+      )}
+      {helperText && !error && (
+        <Text 
+          style={styles.helperText}
+          accessibilityRole="text"
+        >
+          {helperText}
+        </Text>
+      )}
     </View>
   );
 };
@@ -57,6 +94,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     color: colors.text,
+    minHeight: 48,
+    fontSize: 16,
   },
   inputError: {
     borderColor: colors.error,
@@ -65,11 +104,13 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.error,
     marginTop: 4,
+    fontSize: 14,
   },
   helperText: {
     ...typography.caption,
     color: colors.textSecondary,
     marginTop: 4,
+    fontSize: 14,
   },
 });
 

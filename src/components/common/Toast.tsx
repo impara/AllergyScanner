@@ -28,11 +28,22 @@ const Toast: React.FC<ToastProps> = ({
   if (!visible) return null;
 
   return (
-    <View style={styles.container}>
+    <View 
+      style={styles.container}
+      accessible={true}
+      accessibilityRole="alert"
+      accessibilityLiveRegion="polite"
+    >
       <Text style={styles.message}>{message}</Text>
       {onUndo && (
-        <TouchableOpacity onPress={onUndo}>
-          <Text style={styles.undoButton}>{i18n.t('common.undo')}</Text>
+        <TouchableOpacity 
+          onPress={onUndo}
+          accessible={true}
+          accessibilityLabel={i18n.t('common.undo')}
+          accessibilityRole="button"
+          style={styles.undoButton}
+        >
+          <Text style={styles.undoButtonText}>{i18n.t('common.undo')}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -70,6 +81,12 @@ const styles = StyleSheet.create({
     marginRight: spacing.sm,
   },
   undoButton: {
+    minHeight: 48,
+    minWidth: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  undoButtonText: {
     ...typography.button,
     color: colors.primary,
   },

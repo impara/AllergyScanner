@@ -131,7 +131,21 @@ export default {
       'weak-password': 'La contraseña debe tener al menos 6 caracteres',
       'default': 'Ocurrió un error durante el inicio de sesión',
       'signUpFailed': 'Error al crear la cuenta'
-    }
+    },
+    screenTitle: "Pantalla de autenticación",
+    appLogo: "Logo de la aplicación",
+    appLogoIcon: "Icono del logo de la aplicación",
+    emailIcon: "Icono de correo electrónico",
+    passwordIcon: "Icono de contraseña",
+    emailInput: "Campo de correo electrónico",
+    emailInputHint: "Ingrese su correo electrónico",
+    passwordInput: "Campo de contraseña",
+    passwordInputHint: "Ingrese su contraseña",
+    signUpButton: "Botón de registro",
+    signInButton: "Botón de inicio de sesión",
+    googleSignInButton: "Botón de inicio de sesión con Google",
+    haveAccountButton: "Cambiar a inicio de sesión",
+    noAccountButton: "Cambiar a registro",
   },
   navigation: {
     scan: 'Escanear',

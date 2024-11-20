@@ -131,7 +131,21 @@ export default {
       'weak-password': 'Salasanan tulee olla vähintään 6 merkkiä',
       'default': 'Kirjautumisen aikana tapahtui virhe',
       'signUpFailed': 'Tilin luominen epäonnistui'
-    }
+    },
+    screenTitle: "Kirjautumisruutu",
+    appLogo: "Sovelluksen logo",
+    appLogoIcon: "Sovelluksen logokuvake",
+    emailIcon: "Sähköpostikuvake",
+    passwordIcon: "Salasanakuvake",
+    emailInput: "Sähköpostikenttä",
+    emailInputHint: "Syötä sähköpostiosoitteesi",
+    passwordInput: "Salasanakenttä",
+    passwordInputHint: "Syötä salasanasi",
+    signUpButton: "Rekisteröintipainike",
+    signInButton: "Kirjautumispainike",
+    googleSignInButton: "Google-kirjautumispainike",
+    haveAccountButton: "Vaihda kirjautumiseen",
+    noAccountButton: "Vaihda rekisteröitymiseen",
   },
   navigation: {
     scan: 'Skannaa',

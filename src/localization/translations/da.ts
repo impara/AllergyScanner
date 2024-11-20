@@ -131,7 +131,21 @@ export default {
       'weak-password': 'Adgangskoden skal være mindst 6 tegn',
       'default': 'Der opstod en fejl under login',
       'signUpFailed': 'Kunne ikke oprette konto'
-    }
+    },
+    screenTitle: "Godkendelsesskærm",
+    appLogo: "Applikationslogo",
+    appLogoIcon: "Applikationslogoikon",
+    emailIcon: "E-mail-ikon",
+    passwordIcon: "Adgangskodeikon",
+    emailInput: "E-mail-indtastningsfelt",
+    emailInputHint: "Indtast din e-mailadresse",
+    passwordInput: "Adgangskodeindtastningsfelt",
+    passwordInputHint: "Indtast din adgangskode",
+    signUpButton: "Tilmeldingsknap",
+    signInButton: "Login-knap",
+    googleSignInButton: "Google login-knap",
+    haveAccountButton: "Skift til login",
+    noAccountButton: "Skift til tilmelding",
   },
   navigation: {
     scan: 'Scan',
