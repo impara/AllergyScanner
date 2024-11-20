@@ -6,6 +6,8 @@ import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import Constants from 'expo-constants';
 import i18n from '../localization/i18n';
+import NetInfo from '@react-native-community/netinfo';
+import { FirebaseConfig, validateFirebaseConfig } from '../types/environment';
 
 const {
   FIREBASE_API_KEY,
@@ -18,7 +20,7 @@ const {
   FIREBASE_DATABASE_URL,
 } = Constants.expoConfig?.extra || {};
 
-const firebaseConfig = {
+const firebaseConfig: Partial<FirebaseConfig> = {
   apiKey: FIREBASE_API_KEY,
   authDomain: FIREBASE_AUTH_DOMAIN,
   projectId: FIREBASE_PROJECT_ID,
@@ -29,27 +31,9 @@ const firebaseConfig = {
   databaseURL: FIREBASE_DATABASE_URL,
 };
 
-const validateFirebaseConfig = () => {
-  const required = [
-    'apiKey',
-    'authDomain',
-    'projectId',
-    'databaseURL'
-  ];
-  
-  console.log('Firebase Config Debug:', {
-    apiKey: !!firebaseConfig.apiKey,
-    authDomain: !!firebaseConfig.authDomain,
-    projectId: !!firebaseConfig.projectId,
-    databaseURL: !!firebaseConfig.databaseURL,
-    rawConfig: firebaseConfig
-  });
-  
-  const missing = required.filter(key => !firebaseConfig[key]);
-  if (missing.length > 0) {
-    throw new Error(`Missing Firebase configuration: ${missing.join(', ')}`);
-  }
-};
+if (!validateFirebaseConfig(firebaseConfig)) {
+  throw new Error('Invalid Firebase configuration');
+}
 
 /**
  * Initializes Firebase App and Analytics.
@@ -57,21 +41,42 @@ const validateFirebaseConfig = () => {
  */
 export const initializeFirebase = async (attempt = 1, maxAttempts = 3): Promise<void> => {
   try {
+    // Add debug logging
+    console.log('Firebase Config Debug:', {
+      projectId: firebaseConfig.projectId,
+      configSource: process.env.EAS_BUILD ? 'EAS Secrets' : 'Local Env',
+      extraConfig: Constants.expoConfig?.extra,
+    });
+
+    // Check network status before attempting initialization
+    const networkState = await NetInfo.fetch();
+    if (!networkState.isConnected) {
+      throw new Error('No network connection available');
+    }
+
     if (!firebase.apps.length) {
-      validateFirebaseConfig();
+      validateFirebaseConfig(firebaseConfig);
       
       const app = await firebase.initializeApp(firebaseConfig);
-      console.log('Firebase initialized successfully on attempt', attempt);
+      console.log('Firebase initialized successfully on attempt', attempt, {
+        networkType: networkState.type,
+        isInternetReachable: networkState.isInternetReachable,
+        currentProjectId: app.options.projectId
+      });
       
-      // Initialize Firestore but don't test access yet
       const db = firestore();
-      
-      // Don't test collection access here - it will fail without auth
       return;
     }
   } catch (error: any) {
-    console.error(`Firebase initialization attempt ${attempt} failed:`, error);
-    console.error('Error code:', error.code);
+    console.error(`Firebase initialization attempt ${attempt} failed:`, {
+      error,
+      code: error.code,
+      message: error.message,
+      currentConfig: {
+        projectId: firebaseConfig.projectId,
+        authDomain: firebaseConfig.authDomain
+      }
+    });
     
     if (attempt < maxAttempts) {
       const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);

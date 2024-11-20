@@ -28,6 +28,29 @@ const validateAdMobConfig = () => {
 validateAdMobConfig();
 
 module.exports = ({ config }) => {
+    // Add configuration validation
+    const validateProjectConfig = () => {
+        const projectId = process.env.FIREBASE_PROJECT_ID;
+        if (projectId && projectId.includes('foodallergyscanner')) {
+            throw new Error('Old project ID detected in environment variables');
+        }
+    };
+
+    validateProjectConfig();
+
+    console.log('Build Environment:', {
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        isEAS: !!process.env.EAS_BUILD,
+        hasGoogleServicesJson: !!process.env.GOOGLE_SERVICES_JSON,
+        hasGoogleServiceInfoPlist: !!process.env.GOOGLE_SERVICE_INFO_PLIST,
+        // Don't log the actual values, just whether they exist
+        hasSecrets: {
+            androidClientId: !!process.env.GOOGLE_ANDROID_CLIENT_ID,
+            iosClientId: !!process.env.GOOGLE_IOS_CLIENT_ID,
+            expoClientId: !!process.env.GOOGLE_EXPO_CLIENT_ID
+        }
+    });
+
     // Validate Google Sign-In Configuration
     if (!process.env.GOOGLE_ANDROID_CLIENT_ID || !process.env.GOOGLE_EXPO_CLIENT_ID) {
         console.warn('Google Sign-In configuration is incomplete:', {

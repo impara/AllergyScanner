@@ -1,6 +1,7 @@
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import { GoogleSignInConfig, validateGoogleSignInConfig } from '../types/environment';
 
 const {
     GOOGLE_IOS_CLIENT_ID,
@@ -8,19 +9,33 @@ const {
     GOOGLE_EXPO_CLIENT_ID,
 } = Constants.expoConfig?.extra || {};
 
-export const initializeGoogleSignIn = () => {
-    if (!GOOGLE_IOS_CLIENT_ID && Platform.OS === 'ios') {
-        console.warn('iOS Google Client ID not configured');
-    }
-    if (!GOOGLE_EXPO_CLIENT_ID) {
-        console.warn('Web Client ID not configured');
-    }
+const googleSignInConfig: Partial<GoogleSignInConfig> = {
+    iosClientId: GOOGLE_IOS_CLIENT_ID,
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    expoClientId: GOOGLE_EXPO_CLIENT_ID
+};
 
-    console.log('Initializing Google Sign-In with:', {
-        iosClientId: GOOGLE_IOS_CLIENT_ID,
-        webClientId: GOOGLE_EXPO_CLIENT_ID,
+if (!validateGoogleSignInConfig(googleSignInConfig)) {
+    throw new Error('Invalid Google Sign-In configuration');
+}
+
+export const initializeGoogleSignIn = () => {
+    console.log('Google Sign-In Config:', {
+        hasIosClientId: !!GOOGLE_IOS_CLIENT_ID,
+        hasAndroidClientId: !!GOOGLE_ANDROID_CLIENT_ID,
+        hasExpoClientId: !!GOOGLE_EXPO_CLIENT_ID,
         platform: Platform.OS
     });
+
+    if (!GOOGLE_IOS_CLIENT_ID && Platform.OS === 'ios') {
+        console.error('iOS Google Client ID not configured - Sign in will fail on iOS');
+    }
+    if (!GOOGLE_ANDROID_CLIENT_ID && Platform.OS === 'android') {
+        console.error('Android Google Client ID not configured - Sign in will fail on Android');
+    }
+    if (!GOOGLE_EXPO_CLIENT_ID) {
+        console.error('Web Client ID not configured - OAuth flow may fail');
+    }
 
     GoogleSignin.configure({
         iosClientId: GOOGLE_IOS_CLIENT_ID,
