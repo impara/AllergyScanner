@@ -27,21 +27,18 @@ export const initializeGoogleSignIn = () => {
         platform: Platform.OS
     });
 
-    if (!GOOGLE_IOS_CLIENT_ID && Platform.OS === 'ios') {
-        console.error('iOS Google Client ID not configured - Sign in will fail on iOS');
+    if (Platform.OS === 'android') {
+        GoogleSignin.configure({
+            webClientId: GOOGLE_EXPO_CLIENT_ID,
+            offlineAccess: true
+        });
+    } else if (Platform.OS === 'ios') {
+        GoogleSignin.configure({
+            iosClientId: GOOGLE_IOS_CLIENT_ID,
+            webClientId: GOOGLE_EXPO_CLIENT_ID,
+            offlineAccess: true
+        });
     }
-    if (!GOOGLE_ANDROID_CLIENT_ID && Platform.OS === 'android') {
-        console.error('Android Google Client ID not configured - Sign in will fail on Android');
-    }
-    if (!GOOGLE_EXPO_CLIENT_ID) {
-        console.error('Web Client ID not configured - OAuth flow may fail');
-    }
-
-    GoogleSignin.configure({
-        iosClientId: GOOGLE_IOS_CLIENT_ID,
-        webClientId: GOOGLE_EXPO_CLIENT_ID,
-        offlineAccess: true
-    });
 };
 
 export type GoogleSignInError = {
@@ -51,9 +48,17 @@ export type GoogleSignInError = {
 
 export const signInWithGoogle = async () => {
     try {
+        console.log('Starting Google Sign-In with config:', {
+            androidClientId: GOOGLE_ANDROID_CLIENT_ID?.substring(0, 8) + '...',
+            webClientId: GOOGLE_EXPO_CLIENT_ID?.substring(0, 8) + '...',
+            platform: Platform.OS
+        });
+
         const hasPlayServices = await GoogleSignin.hasPlayServices({ 
             showPlayServicesUpdateDialog: true 
         });
+        
+        console.log('Play Services check:', { hasPlayServices });
         
         if (!hasPlayServices) {
             throw new Error('Play Services not available');
