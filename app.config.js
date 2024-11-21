@@ -27,7 +27,31 @@ const validateAdMobConfig = () => {
 
 validateAdMobConfig();
 
+// Add a more comprehensive Google Sign-In validation
+const validateGoogleSignIn = () => {
+    const config = {
+        webClientId: process.env.GOOGLE_WEB_CLIENT_ID,
+        iosClientId: process.env.GOOGLE_IOS_CLIENT_ID
+    };
+
+    console.log('Validating Google Sign-In Configuration:', {
+        hasWebClientId: !!config.webClientId,
+        hasIosClientId: !!config.iosClientId,
+        platform: process.env.EAS_BUILD_PLATFORM || 'development'
+    });
+
+    if (!config.webClientId) {
+        console.warn('Missing required GOOGLE_WEB_CLIENT_ID');
+    }
+
+    if (process.env.EAS_BUILD_PLATFORM === 'ios' && !config.iosClientId) {
+        console.warn('Building for iOS but GOOGLE_IOS_CLIENT_ID is missing');
+    }
+};
+
 module.exports = ({ config }) => {
+    validateGoogleSignIn();
+
     // Add configuration validation
     const validateProjectConfig = () => {
         const projectId = process.env.FIREBASE_PROJECT_ID;

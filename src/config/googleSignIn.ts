@@ -19,7 +19,27 @@ if (!validateGoogleSignInConfig(googleSignInConfig)) {
     throw new Error('Invalid Google Sign-In configuration');
 }
 
+const validateConfig = () => {
+    console.log('Validating Google Sign-In Config:', {
+        platform: Platform.OS,
+        hasWebClientId: !!GOOGLE_WEB_CLIENT_ID,
+        hasIosClientId: !!GOOGLE_IOS_CLIENT_ID,
+        webClientIdPrefix: GOOGLE_WEB_CLIENT_ID?.substring(0, 8),
+        iosClientIdPrefix: GOOGLE_IOS_CLIENT_ID?.substring(0, 8),
+    });
+
+    if (!GOOGLE_WEB_CLIENT_ID) {
+        throw new Error('GOOGLE_WEB_CLIENT_ID is required for Google Sign-In');
+    }
+
+    if (Platform.OS === 'ios' && !GOOGLE_IOS_CLIENT_ID) {
+        throw new Error('GOOGLE_IOS_CLIENT_ID is required for iOS Google Sign-In');
+    }
+};
+
 export const initializeGoogleSignIn = () => {
+    validateConfig();
+
     console.log('Google Sign-In Config:', {
         hasIosClientId: !!GOOGLE_IOS_CLIENT_ID,
         hasWebClientId: !!GOOGLE_WEB_CLIENT_ID,
