@@ -44,17 +44,15 @@ module.exports = ({ config }) => {
         hasGoogleServicesJson: !!process.env.GOOGLE_SERVICES_JSON,
         hasGoogleServiceInfoPlist: !!process.env.GOOGLE_SERVICE_INFO_PLIST,
         hasSecrets: {
-            androidClientId: !!process.env.GOOGLE_ANDROID_CLIENT_ID,
             iosClientId: !!process.env.GOOGLE_IOS_CLIENT_ID,
-            expoClientId: !!process.env.GOOGLE_EXPO_CLIENT_ID
+            webClientId: !!process.env.GOOGLE_WEB_CLIENT_ID
         }
     });
 
     // Validate Google Sign-In Configuration
-    if (!process.env.GOOGLE_ANDROID_CLIENT_ID || !process.env.GOOGLE_EXPO_CLIENT_ID) {
+    if (!process.env.GOOGLE_WEB_CLIENT_ID) {
         console.warn('Google Sign-In configuration is incomplete:', {
-            androidClientId: process.env.GOOGLE_ANDROID_CLIENT_ID,
-            webClientId: process.env.GOOGLE_EXPO_CLIENT_ID,
+            webClientId: process.env.GOOGLE_WEB_CLIENT_ID,
         });
     }
 
@@ -190,8 +188,7 @@ module.exports = ({ config }) => {
                 projectId: 'c2ceb6a3-210e-4d75-b3cf-38878dd25b98',
             },
             GOOGLE_IOS_CLIENT_ID: process.env.GOOGLE_IOS_CLIENT_ID,
-            GOOGLE_ANDROID_CLIENT_ID: process.env.GOOGLE_ANDROID_CLIENT_ID,
-            GOOGLE_EXPO_CLIENT_ID: process.env.GOOGLE_EXPO_CLIENT_ID,
+            GOOGLE_WEB_CLIENT_ID: process.env.GOOGLE_WEB_CLIENT_ID,
             FIREBASE_API_KEY: process.env.FIREBASE_API_KEY || null,
             FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN || null,
             FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID || null,

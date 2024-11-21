@@ -1,3 +1,5 @@
+// src\config\googleSignIn.ts
+
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
@@ -5,14 +7,12 @@ import { GoogleSignInConfig, validateGoogleSignInConfig } from '../types/environ
 
 const {
     GOOGLE_IOS_CLIENT_ID,
-    GOOGLE_ANDROID_CLIENT_ID,
-    GOOGLE_EXPO_CLIENT_ID,
+    GOOGLE_WEB_CLIENT_ID,
 } = Constants.expoConfig?.extra || {};
 
 const googleSignInConfig: Partial<GoogleSignInConfig> = {
     iosClientId: GOOGLE_IOS_CLIENT_ID,
-    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
-    expoClientId: GOOGLE_EXPO_CLIENT_ID
+    webClientId: GOOGLE_WEB_CLIENT_ID
 };
 
 if (!validateGoogleSignInConfig(googleSignInConfig)) {
@@ -22,23 +22,17 @@ if (!validateGoogleSignInConfig(googleSignInConfig)) {
 export const initializeGoogleSignIn = () => {
     console.log('Google Sign-In Config:', {
         hasIosClientId: !!GOOGLE_IOS_CLIENT_ID,
-        hasAndroidClientId: !!GOOGLE_ANDROID_CLIENT_ID,
-        hasExpoClientId: !!GOOGLE_EXPO_CLIENT_ID,
+        hasWebClientId: !!GOOGLE_WEB_CLIENT_ID,
         platform: Platform.OS
     });
 
-    if (Platform.OS === 'android') {
-        GoogleSignin.configure({
-            webClientId: GOOGLE_EXPO_CLIENT_ID,
-            offlineAccess: true
-        });
-    } else if (Platform.OS === 'ios') {
-        GoogleSignin.configure({
-            iosClientId: GOOGLE_IOS_CLIENT_ID,
-            webClientId: GOOGLE_EXPO_CLIENT_ID,
-            offlineAccess: true
-        });
-    }
+    GoogleSignin.configure({
+        scopes: ['profile', 'email'],
+        webClientId: GOOGLE_WEB_CLIENT_ID,
+        iosClientId: Platform.OS === 'ios' ? GOOGLE_IOS_CLIENT_ID : undefined,
+        offlineAccess: true,
+        forceCodeForRefreshToken: true,
+    });
 };
 
 export type GoogleSignInError = {
@@ -49,8 +43,8 @@ export type GoogleSignInError = {
 export const signInWithGoogle = async () => {
     try {
         console.log('Starting Google Sign-In with config:', {
-            androidClientId: GOOGLE_ANDROID_CLIENT_ID?.substring(0, 8) + '...',
-            webClientId: GOOGLE_EXPO_CLIENT_ID?.substring(0, 8) + '...',
+            webClientId: GOOGLE_WEB_CLIENT_ID?.substring(0, 8) + '...',
+            iosClientId: Platform.OS === 'ios' ? GOOGLE_IOS_CLIENT_ID?.substring(0, 8) + '...' : undefined,
             platform: Platform.OS
         });
 

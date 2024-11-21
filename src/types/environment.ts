@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 export type Environment = 'development' | 'production' | 'test';
 
 export interface FirebaseConfig {
@@ -13,8 +15,7 @@ export interface FirebaseConfig {
 
 export interface GoogleSignInConfig {
   iosClientId: string;
-  androidClientId: string;
-  expoClientId: string; // This is the webClientId used for Android OAuth
+  webClientId: string;
 }
 
 export interface AdMobConfig {
@@ -37,8 +38,7 @@ export interface EnvironmentVariables {
 
   // Google Sign-In Configuration
   GOOGLE_IOS_CLIENT_ID: string;
-  GOOGLE_ANDROID_CLIENT_ID: string;
-  GOOGLE_EXPO_CLIENT_ID: string;
+  GOOGLE_WEB_CLIENT_ID: string;
 
   // AdMob Configuration
   ADMOB_ANDROID_APP_ID: string;
@@ -71,10 +71,9 @@ export const validateFirebaseConfig = (config: Partial<FirebaseConfig>): config 
 // Helper function to validate Google Sign-In config
 export const validateGoogleSignInConfig = (config: Partial<GoogleSignInConfig>): config is GoogleSignInConfig => {
   const required: (keyof GoogleSignInConfig)[] = [
-    'iosClientId',
-    'androidClientId',
-    'expoClientId'
-  ];
+    'webClientId',
+    Platform.OS === 'ios' ? 'iosClientId' : null
+  ].filter(Boolean) as (keyof GoogleSignInConfig)[];
 
   return required.every(key => !!config[key]);
 };
