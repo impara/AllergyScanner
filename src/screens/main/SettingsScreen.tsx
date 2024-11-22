@@ -1,18 +1,9 @@
 // src/screens/main/SettingsScreen.tsx
 import React, { useContext, useState } from 'react';
-import { View, StyleSheet, ScrollView, Platform } from 'react-native';
-import { 
-  Switch, 
-  List, 
-  Divider, 
-  Portal, 
-  Dialog, 
-  RadioButton,
-  Text,
-  TouchableRipple,
-} from 'react-native-paper';
+import { View, StyleSheet, ScrollView, Platform, TouchableOpacity } from 'react-native';
+import { Text, TouchableRipple, Divider } from 'react-native-paper';
 import { AuthContext } from '../../context/AuthContext';
-import { colors, theme, spacing, typography } from '../../theme';
+import { colors, spacing, typography } from '../../theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import i18n from '../../localization/i18n';
 import { useLanguage } from '../../context/LanguageContext';
@@ -20,11 +11,12 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AppStackParamList } from '../../navigation/AppStackNavigator';
+import { LanguageSelectionModal } from '../../components';
 
 const SettingsScreen: React.FC = () => {
   const { signOutUser } = useContext(AuthContext);
   const [languageDialogVisible, setLanguageDialogVisible] = useState(false);
-  const { locale, setLocale } = useLanguage();
+  const { locale } = useLanguage();
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
 
   const languages = [
@@ -36,117 +28,116 @@ const SettingsScreen: React.FC = () => {
     { code: 'fr', name: i18n.t('settings.french'), flag: '🇫🇷' },
   ];
 
-  const handleLanguageChange = async (languageCode: string) => {
-    await setLocale(languageCode);
-    setLanguageDialogVisible(false);
+  const getCurrentLanguageFlag = () => {
+    const currentLang = languages.find(lang => lang.code === locale);
+    return currentLang?.flag || '🌐';
   };
 
   const handleLogout = async () => {
     try {
       await signOutUser();
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Logout error:', error);
     }
   };
-
-  const getCurrentLanguageFlag = () => {
-    const currentLang = languages.find(lang => lang.code === locale);
-    return currentLang?.flag || '🌐';
-  };
-
-  const renderSettingsItem = (
-    title: string,
-    description: string | null,
-    right: React.ReactNode,
-    onPress?: () => void
-  ) => (
-    <TouchableRipple
-      onPress={onPress}
-      rippleColor={Platform.OS === 'android' ? 'rgba(0, 0, 0, .16)' : undefined}
-    >
-      <List.Item
-        title={<Text style={styles.itemTitle}>{title}</Text>}
-        description={description && <Text style={styles.itemDescription}>{description}</Text>}
-        right={() => right}
-        style={styles.listItem}
-      />
-    </TouchableRipple>
-  );
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{i18n.t('settings.title')}</Text>
+        <Text style={styles.headerTitle}>
+          {i18n.t('settings.title')}
+        </Text>
       </View>
       
-      <ScrollView style={styles.container} bounces={Platform.OS === 'ios'}>
+      <ScrollView style={styles.container}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{i18n.t('settings.appearance')}</Text>
+          <Text style={styles.sectionTitle}>
+            {i18n.t('settings.appearance')}
+          </Text>
           
-          {renderSettingsItem(
-            i18n.t('settings.language'),
-            `${getCurrentLanguageFlag()} ${languages.find(lang => lang.code === locale)?.name}`,
-            <MaterialCommunityIcons name="chevron-right" size={24} color={colors.text} />,
-            () => setLanguageDialogVisible(true)
-          )}
+          <TouchableOpacity
+            style={styles.settingsItem}
+            onPress={() => setLanguageDialogVisible(true)}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel={i18n.t('settings.language')}
+            accessibilityHint={i18n.t('settings.languageOptionHint', { 
+              language: languages.find(lang => lang.code === locale)?.name 
+            })}
+          >
+            <View style={styles.settingsItemContent}>
+              <Text style={styles.itemTitle}>{i18n.t('settings.language')}</Text>
+              <Text style={styles.itemValue}>
+                {`${getCurrentLanguageFlag()} ${languages.find(lang => lang.code === locale)?.name}`}
+              </Text>
+            </View>
+            <MaterialCommunityIcons name="chevron-right" size={24} color={colors.text} />
+          </TouchableOpacity>
         </View>
 
         <Divider style={styles.divider} />
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{i18n.t('settings.policies')}</Text>
+          <Text style={styles.sectionTitle}>
+            {i18n.t('settings.policies')}
+          </Text>
           
-          {renderSettingsItem(
-            i18n.t('settings.privacyPolicy'),
-            null,
-            <MaterialCommunityIcons name="chevron-right" size={24} color={colors.text} />,
-            () => navigation.navigate('PrivacyPolicy')
-          )}
+          <TouchableOpacity
+            style={styles.settingsItem}
+            onPress={() => navigation.navigate('PrivacyPolicy')}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel={i18n.t('settings.privacyPolicy')}
+            accessibilityHint={i18n.t('settings.privacyPolicyHint')}
+          >
+            <View style={styles.settingsItemContent}>
+              <Text style={styles.itemTitle}>{i18n.t('settings.privacyPolicy')}</Text>
+            </View>
+            <MaterialCommunityIcons name="chevron-right" size={24} color={colors.text} />
+          </TouchableOpacity>
 
-          {renderSettingsItem(
-            i18n.t('settings.termsOfService'),
-            null,
-            <MaterialCommunityIcons name="chevron-right" size={24} color={colors.text} />,
-            () => navigation.navigate('TermsOfService')
-          )}
+          <TouchableOpacity
+            style={[styles.settingsItem, { marginTop: spacing.sm }]}
+            onPress={() => navigation.navigate('TermsOfService')}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel={i18n.t('settings.termsOfService')}
+            accessibilityHint={i18n.t('settings.termsOfServiceHint')}
+          >
+            <View style={styles.settingsItemContent}>
+              <Text style={styles.itemTitle}>{i18n.t('settings.termsOfService')}</Text>
+            </View>
+            <MaterialCommunityIcons name="chevron-right" size={24} color={colors.text} />
+          </TouchableOpacity>
+
+          <TouchableRipple
+            onPress={handleLogout}
+            style={[styles.settingsItem, styles.logoutButton]}
+            rippleColor={Platform.OS === 'android' ? 'rgba(255, 59, 48, 0.16)' : undefined}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel={i18n.t('settings.logout')}
+            accessibilityHint={i18n.t('settings.logoutHint')}
+          >
+            <View style={styles.settingsItemContent}>
+              <Text style={[styles.itemTitle, styles.logoutText]}>
+                {i18n.t('settings.logout')}
+              </Text>
+              <MaterialCommunityIcons 
+                name="logout" 
+                size={24} 
+                color={colors.error}
+                accessibilityElementsHidden={true}
+                importantForAccessibility="no"
+              />
+            </View>
+          </TouchableRipple>
         </View>
 
-        <TouchableRipple
-          onPress={handleLogout}
-          style={styles.logoutButton}
-          rippleColor={Platform.OS === 'android' ? 'rgba(255, 59, 48, 0.16)' : undefined}
-        >
-          <Text style={styles.logoutText}>{i18n.t('settings.logout')}</Text>
-        </TouchableRipple>
-
-        <Portal>
-          <Dialog
-            visible={languageDialogVisible}
-            onDismiss={() => setLanguageDialogVisible(false)}
-            style={styles.dialog}
-          >
-            <Dialog.Title style={styles.dialogTitle}>
-              {i18n.t('settings.selectLanguage')}
-            </Dialog.Title>
-            <Dialog.Content>
-              <RadioButton.Group onValueChange={handleLanguageChange} value={locale}>
-                {languages.map(lang => (
-                  <TouchableRipple
-                    key={lang.code}
-                    onPress={() => handleLanguageChange(lang.code)}
-                  >
-                    <View style={styles.radioItem}>
-                      <RadioButton.Android value={lang.code} />
-                      <Text style={styles.radioLabel}>
-                        {`${lang.flag}  ${lang.name}`}
-                      </Text>
-                    </View>
-                  </TouchableRipple>
-                ))}
-              </RadioButton.Group>
-            </Dialog.Content>
-          </Dialog>
-        </Portal>
+        <LanguageSelectionModal
+          visible={languageDialogVisible}
+          onDismiss={() => setLanguageDialogVisible(false)}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -183,40 +174,71 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    marginTop: spacing.md,
+    marginTop: spacing.lg,
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.md,
   },
   sectionTitle: {
     ...typography.subtitle2,
     color: colors.textSecondary,
-    marginHorizontal: spacing.md,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
+    marginLeft: spacing.xs,
   },
-  listItem: {
-    paddingVertical: spacing.sm,
+  divider: {
+    marginVertical: spacing.lg,
+    backgroundColor: colors.divider,
+    height: 1,
+    marginHorizontal: spacing.md,
+  },
+  settingsItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    minHeight: 60,
+    backgroundColor: colors.surface,
+    marginBottom: spacing.sm,
+    borderRadius: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  settingsItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   itemTitle: {
     ...typography.body1,
     color: colors.text,
   },
-  itemDescription: {
+  itemValue: {
     ...typography.body2,
     color: colors.textSecondary,
   },
-  divider: {
-    marginVertical: spacing.md,
-    backgroundColor: colors.divider,
+  scrollContent: {
+    paddingHorizontal: spacing.md,
   },
   logoutButton: {
+    marginTop: spacing.xl,
     marginHorizontal: spacing.md,
-    marginVertical: spacing.xl,
-    padding: spacing.md,
-    backgroundColor: colors.error,
-    borderRadius: 8,
-    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
   },
   logoutText: {
-    ...typography.button,
-    color: colors.surface,
+    color: colors.error,
+    fontWeight: '500',
   },
   dialog: {
     borderRadius: 12,

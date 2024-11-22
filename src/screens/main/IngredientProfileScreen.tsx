@@ -34,6 +34,7 @@ import i18n from '../../localization/i18n';
 import { useLanguage } from '../../context/LanguageContext';
 import { colors, spacing, typography, shadows } from '../../theme';
 import { DetectedIngredient, IngredientData } from '../../types/navigation';
+import { checkContrast, getAccessibleFontSize, getAccessibleColor } from '../../utils/accessibility';
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -745,8 +746,17 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <View style={styles.container}>
+    <SafeAreaView 
+      style={styles.safeArea} 
+      edges={['top']}
+      accessibilityRole="none"
+      accessibilityLabel={i18n.t('ingredients.screenBackground')}
+    >
+      <View 
+        style={styles.container}
+        accessibilityRole="none"
+        accessibilityLabel={i18n.t('ingredients.mainContainer')}
+      >
         <View style={styles.header}>
           {/* Make header title tappable */}
           <TouchableOpacity 
@@ -778,8 +788,11 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
                 ]}
                 value={newIngredient}
                 onChangeText={handleIngredientSearch}
-                placeholder={i18n.t('ingredients.addCustom')}
+                placeholder={i18n.t('ingredients.searchInput')}
                 placeholderTextColor={colors.placeholder}
+                accessibilityLabel={i18n.t('ingredients.searchInput')}
+                accessibilityHint={i18n.t('ingredients.searchInputHint')}
+                accessible={true}
               />
               <TouchableOpacity 
                 style={[
@@ -791,8 +804,21 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
                   }
                 ]}
                 onPress={addCustomIngredient}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel={i18n.t('ingredients.addButton')}
+                accessibilityHint={i18n.t('ingredients.addButtonHint')}
+                // Ensure minimum touch target size
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                // Add high contrast for the icon
               >
-                <MaterialCommunityIcons name="plus" size={24} color={colors.surface} />
+                <MaterialCommunityIcons 
+                  name="plus" 
+                  size={24} 
+                  color={colors.surface}
+                  accessibilityRole="image"
+                  accessibilityLabel={i18n.t('ingredients.addButton')}
+                />
               </TouchableOpacity>
             </View>
 
@@ -947,8 +973,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     marginRight: spacing.sm,
     ...typography.body,
-    color: colors.text,
+    color: getAccessibleColor(colors.text, colors.background),
     minWidth: 100,
+    fontSize: getAccessibleFontSize(16),
     ...(Platform.OS === 'android' && {
       elevation: 2,
       borderWidth: 1,
@@ -1156,9 +1183,10 @@ const styles = StyleSheet.create({
   },
   searchResultText: {
     ...typography.body,
-    color: colors.text,
-    flex: 1,
-    marginRight: spacing.sm,
+    color: checkContrast(colors.text, colors.surface).isValid 
+      ? colors.text 
+      : colors.highContrastText,
+    fontSize: getAccessibleFontSize(16),
   },
   additiveContainer: {
     backgroundColor: colors.lightGray,
@@ -1180,6 +1208,11 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: spacing.xl,
+  },
+  dragIndicator: {
+    backgroundColor: checkContrast(colors.coolGray, colors.background).isValid 
+      ? colors.coolGray 
+      : colors.contrast.medium,
   },
 });
 

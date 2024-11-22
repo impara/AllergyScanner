@@ -1,6 +1,6 @@
 // src/screens/main/ProductInfoScreen.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -27,6 +27,8 @@ import { CustomTheme } from '../../types/theme';
 import { ProductInfo } from '../../types/product';
 import { theme as defaultTheme } from '../../theme';
 import { ProductInfoScreenProps } from '../../navigation/AppStackNavigator';
+import { checkContrast, getAccessibleFontSize } from '../../utils/accessibility';
+import { useScreenReader } from '../../hooks/useScreenReader';
 
 const DRAG_THRESHOLD = 100;
 const ANIMATION_DURATION = 300;
@@ -38,6 +40,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
 }) => {
   const { productInfo, detectedIngredients } = route.params;
   const { locale } = useLanguage();
+  const { announce } = useScreenReader();
 
   const [modalVisible, setModalVisible] = useState(true);
   const pan = React.useRef(new Animated.Value(0)).current;
@@ -125,11 +128,15 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
 
   const renderSafetyIndicator = () => {
     const isSafe = detectedIngredients.length === 0;
+    const message = isSafe ? i18n.t('product.safeToConsume') : i18n.t('product.caution');
+    
     return (
-      <View style={[
-        styles.safetyContainer,
-        isSafe ? styles.safeContainer : styles.unsafeContainer,
-      ]}>
+      <View 
+        style={[styles.safetyContainer, isSafe ? styles.safeContainer : styles.unsafeContainer]}
+        accessibilityRole="alert"
+        accessibilityLabel={message}
+        accessible={true}
+      >
         <IconButton
           icon={isSafe ? 'check-circle' : 'alert-circle'}
           size={32}
@@ -138,9 +145,9 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
         <View style={styles.safetyTextContainer}>
           <Text style={[
             styles.safetyTitle,
-            isSafe ? styles.safeTitle : styles.unsafeTitle,
+            { color: isSafe ? colors.success : colors.warning }
           ]}>
-            {isSafe ? i18n.t('product.safeToConsume') : i18n.t('product.caution')}
+            {message}
           </Text>
           <Text style={styles.safetyDescription}>
             {isSafe ? i18n.t('product.safe') : i18n.t('product.unsafe')}
@@ -149,6 +156,14 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
       </View>
     );
   };
+
+  // Announce product safety status when screen loads
+  useEffect(() => {
+    const message = detectedIngredients.length === 0 
+      ? i18n.t('product.safeToConsume') 
+      : i18n.t('product.caution');
+    announce(message);
+  }, []);
 
   const hasNutrientValues = () => {
     if (!productInfo.product?.nutriments) {
@@ -382,8 +397,10 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...typography.body2,
-    color: colors.coolGray,
-    fontStyle: 'italic',
+    color: checkContrast(colors.coolGray, colors.background).isValid 
+      ? colors.coolGray 
+      : colors.text,
+    fontSize: getAccessibleFontSize(14),
   },
   ingredientsText: {
     ...typography.body1,

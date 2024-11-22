@@ -16,6 +16,9 @@ import { initializeGoogleSignIn } from './src/config/googleSignIn';
 import Constants from 'expo-constants';
 import LanguageSelectionModal from './src/components/LanguageSelectionModal';
 import { useNetworkStatus } from './src/hooks/useNetworkStatus';
+import { NavigationContainer } from '@react-navigation/native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AccessibilityProvider } from './src/context/AccessibilityContext';
 
 // Create a custom theme that extends MD3LightTheme
 const paperTheme = {
@@ -140,18 +143,37 @@ const App: React.FC = () => {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <PaperProvider theme={paperTheme}>
-        <ThemeProvider theme={theme}>
-          <AuthProvider>
-            <LanguageProvider>
-              <AppContent />
-            </LanguageProvider>
-          </AuthProvider>
-        </ThemeProvider>
-      </PaperProvider>
-    </GestureHandlerRootView>
+    <SafeAreaProvider>
+      <AccessibilityProvider>
+        <NavigationContainer theme={navigationTheme}>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <PaperProvider theme={paperTheme}>
+              <ThemeProvider theme={theme}>
+                <AuthProvider>
+                  <LanguageProvider>
+                    <AppContent />
+                  </LanguageProvider>
+                </AuthProvider>
+              </ThemeProvider>
+            </PaperProvider>
+          </GestureHandlerRootView>
+        </NavigationContainer>
+      </AccessibilityProvider>
+    </SafeAreaProvider>
   );
+};
+
+// Add navigation theme
+const navigationTheme = {
+  dark: false,
+  colors: {
+    primary: colors.primary,
+    background: colors.background,
+    card: colors.surface,
+    text: colors.text,
+    border: colors.divider,
+    notification: colors.error,
+  },
 };
 
 // Create a new component to handle the content that needs both contexts

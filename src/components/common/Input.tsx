@@ -2,6 +2,7 @@ import React from 'react';
 import { TextInput, StyleSheet, TextInputProps, View, Text, ViewStyle, TextStyle } from 'react-native';
 import { colors, typography, spacing } from '../../theme';
 import { CustomTheme } from '../../types/theme';
+import { getAccessibleColor, getAccessibleFontSize } from '../../utils/accessibility';
 
 export interface InputProps extends TextInputProps {
   error?: string;
@@ -13,48 +14,22 @@ export interface InputProps extends TextInputProps {
   accessibilityHint?: string;
 }
 
-const Input: React.FC<InputProps> = ({ 
-  style, 
-  error,
-  containerStyle,
+const Input: React.FC<InputProps> = ({
   label,
-  helperText,
-  placeholderTextColor = colors.textSecondary,
-  theme,
-  accessibilityLabel,
-  accessibilityHint,
-  ...props 
+  error,
+  ...props
 }) => {
   return (
-    <View 
-      style={[styles.container, containerStyle]}
-      accessible={true}
-      accessibilityLabel={accessibilityLabel || label}
-      accessibilityHint={accessibilityHint}
-    >
-      {label && (
-        <Text 
-          style={styles.label}
-          accessibilityRole="text"
-        >
-          {label}
-        </Text>
-      )}
+    <View>
       <TextInput
-        style={[
-          styles.input,
-          error && styles.inputError,
-          style
-        ]}
-        placeholderTextColor={placeholderTextColor}
-        accessible={true}
-        importantForAccessibility="yes"
-        accessibilityLabel={accessibilityLabel || label}
-        accessibilityHint={accessibilityHint}
-        accessibilityState={{
+        style={[styles.input, { minHeight: 44 }]}
+        accessibilityLabel={label}
+        accessibilityRole="text"
+        accessibilityState={{ 
           disabled: props.editable === false,
           selected: !!props.value,
         }}
+        accessibilityHint={error ? `Error: ${error}` : undefined}
         {...props}
       />
       {error && (
@@ -64,14 +39,6 @@ const Input: React.FC<InputProps> = ({
           accessibilityLiveRegion="polite"
         >
           {error}
-        </Text>
-      )}
-      {helperText && !error && (
-        <Text 
-          style={styles.helperText}
-          accessibilityRole="text"
-        >
-          {helperText}
         </Text>
       )}
     </View>
@@ -93,24 +60,24 @@ const styles = StyleSheet.create({
     borderColor: colors.divider,
     borderRadius: 5,
     padding: 10,
-    color: colors.text,
+    color: getAccessibleColor(colors.text, colors.surface),
     minHeight: 48,
-    fontSize: 16,
+    fontSize: getAccessibleFontSize(16),
   },
   inputError: {
     borderColor: colors.error,
   },
   errorText: {
     ...typography.caption,
-    color: colors.error,
+    color: getAccessibleColor(colors.error, colors.surface),
     marginTop: 4,
-    fontSize: 14,
+    fontSize: getAccessibleFontSize(14),
   },
   helperText: {
     ...typography.caption,
-    color: colors.textSecondary,
+    color: getAccessibleColor(colors.textSecondary, colors.surface),
     marginTop: 4,
-    fontSize: 14,
+    fontSize: getAccessibleFontSize(14),
   },
 });
 

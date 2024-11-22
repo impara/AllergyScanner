@@ -1,6 +1,6 @@
 // src/screens/auth/AuthScreen.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -24,6 +24,9 @@ import Constants from 'expo-constants';
 import i18n from '../../localization/i18n';
 import { statusCodes } from '@react-native-google-signin/google-signin';
 import { signInWithGoogle } from '../../config/googleSignIn';
+import { getAccessibleFontSize } from '../../utils/accessibility';
+import { useScreenReader } from '../../hooks/useScreenReader';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 const {
   GOOGLE_WEB_CLIENT_ID,
@@ -38,16 +41,52 @@ const AuthScreen: React.FC = () => {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const emailInputRef = useRef<any>(null);
+  const passwordInputRef = useRef<any>(null);
+  const { announce } = useScreenReader();
+  const prefersReducedMotion = useReducedMotion();
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    announce(i18n.t('auth.screenTitle'));
+  }, []);
+
+  useEffect(() => {
+    // Focus email input when screen mounts
+    setTimeout(() => {
+      emailInputRef.current?.focus();
+    }, 100);
+  }, []);
+
+  useEffect(() => {
+    if (hasError) {
+      announce(i18n.t('auth.errorRecovery'));
+    }
+  }, [hasError]);
+
+  useEffect(() => {
+    return () => {
+      setEmail('');
+      setPassword('');
+      setIsLoading(false);
+      setIsSigningIn(false);
+      setHasError(false);
+    };
+  }, []);
 
   const handleGoogleSignIn = async () => {
     if (isSigningIn) return;
     
     try {
       setIsSigningIn(true);
+      announce(i18n.t('auth.signingInWithGoogle'));
+      
       const { idToken, accessToken } = await signInWithGoogle();
       if (idToken) {
         await signInWithGoogleCredential(idToken, accessToken);
-        showToast(i18n.t('auth.googleSignInSuccess'));
+        handleSuccessfulAuth();
+        announce(i18n.t('auth.googleSignInSuccess'));
       }
     } catch (error: any) {
       console.error('Google Sign-In error:', error);
@@ -70,23 +109,68 @@ const AuthScreen: React.FC = () => {
     }
   };
 
+  const validatePassword = (password: string): string | null => {
+    if (password.length < 8) {
+      return i18n.t('auth.passwordTooShort');
+    }
+    if (!/[A-Z]/.test(password)) {
+      return i18n.t('auth.passwordNeedsUppercase');
+    }
+    if (!/[0-9]/.test(password)) {
+      return i18n.t('auth.passwordNeedsNumber');
+    }
+    return null;
+  };
+
+  const validateInputs = () => {
+    if (!email || !password) {
+      const errorMessage = i18n.t('auth.enterEmailAndPassword');
+      announce(errorMessage);
+      showToast(errorMessage);
+      return false;
+    }
+
+    if (!validateEmail(email)) {
+      const errorMessage = i18n.t('auth.invalidEmail');
+      announce(errorMessage);
+      showToast(errorMessage);
+      return false;
+    }
+
+    if (isRegistering) {
+      const passwordError = validatePassword(password);
+      if (passwordError) {
+        announce(passwordError);
+        showToast(passwordError);
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   const handleEmailAuth = async () => {
     try {
-      if (!email || !password) {
-        showToast(i18n.t('auth.enterEmailAndPassword'));
+      setIsLoading(true);
+      if (!validateInputs()) {
+        setIsLoading(false);
         return;
       }
 
       if (isRegistering) {
         await createUserWithEmailAndPassword(email, password);
+        handleSuccessfulAuth();
         showToast(i18n.t('auth.accountCreated'));
       } else {
         await signInWithEmailAndPassword(email, password);
+        handleSuccessfulAuth();
         showToast(i18n.t('auth.signedIn'));
       }
     } catch (error: any) {
-      console.error('Auth error:', error);
-      showToast(error.message);
+      handleError(error);
+    } finally {
+      setIsLoading(false);
+      setIsSigningIn(false);
     }
   };
 
@@ -104,17 +188,53 @@ const AuthScreen: React.FC = () => {
     },
   };
 
+  const handleSuccessfulAuth = () => {
+    announce(i18n.t('auth.signedIn'));
+  };
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleSubmit = () => {
+    if (!isLoading && !isSigningIn) {
+      handleEmailAuth();
+    }
+  };
+
+  const handleError = (error: any) => {
+    setHasError(true);
+    console.error('Auth Error:', error);
+    const errorMessage = error.message || i18n.t('auth.unknownError');
+    announce(errorMessage);
+    showToast(errorMessage);
+  };
+
+  const resetForm = () => {
+    setEmail('');
+    setPassword('');
+    setIsLoading(false);
+    setIsSigningIn(false);
+    setHasError(false);
+    emailInputRef.current?.focus();
+  };
+
   return (
     <PaperProvider theme={{ colors: { primary: colors.primary } }}>
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={20}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 50 : 20}
       >
-        <LinearGradient colors={[colors.primary, colors.secondary]} style={styles.gradient} />
+        <LinearGradient 
+          colors={[colors.primary, colors.secondary]} 
+          style={styles.gradient}
+        />
         <ScrollView 
           contentContainerStyle={styles.scrollContent} 
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           accessible={true}
           accessibilityLabel={i18n.t('auth.screenTitle')}
         >
@@ -135,9 +255,11 @@ const AuthScreen: React.FC = () => {
             <Title style={styles.title}>{i18n.t('auth.welcome')}</Title>
             <Text style={styles.subtitle}>{i18n.t('auth.subtitle')}</Text>
             <TextInput
+              ref={emailInputRef}
               label={i18n.t('auth.email')}
               value={email}
               onChangeText={setEmail}
+              error={email !== '' && !validateEmail(email)}
               style={styles.input}
               mode="outlined"
               theme={inputTheme}
@@ -156,6 +278,13 @@ const AuthScreen: React.FC = () => {
               accessible={true}
               accessibilityLabel={i18n.t('auth.emailInput')}
               accessibilityHint={i18n.t('auth.emailInputHint')}
+              importantForAccessibility="yes"
+              returnKeyType="next"
+              onSubmitEditing={() => passwordInputRef.current?.focus()}
+              accessibilityState={{ 
+                disabled: isLoading,
+                selected: !!email,
+              }}
             />
             <TextInput
               label={i18n.t('auth.password')}
@@ -178,6 +307,14 @@ const AuthScreen: React.FC = () => {
               accessible={true}
               accessibilityLabel={i18n.t('auth.passwordInput')}
               accessibilityHint={i18n.t('auth.passwordInputHint')}
+              ref={passwordInputRef}
+              importantForAccessibility="yes"
+              returnKeyType="done"
+              onSubmitEditing={handleEmailAuth}
+              accessibilityState={{ 
+                disabled: isLoading,
+                selected: !!password,
+              }}
             />
             <Button
               mode="contained"
@@ -185,9 +322,12 @@ const AuthScreen: React.FC = () => {
               style={styles.button}
               contentStyle={styles.buttonContent}
               labelStyle={[styles.buttonLabel, { color: colors.surface }]}
+              disabled={isLoading || isSigningIn}
+              loading={isLoading}
               accessible={true}
-              accessibilityLabel={isRegistering ? i18n.t('auth.signUpButton') : i18n.t('auth.signInButton')}
+              accessibilityLabel={isRegistering ? i18n.t('auth.signUp') : i18n.t('auth.signIn')}
               accessibilityRole="button"
+              accessibilityState={{ disabled: isLoading || isSigningIn, busy: isLoading }}
             >
               {isRegistering ? i18n.t('auth.signUp') : i18n.t('auth.signIn')}
             </Button>
@@ -198,9 +338,15 @@ const AuthScreen: React.FC = () => {
               contentStyle={styles.buttonContent}
               labelStyle={[styles.buttonLabel, { color: colors.primary }]}
               icon="google"
+              disabled={isSigningIn || isLoading}
+              loading={isSigningIn}
               accessible={true}
               accessibilityLabel={i18n.t('auth.googleSignInButton')}
               accessibilityRole="button"
+              accessibilityState={{ 
+                disabled: isSigningIn || isLoading,
+                busy: isSigningIn 
+              }}
             >
               {i18n.t('auth.googleSignIn')}
             </Button>
@@ -215,6 +361,18 @@ const AuthScreen: React.FC = () => {
             >
               {isRegistering ? i18n.t('auth.haveAccount') : i18n.t('auth.noAccount')}
             </Button>
+            {hasError && (
+              <Button
+                mode="text"
+                onPress={resetForm}
+                style={styles.resetButton}
+                accessible={true}
+                accessibilityLabel={i18n.t('auth.resetForm')}
+                accessibilityRole="button"
+              >
+                {i18n.t('auth.tryAgain')}
+              </Button>
+            )}
           </View>
         </ScrollView>
         <Toast
@@ -257,18 +415,16 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.h2,
-    marginBottom: spacing.sm,
+    fontSize: getAccessibleFontSize(24),
     textAlign: 'center',
     color: colors.text,
-    fontSize: 24,
   },
   subtitle: {
     ...typography.body,
+    fontSize: getAccessibleFontSize(16),
     textAlign: 'center',
     marginBottom: spacing.lg,
     color: colors.text,
-    fontSize: 16,
-    opacity: 0.87,
   },
   input: {
     marginBottom: spacing.md,
@@ -309,6 +465,9 @@ const styles = StyleSheet.create({
     width: 48,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  resetButton: {
+    marginTop: spacing.md,
   },
 });
 

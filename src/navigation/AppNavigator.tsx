@@ -1,11 +1,10 @@
 // src/navigation/AppNavigator.tsx
 import React, { useContext } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
 import AuthNavigator from './AuthNavigator';
 import AppStackNavigator from './AppStackNavigator';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthContext } from '../context/AuthContext';
-import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { colors } from '../theme';
 
 const AppNavigator: React.FC = () => {
@@ -19,17 +18,7 @@ const AppNavigator: React.FC = () => {
     );
   }
 
-  return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        {isAuthenticated ? (
-          <AppStackNavigator />
-        ) : (
-          <AuthNavigator />
-        )}
-      </NavigationContainer>
-    </SafeAreaProvider>
-  );
+  return isAuthenticated ? <AppStackNavigator /> : <AuthNavigator />;
 };
 
 const styles = StyleSheet.create({

@@ -1,7 +1,8 @@
 import React from 'react';
-import { Pressable, TouchableOpacity, Text, StyleSheet, Platform, View } from 'react-native';
+import { Pressable, TouchableOpacity, Text, StyleSheet, Platform, View, AccessibilityInfo } from 'react-native';
 import { colors, typography } from '../../theme';
 import { CustomTheme } from '../../types/theme';
+import { getAccessibleColor } from '../../utils/accessibility';
 
 export interface ButtonProps {
   title?: string;
@@ -34,6 +35,18 @@ const Button: React.FC<ButtonProps> = ({
     default: Pressable as React.ComponentType<any>,
   });
 
+  const getButtonTextColor = (variant: string) => {
+    switch (variant) {
+      case 'primary':
+        return getAccessibleColor(colors.surface, colors.primary);
+      case 'secondary':
+      case 'outline':
+        return getAccessibleColor(colors.primary, colors.surface);
+      default:
+        return colors.text;
+    }
+  };
+
   return (
     <ButtonComponent
       onPress={onPress}
@@ -52,7 +65,13 @@ const Button: React.FC<ButtonProps> = ({
       minHeight={48}
       minWidth={48}
     >
-      <Text style={[styles.text, variant && styles[`${variant}Text` as keyof typeof styles]]}>
+      <Text 
+        style={[
+          styles.text, 
+          { color: getButtonTextColor(variant) },
+          variant && styles[`${variant}Text` as keyof typeof styles]
+        ]}
+      >
         {title || children}
       </Text>
     </ButtonComponent>
