@@ -64,22 +64,89 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
   };
 
   const getLocalizedIngredients = () => {
-    const langSpecificKey = `ingredients_text_${locale}`;
-    if (productInfo[langSpecificKey]) {
-      return productInfo[langSpecificKey].split(',').map((i) => i.trim());
+    // Try ingredients list first if it exists (this comes from our detection)
+    if (productInfo.ingredientsList?.length > 0) {
+      return productInfo.ingredientsList;
     }
-    if (productInfo.ingredients_text_en) {
-      return productInfo.ingredients_text_en.split(',').map((i) => i.trim());
+
+    // Try ingredients hierarchy
+    if (productInfo.ingredients_hierarchy?.length) {
+      return productInfo.ingredients_hierarchy.map(i => 
+        i.replace(/^en:/, '').replace(/-/g, ' ').trim()
+      );
     }
-    if (productInfo.ingredients_text) {
-      return productInfo.ingredients_text.split(',').map((i) => i.trim());
+
+    // Try ingredients tags
+    if (productInfo.ingredients_tags?.length) {
+      return productInfo.ingredients_tags.map(i => 
+        i.replace(/^en:/, '').replace(/-/g, ' ').trim()
+      );
     }
-    return productInfo.ingredientsList || [];
+
+    // Try keywords as last resort
+    if (productInfo._keywords?.length) {
+      return productInfo._keywords.filter(k => 
+        !['food', 'product', 'med', 'and', 'contains'].includes(k.toLowerCase())
+      );
+    }
+
+    return [];
   };
 
-  const hasIngredients = () => {
+  const renderIngredients = () => {
+    // If we have detected ingredients, show those
+    if (detectedIngredients.length > 0) {
+      return (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {i18n.t('product.detectedIngredients')}
+          </Text>
+          <View style={styles.chipContainer}>
+            {detectedIngredients.map(({ id: ingredientId }, index) => (
+              <Chip
+                key={index}
+                style={styles.chip}
+                textStyle={styles.chipText}
+                onPress={() => 
+                  navigation.navigate('IngredientsProfile', {
+                    ingredientId: ingredientId
+                  })
+                }
+              >
+                {getIngredientName(ingredientId, locale) || i18n.t('ingredient.unknown')}
+              </Chip>
+            ))}
+          </View>
+        </View>
+      );
+    }
+
+    // Otherwise, show the raw ingredients list if available
     const ingredients = getLocalizedIngredients();
-    return ingredients.length > 0 && ingredients.some(ingredient => ingredient !== '');
+    if (ingredients.length > 0) {
+      return (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {i18n.t('product.ingredients')}
+          </Text>
+          <Text style={styles.ingredientsText}>
+            {ingredients.join(', ')}
+          </Text>
+        </View>
+      );
+    }
+
+    // If no ingredients available at all
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>
+          {i18n.t('product.ingredients')}
+        </Text>
+        <Text style={styles.emptyText}>
+          {i18n.t('product.unavailable')}
+        </Text>
+      </View>
+    );
   };
 
   const panResponder = React.useRef(
@@ -235,46 +302,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
 
               {renderSafetyIndicator()}
 
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>
-                  {i18n.t('product.detectedIngredients')}
-                </Text>
-                {detectedIngredients.length > 0 ? (
-                  <View style={styles.chipContainer}>
-                    {detectedIngredients.map(({ id: ingredientId }, index) => (
-                      <Chip
-                        key={index}
-                        style={styles.chip}
-                        textStyle={styles.chipText}
-                        onPress={() => 
-                          navigation.navigate('IngredientsProfile', {
-                            ingredientId: ingredientId
-                          })
-                        }
-                      >
-                        {getIngredientName(ingredientId, locale) || i18n.t('ingredient.unknown')}
-                      </Chip>
-                    ))}
-                  </View>
-                ) : (
-                  <Text style={styles.emptyText}>
-                    {i18n.t('product.unavailable')}
-                  </Text>
-                )}
-              </View>
-
-              <Divider style={styles.divider} />
-
-              {hasIngredients() && (
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>
-                    {i18n.t('product.ingredients')}
-                  </Text>
-                  <Text style={styles.ingredientsText}>
-                    {getLocalizedIngredients().join(', ')}
-                  </Text>
-                </View>
-              )}
+              {renderIngredients()}
 
               {hasNutrientValues() && (
                 <>

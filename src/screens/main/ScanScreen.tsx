@@ -312,11 +312,22 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
     try {
       const userIngredientsData: IngredientsProfile = userIngredients;
 
-      const ingredientsText = alternateProductInfo.product.ingredients_text;
+      const ingredientsText = 
+        alternateProductInfo.product.ingredients_text ||
+        alternateProductInfo.product.ingredients_text_en ||
+        alternateProductInfo.product.ingredients_text_da ||
+        alternateProductInfo.product.ingredients_hierarchy?.join(', ') ||
+        alternateProductInfo.product.ingredients_tags?.join(', ');
 
       let ingredientsList: string[] = [];
       if (ingredientsText) {
         ingredientsList = parseIngredients(ingredientsText);
+      }
+
+      if (ingredientsList.length === 0 && alternateProductInfo.product.ingredients_tags?.length) {
+        ingredientsList = alternateProductInfo.product.ingredients_tags.map(tag => 
+          tag.replace(/^en:/, '').replace(/-/g, ' ')
+        );
       }
 
       if (ingredientsList.length === 0) {
@@ -327,7 +338,7 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
       const finalDetectedIngredients = unifiedDetectIngredients(
         ingredientsList,
         userIngredientsData,
-        []
+        alternateProductInfo.product.ingredients_tags || []
       );
 
       navigateToProductInfo({

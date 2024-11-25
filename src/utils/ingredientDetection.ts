@@ -107,6 +107,11 @@ export const findIngredientIdsWithLang = (
 export const parseIngredients = (ingredientsText: string): string[] => {
   if (!ingredientsText) return [];
 
+  // CHANGE: Added array handling
+  if (Array.isArray(ingredientsText)) {
+    return ingredientsText.map(ingredient => ingredient.trim());
+  }
+
   // Normalize text: remove special characters, convert to lowercase
   const normalizedText = ingredientsText
     .toLowerCase()
