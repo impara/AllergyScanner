@@ -206,4 +206,12 @@ export default {
     openSettings: 'Abrir Configuración',
     loading: 'Cargando Cámara...'
   },
+  updates: {
+    availableTitle: 'Actualización Disponible',
+    availableMessage: '¿Una nueva versión de la aplicación está lista para instalar. ¿Desea reiniciar ahora?',
+    restart: 'Reiniciar Ahora',
+    later: 'Más Tarde',
+    errorTitle: 'Error de Actualización',
+    errorMessage: 'No se pudo aplicar la actualización. Por favor, inténtelo de nuevo más tarde.',
+  },
 };

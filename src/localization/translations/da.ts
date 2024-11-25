@@ -203,5 +203,13 @@ export default {
     permissionDesc: 'Vi har brug for kameraadgang for at scanne stregkoder',
     openSettings: 'Åbn Indstillinger',
     loading: 'Indlæser Kamera...'
-  }
+  },
+  updates: {
+    availableTitle: 'Opdatering Tilgængelig',
+    availableMessage: 'En ny version af appen er klar til installation. Vil du genstarte nu?',
+    restart: 'Genstart Nu',
+    later: 'Senere',
+    errorTitle: 'Opdateringsfejl',
+    errorMessage: 'Kunne ikke anvende opdateringen. Prøv venligst igen senere.',
+  },
 };

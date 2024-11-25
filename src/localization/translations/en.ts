@@ -206,5 +206,13 @@ export default {
     permissionDesc: 'We need camera access to scan barcodes',
     openSettings: 'Open Settings',
     loading: 'Loading Camera...'
-  }
+  },
+  updates: {
+    availableTitle: 'Update Available',
+    availableMessage: 'A new version of the app is ready to install. Would you like to restart now?',
+    restart: 'Restart Now',
+    later: 'Later',
+    errorTitle: 'Update Error',
+    errorMessage: 'Failed to apply the update. Please try again later.',
+  },
 };

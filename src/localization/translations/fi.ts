@@ -203,5 +203,13 @@ export default {
     permissionDesc: 'Tarvitsemme kameran käyttöoikeuden viivakoodien skannaamiseen',
     openSettings: 'Avaa Asetukset',
     loading: 'Ladataan Kameraa...'
-  }
+  },
+  updates: {
+    availableTitle: 'Päivitys Saatavilla',
+    availableMessage: 'Uusi versio sovelluksesta on valmis asennettavaksi. Haluatko käynnistää uudelleen nyt?',
+    restart: 'Käynnistä Uudelleen',
+    later: 'Myöhemmin',
+    errorTitle: 'Päivitysvirhe',
+    errorMessage: 'Päivityksen asentaminen epäonnistui. Yritä myöhemmin uudelleen.',
+  },
 };

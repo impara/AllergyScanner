@@ -5,7 +5,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider, DefaultTheme } from 'styled-components/native';
 import { Provider as PaperProvider, MD3LightTheme } from 'react-native-paper';
 import AppNavigator from './src/navigation/AppNavigator';
-import { theme, colors } from './src/theme';
+import { theme, colors, typography, spacing, shadows } from './src/theme';
 import { AuthProvider, AuthContext } from './src/context/AuthContext';
 import { LanguageProvider } from './src/context/LanguageContext';
 import { View, ActivityIndicator, Platform, Text, StyleSheet } from 'react-native';
@@ -19,6 +19,10 @@ import { useNetworkStatus } from './src/hooks/useNetworkStatus';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AccessibilityProvider } from './src/context/AccessibilityContext';
+import * as Updates from 'expo-updates';
+import { Alert } from 'react-native';
+import { Button, Portal, Modal } from 'react-native-paper';
+import i18n from './src/localization/i18n';
 
 // Create a custom theme that extends MD3LightTheme
 const paperTheme = {
@@ -40,12 +44,44 @@ const App: React.FC = () => {
   const [isAppReady, setAppReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const { hasStableConnection } = useNetworkStatus();
+  const [updateAvailable, setUpdateAvailable] = useState(false);
 
   useEffect(() => {
     if (hasStableConnection) {
       initializeApp();
+      checkForUpdates();
     }
   }, [hasStableConnection]);
+
+  const checkForUpdates = async () => {
+    if (__DEV__) return; // Skip update check in development
+
+    try {
+      const update = await Updates.checkForUpdateAsync();
+      
+      if (update.isAvailable) {
+        console.log('Update available, downloading...');
+        await Updates.fetchUpdateAsync();
+        setUpdateAvailable(true);
+      }
+    } catch (error) {
+      console.error('Error checking for updates:', error);
+      // Don't block app initialization for update errors
+    }
+  };
+
+  const applyUpdate = async () => {
+    try {
+      await Updates.reloadAsync();
+    } catch (error) {
+      console.error('Error applying update:', error);
+      Alert.alert(
+        i18n.t('updates.errorTitle'),
+        i18n.t('updates.errorMessage'),
+        [{ text: i18n.t('common.ok') }]
+      );
+    }
+  };
 
   const initializeApp = async () => {
     try {
@@ -152,6 +188,38 @@ const App: React.FC = () => {
                 <AuthProvider>
                   <LanguageProvider>
                     <AppContent />
+                    <Portal>
+                      <Modal
+                        visible={updateAvailable}
+                        onDismiss={() => setUpdateAvailable(false)}
+                        contentContainerStyle={styles.modalContainer}
+                      >
+                        <View style={styles.modalContent}>
+                          <Text style={styles.modalTitle}>
+                            {i18n.t('updates.availableTitle')}
+                          </Text>
+                          <Text style={styles.modalText}>
+                            {i18n.t('updates.availableMessage')}
+                          </Text>
+                          <View style={styles.modalButtons}>
+                            <Button
+                              mode="contained"
+                              onPress={applyUpdate}
+                              style={styles.button}
+                            >
+                              {i18n.t('updates.restart')}
+                            </Button>
+                            <Button
+                              mode="outlined"
+                              onPress={() => setUpdateAvailable(false)}
+                              style={styles.button}
+                            >
+                              {i18n.t('updates.later')}
+                            </Button>
+                          </View>
+                        </View>
+                      </Modal>
+                    </Portal>
                   </LanguageProvider>
                 </AuthProvider>
               </ThemeProvider>
@@ -208,6 +276,42 @@ const styles = StyleSheet.create({
   errorText: {
     color: colors.error,
     textAlign: 'center',
+  },
+  modalContainer: {
+    backgroundColor: colors.background,
+    margin: spacing.lg,
+    padding: spacing.lg,
+    borderRadius: 12,
+    ...Platform.select({
+      ios: shadows.medium,
+      android: {
+        elevation: 5,
+      },
+    }),
+  },
+  modalContent: {
+    alignItems: 'center',
+  },
+  modalTitle: {
+    ...typography.h6,
+    color: colors.primary,
+    marginBottom: spacing.sm,
+    textAlign: 'center',
+  },
+  modalText: {
+    ...typography.body1,
+    color: colors.text,
+    marginBottom: spacing.lg,
+    textAlign: 'center',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  button: {
+    minWidth: 120,
+    marginHorizontal: spacing.xs,
   },
 });
 

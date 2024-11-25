@@ -81,9 +81,9 @@ module.exports = ({ config }) => {
     }
 
     // Manually set versioning
-    const newVersion = '1.0.8'; // Incremented version
-    const newAndroidVersionCode = 8; // Incremented versionCode
-    const newiOSBuildNumber = '8'; // Incremented buildNumber
+    const newVersion = '1.10'; // Incremented version
+    const newAndroidVersionCode = 10; // Incremented versionCode
+    const newiOSBuildNumber = '10'; // Incremented buildNumber
     const newRuntimeVersion = `${newVersion}+${newAndroidVersionCode}`; // "1.0.4+4"
 
     console.log(`Version: ${newVersion}, Android: ${newAndroidVersionCode}, iOS: ${newiOSBuildNumber}, Runtime: ${newRuntimeVersion}`);
@@ -104,6 +104,7 @@ module.exports = ({ config }) => {
             url: 'https://u.expo.dev/c2ceb6a3-210e-4d75-b3cf-38878dd25b98',
             enabled: true,
             checkAutomatically: 'ON_LOAD',
+            fallbackToCacheTimeout: 0,
         },
         runtimeVersion: newRuntimeVersion,
         android: {

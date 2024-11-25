@@ -203,5 +203,13 @@ export default {
     permissionDesc: 'Nous avons besoin d\'accéder à la caméra pour scanner les codes-barres',
     openSettings: 'Ouvrir les Paramètres',
     loading: 'Chargement de la Caméra...'
-  }
+  },
+  updates: {
+    availableTitle: 'Mise à Jour Disponible',
+    availableMessage: 'Une nouvelle version de l\'application est prête à être installée. Voulez-vous redémarrer maintenant ?',
+    restart: 'Redémarrer Maintenant',
+    later: 'Plus Tard',
+    errorTitle: 'Erreur de Mise à Jour',
+    errorMessage: 'Impossible d\'appliquer la mise à jour. Veuillez réessayer plus tard.',
+  },
 }; 

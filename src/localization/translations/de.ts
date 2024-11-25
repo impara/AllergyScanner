@@ -205,5 +205,13 @@ export default {
     permissionDesc: 'Wir benötigen Kamerazugriff zum Scannen von Barcodes',
     openSettings: 'Einstellungen Öffnen',
     loading: 'Kamera wird geladen...'
-  }
+  },
+  updates: {
+    availableTitle: 'Update Verfügbar',
+    availableMessage: 'Eine neue Version der App ist zur Installation bereit. Möchten Sie jetzt neu starten?',
+    restart: 'Jetzt Neu Starten',
+    later: 'Später',
+    errorTitle: 'Update-Fehler',
+    errorMessage: 'Update konnte nicht angewendet werden. Bitte versuchen Sie es später erneut.',
+  },
 };
