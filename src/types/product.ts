@@ -52,16 +52,4 @@ export interface ProductInfo {
   };
   status: number;
   status_verbose: string;
-}
-
-export interface AlternateProductInfo {
-  product: BaseProduct & {
-    id: number;
-    barcode: string;
-    country?: string;
-    countries?: string;
-    countries_tags?: string[];
-    images?: { medium?: string }[];
-    [key: string]: any;
-  };
 } 

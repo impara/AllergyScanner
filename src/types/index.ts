@@ -23,7 +23,6 @@ export type {
 // Product types
 export type {
   ProductInfo,
-  AlternateProductInfo,
   BaseProduct,
   Nutriments
 } from './product';

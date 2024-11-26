@@ -12,14 +12,11 @@ import {
 import { Text } from 'react-native-paper';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { useNavigation } from '@react-navigation/native';
-import {
-  getOpenFoodFactsProductInfo,
-  getAlternateProductInfo,
-} from '../../services/api';
+import { getOpenFoodFactsProductInfo } from '../../services/api';
 import { getUserIngredients, IngredientsProfile } from '../../config/firebase';
 import { RootStackNavigationProp, TabNavigationProp, DetectedIngredient } from '../../types/navigation';
 import { unifiedDetectIngredients, parseIngredients } from '../../utils/ingredientDetection';
-import { ProductInfo, AlternateProductInfo } from '../../types/product';
+import { ProductInfo } from '../../types/product';
 import { colors } from '../../theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import i18n from '../../localization/i18n';
@@ -152,61 +149,20 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
         return;
       }
 
-      let productInfo: ProductInfo | null = null;
-      let alternateProductInfo: AlternateProductInfo | null = null;
-
       try {
-        productInfo = await getOpenFoodFactsProductInfo(data);
+        const productInfo = await getOpenFoodFactsProductInfo(data);
         await logScan(data, true);
 
         if (productInfo?.product?.ingredients_text || productInfo?.product?.ingredients_text_en) {
           await processProductInfo(productInfo);
           return;
         }
+
+        handleMissingIngredients(productInfo);
       } catch (error) {
         console.log('OpenFoodFacts Error:', error);
         await logScan(data, false);
-      }
-
-      if (!productInfo?.product?.ingredients_text && !productInfo?.product?.ingredients_text_en) {
-        try {
-          alternateProductInfo = await getAlternateProductInfo(data);
-          if (alternateProductInfo?.product?.ingredients_text) {
-            await processAlternateProductInfo(alternateProductInfo);
-            return;
-          }
-        } catch (error) {
-          console.log('FoodRepo Error:', error);
-        }
-      }
-
-      if (productInfo || alternateProductInfo) {
-        Alert.alert(
-          i18n.t('scan.ingredientsMissing'),
-          i18n.t('scan.ingredientsMissingDesc'),
-          [
-            {
-              text: i18n.t('scan.scanNext'),
-              onPress: () => {
-                setIsScanning(false);
-                setLoading(false);
-              },
-            },
-            {
-              text: i18n.t('scan.viewDetails'),
-              onPress: () => {
-                const product = productInfo?.product || alternateProductInfo?.product || {};
-                navigation.navigate('ProductInfo', {
-                  productInfo: product,
-                  detectedIngredients: [],
-                  ingredientsList: [],
-                });
-              },
-            },
-          ],
-          { cancelable: false }
-        );
-      } else {
+        
         Alert.alert(
           i18n.t('scan.productNotFound'),
           i18n.t('scan.productNotFoundDesc'),
@@ -222,7 +178,6 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
           { cancelable: false }
         );
       }
-
     } catch (error) {
       console.error('Unexpected Error:', error);
       Alert.alert(
@@ -287,7 +242,7 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
       }
 
       if (ingredientsList.length === 0) {
-        handleMissingIngredients(productInfo, null);
+        handleMissingIngredients(productInfo);
         return;
       }
 
@@ -308,54 +263,7 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
     }
   };
 
-  const processAlternateProductInfo = async (alternateProductInfo: AlternateProductInfo) => {
-    try {
-      const userIngredientsData: IngredientsProfile = userIngredients;
-
-      const ingredientsText = 
-        alternateProductInfo.product.ingredients_text ||
-        alternateProductInfo.product.ingredients_text_en ||
-        alternateProductInfo.product.ingredients_text_da ||
-        alternateProductInfo.product.ingredients_hierarchy?.join(', ') ||
-        alternateProductInfo.product.ingredients_tags?.join(', ');
-
-      let ingredientsList: string[] = [];
-      if (ingredientsText) {
-        ingredientsList = parseIngredients(ingredientsText);
-      }
-
-      if (ingredientsList.length === 0 && alternateProductInfo.product.ingredients_tags?.length) {
-        ingredientsList = alternateProductInfo.product.ingredients_tags.map(tag => 
-          tag.replace(/^en:/, '').replace(/-/g, ' ')
-        );
-      }
-
-      if (ingredientsList.length === 0) {
-        handleMissingIngredients(null, alternateProductInfo);
-        return;
-      }
-
-      const finalDetectedIngredients = unifiedDetectIngredients(
-        ingredientsList,
-        userIngredientsData,
-        alternateProductInfo.product.ingredients_tags || []
-      );
-
-      navigateToProductInfo({
-        productInfo: alternateProductInfo.product,
-        detectedIngredients: finalDetectedIngredients,
-        ingredientsList,
-      });
-    } finally {
-      setIsScanning(false);
-      setLoading(false);
-    }
-  };
-
-  const handleMissingIngredients = (
-    productInfo: ProductInfo | null,
-    alternateProductInfo: AlternateProductInfo | null
-  ) => {
+  const handleMissingIngredients = (productInfo: ProductInfo | null) => {
     Alert.alert(
       i18n.t('scan.ingredientsMissing'),
       i18n.t('scan.ingredientsMissingDesc'),
@@ -370,7 +278,7 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
         {
           text: i18n.t('scan.viewDetails'),
           onPress: () => {
-            const product = productInfo?.product || alternateProductInfo?.product || {};
+            const product = productInfo?.product || {};
             navigation.navigate('ProductInfo', {
               productInfo: product,
               detectedIngredients: [],
