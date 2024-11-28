@@ -32,8 +32,6 @@ export default {
     requestingCamera: 'Demande de permission de la caméra...',
     noCamera: 'Pas d\'accès à la caméra.',
     openSettings: 'Ouvrir les Paramètres',
-    ingredientsMissing: 'Information sur les Ingrédients Indisponible',
-    ingredientsMissingDesc: 'Les détails des ingrédients pour ce produit sont manquants. Par conséquent, nous ne pouvons pas déterminer la présence d\'ingrédients. Veuillez faire preuve de prudence et considérer la vérification des informations sur l\'emballage du produit ou auprès du fabricant.',
     productNotFoundDesc: 'Ce code-barres n\'est reconnu dans aucune base de données.',
     unexpectedError: 'Une erreur inattendue s\'est produite. Veuillez réessayer.',
     scansRemaining: "Scans restants aujourd'hui: {{count}}",

@@ -35,8 +35,6 @@ export default {
     requestingCamera: 'Requesting camera permission...',
     noCamera: 'No access to camera.',
     openSettings: 'Open Settings',
-    ingredientsMissing: 'Ingredient Information Unavailable',
-    ingredientsMissingDesc: 'Ingredient details for this product are missing. Therefore, we cannot determine the presence of ingredients. Please exercise caution and consider verifying the information from the product packaging or manufacturer.',
     productNotFoundDesc: 'This barcode is not recognized in any database.',
     unexpectedError: 'An unexpected error occurred. Please try again.',
     scansRemaining: 'Scans remaining today: {{count}}',

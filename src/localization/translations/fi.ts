@@ -32,8 +32,6 @@ export default {
     requestingCamera: 'Pyydetään kameran käyttöoikeutta...',
     noCamera: 'Ei pääsyä kameraan.',
     openSettings: 'Avaa Asetukset',
-    ingredientsMissing: 'Ainesosatiedot Puuttuvat',
-    ingredientsMissingDesc: 'Tuotteen ainesosatiedot puuttuvat. Siksi emme voi määrittää ainesosien läsnäoloa. Ole varovainen ja harkitse tietojen tarkistamista tuotepakkauksesta tai valmistajalta.',
     productNotFoundDesc: 'Tätä viivakoodia ei tunnisteta missään tietokannassa.',
     unexpectedError: 'Tapahtui odottamaton virhe. Yritä uudelleen.',
     scansRemaining: 'Skannauksia jäljellä tänään: {{count}}',

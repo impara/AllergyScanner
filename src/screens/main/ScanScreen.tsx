@@ -153,13 +153,8 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
         }
 
         await logScan(data, true);
+        await processProductInfo(productInfo);
 
-        if (productInfo?.product?.ingredients_text || productInfo?.product?.ingredients_text_en) {
-          await processProductInfo(productInfo);
-          return;
-        }
-
-        handleMissingIngredients(productInfo);
       } catch (error) {
         console.log('OpenFoodFacts Error:', error);
         await logScan(data, false);
@@ -224,6 +219,16 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
     try {
       const userIngredientsData: IngredientsProfile = userIngredients;
 
+      console.log('Product Ingredient Sources:', {
+        ingredients_text: productInfo.product.ingredients_text,
+        ingredients_text_en: productInfo.product.ingredients_text_en,
+        ingredients_hierarchy: productInfo.product.ingredients_hierarchy?.length,
+        ingredients_tags: productInfo.product.ingredients_tags?.length,
+        keywords: productInfo.product._keywords?.length,
+        allergens_tags: productInfo.product.allergens_tags?.length,
+        additives_tags: productInfo.product.additives_tags?.length,
+      });
+
       const apiIngredientTags: string[] = [
         ...(productInfo.product.allergens_tags || []),
         ...(productInfo.product.allergens_from_ingredients
@@ -234,17 +239,38 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
         ...(productInfo.product.ingredients_hierarchy || []),
       ];
 
-      const ingredientsText =
-        productInfo.product.ingredients_text_en || productInfo.product.ingredients_text;
-
       let ingredientsList: string[] = [];
+      
+      const localizedIngredientsKey = `ingredients_text_${i18n.locale}`;
+      const ingredientsText = 
+        productInfo.product[localizedIngredientsKey] || 
+        productInfo.product.ingredients_text_en || 
+        productInfo.product.ingredients_text;
+      
       if (ingredientsText) {
         ingredientsList = parseIngredients(ingredientsText);
+        console.log('Parsed ingredients from text:', ingredientsList);
       }
-
-      if (ingredientsList.length === 0) {
-        handleMissingIngredients(productInfo);
-        return;
+      
+      if (ingredientsList.length === 0 && productInfo.product.ingredients_hierarchy?.length) {
+        ingredientsList = productInfo.product.ingredients_hierarchy.map(i => 
+          i.replace(/^en:/, '').replace(/-/g, ' ').trim()
+        );
+        console.log('Using ingredients from hierarchy:', ingredientsList);
+      }
+      
+      if (ingredientsList.length === 0 && productInfo.product.ingredients_tags?.length) {
+        ingredientsList = productInfo.product.ingredients_tags.map(i => 
+          i.replace(/^en:/, '').replace(/-/g, ' ').trim()
+        );
+        console.log('Using ingredients from tags:', ingredientsList);
+      }
+      
+      if (ingredientsList.length === 0 && productInfo.product._keywords?.length) {
+        ingredientsList = productInfo.product._keywords.filter(k => 
+          !['food', 'product', 'med', 'and', 'contains'].includes(k.toLowerCase())
+        );
+        console.log('Using ingredients from keywords:', ingredientsList);
       }
 
       const finalDetectedIngredients: DetectedIngredient[] = unifiedDetectIngredients(
@@ -252,6 +278,12 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
         userIngredientsData,
         apiIngredientTags
       );
+
+      console.log('Final ingredient data:', {
+        ingredientsListLength: ingredientsList.length,
+        detectedIngredientsLength: finalDetectedIngredients.length,
+        apiIngredientTagsLength: apiIngredientTags.length
+      });
 
       navigateToProductInfo({
         productInfo: productInfo.product,
@@ -262,34 +294,6 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
       setIsScanning(false);
       setLoading(false);
     }
-  };
-
-  const handleMissingIngredients = (productInfo: ProductInfo | null) => {
-    Alert.alert(
-      i18n.t('scan.ingredientsMissing'),
-      i18n.t('scan.ingredientsMissingDesc'),
-      [
-        {
-          text: i18n.t('scan.scanNext'),
-          onPress: () => {
-            setIsScanning(false);
-            setLoading(false);
-          },
-        },
-        {
-          text: i18n.t('scan.viewDetails'),
-          onPress: () => {
-            const product = productInfo?.product || {};
-            navigation.navigate('ProductInfo', {
-              productInfo: product,
-              detectedIngredients: [],
-              ingredientsList: [],
-            });
-          },
-        },
-      ],
-      { cancelable: false }
-    );
   };
 
   useEffect(() => {

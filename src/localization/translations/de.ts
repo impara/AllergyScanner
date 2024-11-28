@@ -34,8 +34,6 @@ export default {
     requestingCamera: 'Kamerazugriff wird angefordert...',
     noCamera: 'Kein Zugriff auf die Kamera.',
     openSettings: 'Einstellungen öffnen',
-    ingredientsMissing: 'Zutateinformationen nicht verfügbar',
-    ingredientsMissingDesc: 'Zutatendetails für dieses Produkt fehlen. Daher können wir das Vorhandensein von Zutaten nicht bestimmen. Bitte seien Sie vorsichtig und überprüfen Sie die Informationen auf der Produktverpackung oder beim Hersteller.',
     productNotFoundDesc: 'Dieser Barcode wird in keiner Datenbank erkannt.',
     unexpectedError: 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
     scansRemaining: 'Verbleibende Scans heute: {{count}}',

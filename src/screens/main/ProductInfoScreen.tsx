@@ -29,6 +29,7 @@ import { theme as defaultTheme } from '../../theme';
 import { ProductInfoScreenProps } from '../../navigation/AppStackNavigator';
 import { checkContrast, getAccessibleFontSize } from '../../utils/accessibility';
 import { useScreenReader } from '../../hooks/useScreenReader';
+import { parseIngredients } from '../../utils/ingredientDetection';
 
 const DRAG_THRESHOLD = 100;
 const ANIMATION_DURATION = 300;
@@ -64,40 +65,80 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
   };
 
   const getLocalizedIngredients = () => {
-    // Try ingredients list first if it exists (this comes from our detection)
+    console.log('ProductInfo Ingredient Sources:', {
+      ingredientsList: productInfo.ingredientsList?.length,
+      ingredients_hierarchy: productInfo.ingredients_hierarchy?.length,
+      ingredients_tags: productInfo.ingredients_tags?.length,
+      keywords: productInfo._keywords?.length
+    });
+
+    // First try the passed ingredientsList from our detection
     if (productInfo.ingredientsList?.length > 0) {
+      console.log('Using provided ingredientsList:', productInfo.ingredientsList);
       return productInfo.ingredientsList;
+    }
+
+    // Try localized ingredients text
+    const localizedIngredientsKey = `ingredients_text_${locale}`;
+    if (productInfo[localizedIngredientsKey]) {
+      const ingredients = parseIngredients(productInfo[localizedIngredientsKey]);
+      console.log('Using localized ingredients text:', ingredients);
+      return ingredients;
+    }
+
+    // Try English ingredients text
+    if (productInfo.ingredients_text_en) {
+      const ingredients = parseIngredients(productInfo.ingredients_text_en);
+      console.log('Using English ingredients text:', ingredients);
+      return ingredients;
+    }
+
+    // Try default ingredients text
+    if (productInfo.ingredients_text) {
+      const ingredients = parseIngredients(productInfo.ingredients_text);
+      console.log('Using default ingredients text:', ingredients);
+      return ingredients;
     }
 
     // Try ingredients hierarchy
     if (productInfo.ingredients_hierarchy?.length) {
-      return productInfo.ingredients_hierarchy.map(i => 
+      const ingredients = productInfo.ingredients_hierarchy.map(i => 
         i.replace(/^en:/, '').replace(/-/g, ' ').trim()
       );
+      console.log('Using ingredients_hierarchy:', ingredients);
+      return ingredients;
     }
 
     // Try ingredients tags
     if (productInfo.ingredients_tags?.length) {
-      return productInfo.ingredients_tags.map(i => 
+      const ingredients = productInfo.ingredients_tags.map(i => 
         i.replace(/^en:/, '').replace(/-/g, ' ').trim()
       );
+      console.log('Using ingredients_tags:', ingredients);
+      return ingredients;
     }
 
     // Try keywords as last resort
     if (productInfo._keywords?.length) {
-      return productInfo._keywords.filter(k => 
+      const ingredients = productInfo._keywords.filter(k => 
         !['food', 'product', 'med', 'and', 'contains'].includes(k.toLowerCase())
       );
+      console.log('Using _keywords:', ingredients);
+      return ingredients;
     }
 
+    console.log('No ingredients found from any source');
     return [];
   };
 
   const renderIngredients = () => {
-    // If we have detected ingredients, show those
+    const sections: JSX.Element[] = [];
+
+    // Show detected ingredients if any
     if (detectedIngredients.length > 0) {
-      return (
-        <View style={styles.section}>
+      console.log('Rendering detected ingredients:', detectedIngredients);
+      sections.push(
+        <View key="detected" style={styles.section}>
           <Text style={styles.sectionTitle}>
             {i18n.t('product.detectedIngredients')}
           </Text>
@@ -121,11 +162,12 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
       );
     }
 
-    // Otherwise, show the raw ingredients list if available
+    // Also show raw ingredients list if available
     const ingredients = getLocalizedIngredients();
     if (ingredients.length > 0) {
-      return (
-        <View style={styles.section}>
+      console.log('Rendering raw ingredients list:', ingredients);
+      sections.push(
+        <View key="raw" style={styles.section}>
           <Text style={styles.sectionTitle}>
             {i18n.t('product.ingredients')}
           </Text>
@@ -136,17 +178,22 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
       );
     }
 
-    // If no ingredients available at all
-    return (
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
-          {i18n.t('product.ingredients')}
-        </Text>
-        <Text style={styles.emptyText}>
-          {i18n.t('product.unavailable')}
-        </Text>
-      </View>
-    );
+    // If no ingredients at all
+    if (sections.length === 0) {
+      console.log('No ingredients available to render');
+      return (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {i18n.t('product.ingredients')}
+          </Text>
+          <Text style={styles.emptyText}>
+            {i18n.t('product.unavailable')}
+          </Text>
+        </View>
+      );
+    }
+
+    return <>{sections}</>;
   };
 
   const panResponder = React.useRef(
