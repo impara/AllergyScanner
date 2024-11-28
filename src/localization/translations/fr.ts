@@ -71,6 +71,9 @@ export default {
     noResults: 'Aucun résultat trouvé',
     screenBackground: "Arrière-plan de l'écran du profil des ingrédients",
     mainContainer: 'Conteneur principal du contenu',
+    searchResult: '{{name}} en {{language}}',
+    tapToSelect: 'Appuyez pour sélectionner cet ingrédient',
+    additive: 'Additif',
   },
   product: {
     brand: 'Marque :',
@@ -209,5 +212,14 @@ export default {
     later: 'Plus Tard',
     errorTitle: 'Erreur de Mise à Jour',
     errorMessage: 'Impossible d\'appliquer la mise à jour. Veuillez réessayer plus tard.',
+  },
+  languages: {
+    en: 'Anglais',
+    da: 'Danois',
+    de: 'Allemand',
+    es: 'Espagnol',
+    fi: 'Finnois',
+    fr: 'Français',
+    unknown: 'Langue inconnue'
   },
 }; 

@@ -73,6 +73,9 @@ export default {
     noResults: 'No se encontraron resultados',
     screenBackground: 'Fondo de pantalla del perfil de ingredientes',
     mainContainer: 'Contenedor principal de contenido',
+    searchResult: '{{name}} en {{language}}',
+    tapToSelect: 'Toca para seleccionar este ingrediente',
+    additive: 'Aditivo',
   },
   product: {
     brand: 'Marca:',
@@ -211,5 +214,14 @@ export default {
     later: 'Más Tarde',
     errorTitle: 'Error de Actualización',
     errorMessage: 'No se pudo aplicar la actualización. Por favor, inténtelo de nuevo más tarde.',
+  },
+  languages: {
+    en: 'Inglés',
+    da: 'Danés',
+    de: 'Alemán',
+    es: 'Español',
+    fi: 'Finlandés',
+    fr: 'Francés',
+    unknown: 'Idioma desconocido'
   },
 };

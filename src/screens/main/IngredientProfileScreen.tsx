@@ -651,7 +651,21 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
     if (text.trim().length >= 3) {
       // Search for ingredients matching the input text
       const results = findIngredientsByName(text.trim(), i18n.locale);
-      setSearchResults(results.slice(0, 15)); // Limit to top 15 results
+      
+      // Sort results to prioritize matches in user's language
+      const sortedResults = results.sort((a, b) => {
+        // First priority: exact matches in user's language
+        if (a.lang === i18n.locale && b.lang !== i18n.locale) return -1;
+        if (a.lang !== i18n.locale && b.lang === i18n.locale) return 1;
+        
+        // Second priority: exact matches in English
+        if (a.lang === 'en' && b.lang !== 'en') return -1;
+        if (a.lang !== 'en' && b.lang === 'en') return 1;
+        
+        return 0;
+      });
+      
+      setSearchResults(sortedResults.slice(0, 15)); // Limit to top 15 results
       setShowSearchResults(true);
     } else {
       setSearchResults([]);
@@ -735,6 +749,55 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
   // Add scroll to top handler
   const scrollToTop = () => {
     scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  };
+
+  const renderSearchResult = (result: DetectedIngredient) => {
+    const isUserLanguage = result.lang === i18n.locale;
+    const isEnglish = result.lang === 'en';
+    
+    return (
+      <TouchableOpacity
+        key={result.id}
+        style={styles.searchResultItem}
+        onPress={() => {
+          handleSearchResultSelect(result);
+          Keyboard.dismiss();
+        }}
+        accessible={true}
+        accessibilityLabel={i18n.t('ingredients.searchResult', {
+          name: result.name,
+          language: isUserLanguage ? i18n.t(`languages.${i18n.locale}`) : 
+                   isEnglish ? i18n.t('languages.en') : 
+                   i18n.t(`languages.${result.lang || 'unknown'}`),
+        })}
+        accessibilityHint={i18n.t('ingredients.tapToSelect')}
+      >
+        <View style={styles.searchResultContent}>
+          <View style={styles.searchResultTextContainer}>
+            <Text style={styles.searchResultText} numberOfLines={1}>
+              {result.name}
+            </Text>
+            {!isUserLanguage && (
+              <View style={[
+                styles.languageIndicator,
+                isEnglish ? styles.englishIndicator : styles.otherLanguageIndicator
+              ]}>
+                <Text style={styles.languageIndicatorText}>
+                  {result.lang?.toUpperCase() || '?'}
+                </Text>
+              </View>
+            )}
+          </View>
+          {isAdditive(result.id) && (
+            <View style={styles.additiveContainer}>
+              <Text style={styles.additiveIndicator}>
+                {getENumber(result.id) ? `E${getENumber(result.id)}` : i18n.t('ingredients.additive')}
+              </Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
   };
 
   if (isLoading) {
@@ -836,32 +899,7 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
                     bounces={false}
                     showsVerticalScrollIndicator={true}
                   >
-                    {searchResults.map((result, index) => (
-                      <TouchableOpacity
-                        key={result.id}
-                        style={styles.searchResultItem}
-                        onPress={() => {
-                          handleSearchResultSelect(result);
-                          Keyboard.dismiss();
-                        }}
-                      >
-                        <View style={styles.searchResultContent}>
-                          <Text style={styles.searchResultText} numberOfLines={1}>
-                            {result.name}
-                          </Text>
-                          {isAdditive(result.id) && (
-                            <View style={styles.additiveContainer}>
-                              <Text style={styles.additiveIndicator}>
-                                {getENumber(result.id) ? `E${getENumber(result.id)}` : 'Additive'}
-                              </Text>
-                            </View>
-                          )}
-                        </View>
-                        {index < searchResults.length - 1 && (
-                          <Divider style={styles.resultDivider} />
-                        )}
-                      </TouchableOpacity>
-                    ))}
+                    {searchResults.map((result) => renderSearchResult(result))}
                   </ScrollView>
                 </View>
               </>
@@ -1213,6 +1251,29 @@ const styles = StyleSheet.create({
     backgroundColor: checkContrast(colors.coolGray, colors.background).isValid 
       ? colors.coolGray 
       : colors.contrast.medium,
+  },
+  searchResultTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  languageIndicator: {
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginLeft: spacing.xs,
+  },
+  englishIndicator: {
+    backgroundColor: colors.primary,
+  },
+  otherLanguageIndicator: {
+    backgroundColor: colors.coolGray,
+  },
+  languageIndicatorText: {
+    ...typography.caption,
+    color: colors.surface,
+    fontSize: 10,
+    fontWeight: 'bold',
   },
 });
 

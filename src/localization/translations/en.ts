@@ -74,6 +74,9 @@ export default {
     noResults: 'No results found',
     screenBackground: 'Ingredient profile screen background',
     mainContainer: 'Main content container',
+    searchResult: '{{name}} in {{language}}',
+    tapToSelect: 'Tap to select this ingredient',
+    additive: 'Additive',
   },
   product: {
     brand: 'Brand:',
@@ -212,5 +215,14 @@ export default {
     later: 'Later',
     errorTitle: 'Update Error',
     errorMessage: 'Failed to apply the update. Please try again later.',
+  },
+  languages: {
+    en: 'English',
+    da: 'Danish',
+    de: 'German',
+    es: 'Spanish',
+    fi: 'Finnish',
+    fr: 'French',
+    unknown: 'Unknown language'
   },
 };

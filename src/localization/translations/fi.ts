@@ -71,6 +71,9 @@ export default {
     noResults: 'Ei tuloksia',
     screenBackground: 'Ainesosaprofiilin näytön tausta',
     mainContainer: 'Pääsisältösäiliö',
+    searchResult: '{{name}} kielellä {{language}}',
+    tapToSelect: 'Napauta valitaksesi tämän ainesosan',
+    additive: 'Lisäaine',
   },
   product: {
     brand: 'Merkki:',
@@ -209,5 +212,14 @@ export default {
     later: 'Myöhemmin',
     errorTitle: 'Päivitysvirhe',
     errorMessage: 'Päivityksen asentaminen epäonnistui. Yritä myöhemmin uudelleen.',
+  },
+  languages: {
+    en: 'Englanti',
+    da: 'Tanska',
+    de: 'Saksa',
+    es: 'Espanja',
+    fi: 'Suomi',
+    fr: 'Ranska',
+    unknown: 'Tuntematon kieli'
   },
 };

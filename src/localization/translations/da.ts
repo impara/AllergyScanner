@@ -32,8 +32,6 @@ export default {
     requestingCamera: 'Anmoder om kameratilladelse...',
     noCamera: 'Ingen adgang til kamera.',
     openSettings: 'Åbn Indstillinger',
-    ingredientsMissing: 'Ingrediensinformation ikke tilgængelig',
-    ingredientsMissingDesc: 'Ingrediensdetaljer for dette produkt mangler. Derfor kan vi ikke bestemme tilstedeværelsen af ingredienser. Udvis venligst forsigtighed og overvej at verificere informationen fra produktemballagen eller producenten.',
     productNotFoundDesc: 'Denne stregkode er ikke genkendt i nogen database.',
     unexpectedError: 'Der opstod en uventet fejl. Prøv venligst igen.',
     scansRemaining: 'Resterende scanninger i dag: {{count}}',
@@ -73,6 +71,9 @@ export default {
     noResults: 'Ingen resultater fundet',
     screenBackground: 'Ingrediensprofil skærmbaggrund',
     mainContainer: 'Hovedindholdscontainer',
+    searchResult: '{{name}} på {{language}}',
+    tapToSelect: 'Tryk for at vælge denne ingrediens',
+    additive: 'Tilsætningsstof',
   },
   product: {
     brand: 'Mærke:',
@@ -211,5 +212,14 @@ export default {
     later: 'Senere',
     errorTitle: 'Opdateringsfejl',
     errorMessage: 'Kunne ikke anvende opdateringen. Prøv venligst igen senere.',
+  },
+  languages: {
+    en: 'Engelsk',
+    da: 'Dansk',
+    de: 'Tysk',
+    es: 'Spansk',
+    fi: 'Finsk',
+    fr: 'Fransk',
+    unknown: 'Ukendt sprog'
   },
 };

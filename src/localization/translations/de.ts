@@ -73,6 +73,9 @@ export default {
     noResults: 'Keine Ergebnisse gefunden',
     screenBackground: 'Zutatenprofil Bildschirmhintergrund',
     mainContainer: 'Hauptinhaltscontainer',
+    searchResult: '{{name}} auf {{language}}',
+    tapToSelect: 'Tippen Sie, um diese Zutat auszuwählen',
+    additive: 'Zusatzstoff',
   },
   product: {
     brand: 'Marke:',
@@ -211,5 +214,14 @@ export default {
     later: 'Später',
     errorTitle: 'Update-Fehler',
     errorMessage: 'Update konnte nicht angewendet werden. Bitte versuchen Sie es später erneut.',
+  },
+  languages: {
+    en: 'Englisch',
+    da: 'Dänisch',
+    de: 'Deutsch',
+    es: 'Spanisch',
+    fi: 'Finnisch',
+    fr: 'Französisch',
+    unknown: 'Unbekannte Sprache'
   },
 };
