@@ -74,6 +74,31 @@ export default {
     searchResult: '{{name}} på {{language}}',
     tapToSelect: 'Tryk for at vælge denne ingrediens',
     additive: 'Tilsætningsstof',
+    phrasesToRemove: {
+      storage: [
+        'opbevares køligt',
+        'opbevaring mellem',
+        'på køl',
+        'klar til brug'
+      ],
+      packaging: [
+        'produktion af',
+        'certificeret',
+        'postboks',
+        'a/s',
+        'aps'
+      ],
+      allergens: [
+        'kan indeholde',
+        'indeholder'
+      ],
+      misc: [
+        'med naturlige ingredienser',
+        'plantebaseret',
+        'vegetarisk',
+        'vegansk'
+      ]
+    }
   },
   product: {
     brand: 'Mærke:',

@@ -282,9 +282,9 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
           ])
       );
 
-      console.log('Saving cleanedIngredients:', cleanedIngredients);
+      // console.log('Saving cleanedIngredients:', cleanedIngredients);
       await updateUserIngredients(cleanedIngredients);
-      console.log('Ingredient profile saved successfully.');
+      // console.log('Ingredient profile saved successfully.');
       showToast('Ingredient profile saved successfully.');
     } catch (error) {
       console.error('Error saving ingredient profile:', error);
@@ -348,8 +348,7 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
           style: 'destructive',
           onPress: async () => {
             try {
-              console.log('Deleting ingredient:', ingredientId);
-
+              // console.log('Deleting ingredient:', ingredientId);
               // Remove from ingredientList
               const updatedIngredientList = ingredientList.filter((id) => id !== ingredientId);
               setIngredientList(updatedIngredientList);
@@ -360,13 +359,13 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
               delete updatedIngredients[ingredientId];
               setCheckedIngredients(updatedIngredients);
 
-              console.log('Updated ingredients:', updatedIngredients);
+              // console.log('Updated ingredients:', updatedIngredients);
 
               // Save the updated profile
               await saveIngredientProfile(updatedIngredients);
 
               undoActionRef.current = () => {
-                console.log('Undoing delete for ingredient:', ingredientId);
+                // console.log('Undoing delete for ingredient:', ingredientId);
                 setIngredientList([ingredientId, ...updatedIngredientList]);
                 setCheckedIngredients({
                   ...updatedIngredients,

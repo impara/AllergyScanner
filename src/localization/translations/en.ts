@@ -77,6 +77,32 @@ export default {
     searchResult: '{{name}} in {{language}}',
     tapToSelect: 'Tap to select this ingredient',
     additive: 'Additive',
+    phrasesToRemove: {
+      storage: [
+        'store in a cool place',
+        'best stored between',
+        'refrigerate',
+        'ready to use'
+      ],
+      packaging: [
+        'production of',
+        'certified',
+        'po box',
+        'ltd',
+        'inc',
+        'llc'
+      ],
+      allergens: [
+        'may contain',
+        'contains'
+      ],
+      misc: [
+        'with natural ingredients',
+        'plant based',
+        'vegetarian',
+        'vegan'
+      ]
+    }
   },
   product: {
     brand: 'Brand:',

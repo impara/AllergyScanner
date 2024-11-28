@@ -76,6 +76,28 @@ export default {
     searchResult: '{{name}} auf {{language}}',
     tapToSelect: 'Tippen Sie, um diese Zutat auszuwählen',
     additive: 'Zusatzstoff',
+    phrasesToRemove: {
+      storage: [
+        'gern kühl lagern',
+        'beste lagerung zwischen',
+        'kühlschrankkalt',
+        'immer einsatzbereit'
+      ],
+      packaging: [
+        'produktion von',
+        'zertifiziertem',
+        'postfach',
+        'gmbh'
+      ],
+      allergens: [
+        'kann enthalten',
+        'enthält'
+      ],
+      misc: [
+        'mit natürlichen zutaten',
+        'pflanzlich'
+      ]
+    }
   },
   product: {
     brand: 'Marke:',

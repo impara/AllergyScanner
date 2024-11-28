@@ -74,6 +74,31 @@ export default {
     searchResult: '{{name}} en {{language}}',
     tapToSelect: 'Appuyez pour sélectionner cet ingrédient',
     additive: 'Additif',
+    phrasesToRemove: {
+      storage: [
+        'à conserver au frais',
+        'conservation entre',
+        'réfrigérer',
+        'prêt à l\'emploi'
+      ],
+      packaging: [
+        'production de',
+        'certifié',
+        'boîte postale',
+        'sa',
+        'sarl'
+      ],
+      allergens: [
+        'peut contenir',
+        'contient'
+      ],
+      misc: [
+        'avec des ingrédients naturels',
+        'végétal',
+        'végétarien',
+        'végétalien'
+      ]
+    }
   },
   product: {
     brand: 'Marque :',

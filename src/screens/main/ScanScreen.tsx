@@ -219,16 +219,7 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
     try {
       const userIngredientsData: IngredientsProfile = userIngredients;
 
-      console.log('Product Ingredient Sources:', {
-        ingredients_text: productInfo.product.ingredients_text,
-        ingredients_text_en: productInfo.product.ingredients_text_en,
-        ingredients_hierarchy: productInfo.product.ingredients_hierarchy?.length,
-        ingredients_tags: productInfo.product.ingredients_tags?.length,
-        keywords: productInfo.product._keywords?.length,
-        allergens_tags: productInfo.product.allergens_tags?.length,
-        additives_tags: productInfo.product.additives_tags?.length,
-      });
-
+      // Get all ingredient tags from various sources
       const apiIngredientTags: string[] = [
         ...(productInfo.product.allergens_tags || []),
         ...(productInfo.product.allergens_from_ingredients
@@ -239,55 +230,53 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
         ...(productInfo.product.ingredients_hierarchy || []),
       ];
 
+      // Get ingredients list from various sources
       let ingredientsList: string[] = [];
-      
       const localizedIngredientsKey = `ingredients_text_${i18n.locale}`;
+      
+      // Try to get ingredients text in order of preference
       const ingredientsText = 
         productInfo.product[localizedIngredientsKey] || 
         productInfo.product.ingredients_text_en || 
         productInfo.product.ingredients_text;
       
       if (ingredientsText) {
-        ingredientsList = parseIngredients(ingredientsText);
-        console.log('Parsed ingredients from text:', ingredientsList);
+        ingredientsList = parseIngredients(ingredientsText, productInfo.product.lang);
       }
       
+      // Fallback to ingredients hierarchy if no text available
       if (ingredientsList.length === 0 && productInfo.product.ingredients_hierarchy?.length) {
         ingredientsList = productInfo.product.ingredients_hierarchy.map(i => 
           i.replace(/^en:/, '').replace(/-/g, ' ').trim()
         );
-        console.log('Using ingredients from hierarchy:', ingredientsList);
       }
       
+      // Fallback to ingredients tags if still no ingredients
       if (ingredientsList.length === 0 && productInfo.product.ingredients_tags?.length) {
         ingredientsList = productInfo.product.ingredients_tags.map(i => 
           i.replace(/^en:/, '').replace(/-/g, ' ').trim()
         );
-        console.log('Using ingredients from tags:', ingredientsList);
       }
       
+      // Last resort: try keywords
       if (ingredientsList.length === 0 && productInfo.product._keywords?.length) {
         ingredientsList = productInfo.product._keywords.filter(k => 
           !['food', 'product', 'med', 'and', 'contains'].includes(k.toLowerCase())
         );
-        console.log('Using ingredients from keywords:', ingredientsList);
       }
 
-      const finalDetectedIngredients: DetectedIngredient[] = unifiedDetectIngredients(
+      // Detect ingredients using all available sources
+      const detectedIngredients = unifiedDetectIngredients(
         ingredientsList,
         userIngredientsData,
-        apiIngredientTags
+        apiIngredientTags,
+        { product: productInfo.product }
       );
 
-      console.log('Final ingredient data:', {
-        ingredientsListLength: ingredientsList.length,
-        detectedIngredientsLength: finalDetectedIngredients.length,
-        apiIngredientTagsLength: apiIngredientTags.length
-      });
-
+      // Navigate to product info screen with results
       navigateToProductInfo({
         productInfo: productInfo.product,
-        detectedIngredients: finalDetectedIngredients,
+        detectedIngredients: detectedIngredients,
         ingredientsList,
       });
     } finally {

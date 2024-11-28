@@ -74,7 +74,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
 
     // First try the passed ingredientsList from our detection
     if (productInfo.ingredientsList?.length > 0) {
-      console.log('Using provided ingredientsList:', productInfo.ingredientsList);
+      // console.log('Using provided ingredientsList:', productInfo.ingredientsList);
       return productInfo.ingredientsList;
     }
 
@@ -82,21 +82,21 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
     const localizedIngredientsKey = `ingredients_text_${locale}`;
     if (productInfo[localizedIngredientsKey]) {
       const ingredients = parseIngredients(productInfo[localizedIngredientsKey]);
-      console.log('Using localized ingredients text:', ingredients);
+      // console.log('Using localized ingredients text:', ingredients);
       return ingredients;
     }
 
     // Try English ingredients text
     if (productInfo.ingredients_text_en) {
       const ingredients = parseIngredients(productInfo.ingredients_text_en);
-      console.log('Using English ingredients text:', ingredients);
+      //console.log('Using English ingredients text:', ingredients);
       return ingredients;
     }
 
     // Try default ingredients text
     if (productInfo.ingredients_text) {
       const ingredients = parseIngredients(productInfo.ingredients_text);
-      console.log('Using default ingredients text:', ingredients);
+      // console.log('Using default ingredients text:', ingredients);
       return ingredients;
     }
 
@@ -105,7 +105,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
       const ingredients = productInfo.ingredients_hierarchy.map(i => 
         i.replace(/^en:/, '').replace(/-/g, ' ').trim()
       );
-      console.log('Using ingredients_hierarchy:', ingredients);
+      // console.log('Using ingredients_hierarchy:', ingredients);
       return ingredients;
     }
 
@@ -114,7 +114,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
       const ingredients = productInfo.ingredients_tags.map(i => 
         i.replace(/^en:/, '').replace(/-/g, ' ').trim()
       );
-      console.log('Using ingredients_tags:', ingredients);
+      // console.log('Using ingredients_tags:', ingredients);
       return ingredients;
     }
 
@@ -123,7 +123,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
       const ingredients = productInfo._keywords.filter(k => 
         !['food', 'product', 'med', 'and', 'contains'].includes(k.toLowerCase())
       );
-      console.log('Using _keywords:', ingredients);
+      // console.log('Using _keywords:', ingredients);
       return ingredients;
     }
 
@@ -136,7 +136,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
 
     // Show detected ingredients if any
     if (detectedIngredients.length > 0) {
-      console.log('Rendering detected ingredients:', detectedIngredients);
+      //console.log('Rendering detected ingredients:', detectedIngredients);
       sections.push(
         <View key="detected" style={styles.section}>
           <Text style={styles.sectionTitle}>
@@ -165,7 +165,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
     // Also show raw ingredients list if available
     const ingredients = getLocalizedIngredients();
     if (ingredients.length > 0) {
-      console.log('Rendering raw ingredients list:', ingredients);
+      // console.log('Rendering raw ingredients list:', ingredients);
       sections.push(
         <View key="raw" style={styles.section}>
           <Text style={styles.sectionTitle}>
@@ -295,7 +295,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
                            value !== '' && 
                            !isNaN(Number(value)) && 
                            Number(value) > 0;
-      console.log(`Nutrient ${nutrient}:`, value, 'isValid:', hasValidValue);
+      // console.log(`Nutrient ${nutrient}:`, value, 'isValid:', hasValidValue);
       return hasValidValue;
     });
     

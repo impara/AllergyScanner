@@ -74,6 +74,31 @@ export default {
     searchResult: '{{name}} kielellä {{language}}',
     tapToSelect: 'Napauta valitaksesi tämän ainesosan',
     additive: 'Lisäaine',
+    phrasesToRemove: {
+      storage: [
+        'säilytä viileässä',
+        'säilytys välillä',
+        'jääkaapissa',
+        'käyttövalmis'
+      ],
+      packaging: [
+        'valmistaja',
+        'sertifioitu',
+        'postilokero',
+        'oy',
+        'ab'
+      ],
+      allergens: [
+        'saattaa sisältää',
+        'sisältää'
+      ],
+      misc: [
+        'luonnollisista ainesosista',
+        'kasvipohjainen',
+        'kasvisruoka',
+        'vegaaninen'
+      ]
+    }
   },
   product: {
     brand: 'Merkki:',
