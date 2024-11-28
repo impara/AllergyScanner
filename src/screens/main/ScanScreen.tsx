@@ -125,32 +125,33 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
       setIsScanning(true);
       setLoading(true);
 
-      const canScan = await useOneScan();
-      if (!canScan) {
-        Alert.alert(
-          i18n.t('scan.scanLimitReached'),
-          i18n.t('scan.watchAdPrompt'),
-          [
-            isAdLoading ? 
-              {
-                text: i18n.t('ads.loading'),
-                onPress: () => {}
-              } :
-              {
-                text: i18n.t('scan.watchAdButton'),
-                onPress: watchAdForScans
-              },
-            {
-              text: i18n.t('common.cancel'),
-              style: 'cancel'
-            }
-          ]
-        );
-        return;
-      }
-
       try {
         const productInfo = await getOpenFoodFactsProductInfo(data);
+        
+        const canScan = await useOneScan();
+        if (!canScan) {
+          Alert.alert(
+            i18n.t('scan.scanLimitReached'),
+            i18n.t('scan.watchAdPrompt'),
+            [
+              isAdLoading ? 
+                {
+                  text: i18n.t('ads.loading'),
+                  onPress: () => {}
+                } :
+                {
+                  text: i18n.t('scan.watchAdButton'),
+                  onPress: watchAdForScans
+                },
+              {
+                text: i18n.t('common.cancel'),
+                style: 'cancel'
+              }
+            ]
+          );
+          return;
+        }
+
         await logScan(data, true);
 
         if (productInfo?.product?.ingredients_text || productInfo?.product?.ingredients_text_en) {

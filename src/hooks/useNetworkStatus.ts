@@ -11,12 +11,14 @@ export const useNetworkStatus = () => {
       setConnectionType(state.type);
       
       // Log network changes for debugging
+      /*
       console.log('Network Status Changed:', {
         isConnected: state.isConnected,
         type: state.type,
         isInternetReachable: state.isInternetReachable,
         details: state.details
       });
+      */
     });
 
     // Initial network check
