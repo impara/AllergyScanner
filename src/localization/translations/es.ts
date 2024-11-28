@@ -225,6 +225,8 @@ export default {
     undo: 'Deshacer',
     pullToRefresh: 'Desliza para actualizar',
     errorRefreshing: 'Error al actualizar los datos',
+    showMore: 'Mostrar Más',
+    showLess: 'Mostrar Menos',
   },
   camera: {
     permission: 'Permiso de Cámara Requerido',

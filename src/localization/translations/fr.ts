@@ -223,6 +223,8 @@ export default {
     undo: 'Annuler',
     pullToRefresh: 'Tirez pour actualiser',
     errorRefreshing: 'Erreur lors de l\'actualisation des données',
+    showMore: 'Afficher Plus',
+    showLess: 'Afficher Moins',
   },
   camera: {
     permission: 'Permission de Caméra Requise',

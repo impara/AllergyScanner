@@ -223,6 +223,8 @@ export default {
     undo: 'Kumoa',
     pullToRefresh: 'Vedä päivittääksesi',
     errorRefreshing: 'Virhe päivitettäessä tietoja',
+    showMore: 'Näytä Lisää',
+    showLess: 'Näytä Vähemmän',
   },
   camera: {
     permission: 'Kameran Käyttöoikeus Vaaditaan',

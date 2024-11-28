@@ -223,6 +223,8 @@ export default {
     undo: 'Fortryd',
     pullToRefresh: 'Træk for at opdatere',
     errorRefreshing: 'Fejl ved opdatering af data',
+    showMore: 'Vis Mere',
+    showLess: 'Vis Mindre',
   },
   camera: {
     permission: 'Kameratilladelse Påkrævet',

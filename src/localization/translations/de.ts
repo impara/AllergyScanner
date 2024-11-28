@@ -222,6 +222,8 @@ export default {
     undo: 'Rückgängig',
     pullToRefresh: 'Zum Aktualisieren ziehen',
     errorRefreshing: 'Fehler beim Aktualisieren der Daten',
+    showMore: 'Mehr Anzeigen',
+    showLess: 'Weniger Anzeigen',
   },
   camera: {
     permission: 'Kamerazugriff Erforderlich',

@@ -131,12 +131,14 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
     return [];
   };
 
+  const [isExpanded, setIsExpanded] = useState(false);
+  const MAX_VISIBLE_INGREDIENTS = 150; // characters
+
   const renderIngredients = () => {
     const sections: JSX.Element[] = [];
 
     // Show detected ingredients if any
     if (detectedIngredients.length > 0) {
-      //console.log('Rendering detected ingredients:', detectedIngredients);
       sections.push(
         <View key="detected" style={styles.section}>
           <Text style={styles.sectionTitle}>
@@ -162,25 +164,43 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
       );
     }
 
-    // Also show raw ingredients list if available
+    // Show raw ingredients list if available
     const ingredients = getLocalizedIngredients();
     if (ingredients.length > 0) {
-      // console.log('Rendering raw ingredients list:', ingredients);
+      const ingredientsText = ingredients.join(', ');
+      const shouldTruncate = ingredientsText.length > MAX_VISIBLE_INGREDIENTS;
+      const displayText = shouldTruncate && !isExpanded
+        ? `${ingredientsText.slice(0, MAX_VISIBLE_INGREDIENTS)}...`
+        : ingredientsText;
+
       sections.push(
         <View key="raw" style={styles.section}>
           <Text style={styles.sectionTitle}>
             {i18n.t('product.ingredients')}
           </Text>
-          <Text style={styles.ingredientsText}>
-            {ingredients.join(', ')}
-          </Text>
+          <View style={styles.ingredientsContainer}>
+            <Text style={styles.ingredientsText}>
+              {displayText}
+            </Text>
+            {shouldTruncate && (
+              <TouchableOpacity
+                onPress={() => setIsExpanded(!isExpanded)}
+                style={styles.showMoreButton}
+                accessibilityRole="button"
+                accessibilityLabel={isExpanded ? i18n.t('common.showLess') : i18n.t('common.showMore')}
+              >
+                <Text style={styles.showMoreText}>
+                  {isExpanded ? i18n.t('common.showLess') : i18n.t('common.showMore')}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       );
     }
 
     // If no ingredients at all
     if (sections.length === 0) {
-      console.log('No ingredients available to render');
       return (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
@@ -198,8 +218,12 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
 
   const panResponder = React.useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dy) > 5,
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gesture) => {
+        const isDownwardGesture = gesture.dy > 0;
+        const isFromTopArea = gesture.moveY < 100;
+        return isDownwardGesture && isFromTopArea;
+      },
       onPanResponderMove: (_, gesture) => {
         if (gesture.dy > 0) {
           pan.setValue(gesture.dy);
@@ -341,51 +365,56 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
             </View>
           </View>
 
-          <ScrollView style={styles.scrollView} bounces={false}>
-            <View style={styles.contentContainer}>
-              <Text style={styles.brandText}>
-                {productInfo.brands || productInfo.brand || i18n.t('product.unknownBrand')}
-              </Text>
+          <ScrollView 
+            style={styles.scrollView}
+            contentContainerStyle={styles.contentContainer}
+            showsVerticalScrollIndicator={true}
+            bounces={true}
+            overScrollMode="always"
+            alwaysBounceVertical={true}
+          >
+            <Text style={styles.brandText}>
+              {productInfo.brands || productInfo.brand || i18n.t('product.unknownBrand')}
+            </Text>
 
-              {renderSafetyIndicator()}
+            {renderSafetyIndicator()}
 
-              {renderIngredients()}
+            {renderIngredients()}
 
-              {hasNutrientValues() && (
-                <>
-                  <Divider style={styles.divider} />
-                  <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>
-                      {i18n.t('product.nutriments.title')}
-                    </Text>
-                    <View style={styles.nutrientsContainer}>
-                      {['energy-kcal', 'proteins', 'carbohydrates', 'fat'].map((nutrient) => {
-                        const value = productInfo.product.nutriments?.[nutrient] || 
-                                     productInfo.product.nutriments?.[`${nutrient}_100g`] ||
-                                     (nutrient === 'energy-kcal' && productInfo.product.nutriments?.['energy']);
-                        
-                        const unit = nutrient === 'energy-kcal' ? 
-                          (productInfo.product.nutriments?.[`${nutrient}_unit`] || 'kcal') : 
-                          'g';
-                        
-                        if (!value || isNaN(Number(value)) || Number(value) <= 0) {
-                          return null;
-                        }
-                        
-                        return (
-                          <Text key={nutrient} style={styles.nutrientText}>
-                            {i18n.t(`product.nutriments.${nutrient}`, {
-                              value: Number(value).toFixed(1),
-                              unit: nutrient === 'energy-kcal' ? unit : ''
-                            })}
-                          </Text>
-                        );
-                      })}
-                    </View>
+            {hasNutrientValues() && (
+              <>
+                <Divider style={styles.divider} />
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>
+                    {i18n.t('product.nutriments.title')}
+                  </Text>
+                  <View style={styles.nutrientsContainer}>
+                    {['energy-kcal', 'proteins', 'carbohydrates', 'fat'].map((nutrient) => {
+                      const value = productInfo.product.nutriments?.[nutrient] || 
+                                   productInfo.product.nutriments?.[`${nutrient}_100g`] ||
+                                   (nutrient === 'energy-kcal' && productInfo.product.nutriments?.['energy']);
+                      
+                      const unit = nutrient === 'energy-kcal' ? 
+                        (productInfo.product.nutriments?.[`${nutrient}_unit`] || 'kcal') : 
+                        'g';
+                      
+                      if (!value || isNaN(Number(value)) || Number(value) <= 0) {
+                        return null;
+                      }
+                      
+                      return (
+                        <Text key={nutrient} style={styles.nutrientText}>
+                          {i18n.t(`product.nutriments.${nutrient}`, {
+                            value: Number(value).toFixed(1),
+                            unit: nutrient === 'energy-kcal' ? unit : ''
+                          })}
+                        </Text>
+                      );
+                    })}
                   </View>
-                </>
-              )}
-            </View>
+                </View>
+              </>
+            )}
           </ScrollView>
         </SafeAreaView>
       </Animated.View>
@@ -442,6 +471,8 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: spacing.md,
+    paddingBottom: spacing.xl * 2,
+    flexGrow: 1,
   },
   brandText: {
     ...typography.subtitle1,
@@ -477,9 +508,23 @@ const styles = StyleSheet.create({
       : colors.text,
     fontSize: getAccessibleFontSize(14),
   },
+  ingredientsContainer: {
+    width: '100%',
+  },
   ingredientsText: {
     ...typography.body1,
     lineHeight: 24,
+    flexWrap: 'wrap',
+    width: '100%',
+  },
+  showMoreButton: {
+    marginTop: spacing.xs,
+    padding: spacing.xs,
+    alignSelf: 'flex-start',
+  },
+  showMoreText: {
+    ...typography.button,
+    color: colors.primary,
   },
   safetyContainer: {
     flexDirection: 'row',

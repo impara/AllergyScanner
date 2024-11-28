@@ -227,6 +227,8 @@ export default {
     undo: 'Undo',
     pullToRefresh: 'Pull to refresh',
     errorRefreshing: 'Error refreshing data',
+    showMore: 'Show More',
+    showLess: 'Show Less'
   },
   camera: {
     permission: 'Camera Permission Required',
