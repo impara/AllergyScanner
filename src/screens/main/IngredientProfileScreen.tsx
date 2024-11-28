@@ -14,6 +14,7 @@ import {
   Keyboard,
   TextInput,
   RefreshControl,
+  FlatList,
 } from 'react-native';
 import { List, Text, Switch, Title, Divider } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -648,23 +649,60 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
     setNewIngredient(text);
     
     if (text.trim().length >= 3) {
-      // Search for ingredients matching the input text
       const results = findIngredientsByName(text.trim(), i18n.locale);
       
-      // Sort results to prioritize matches in user's language
+      // Enhanced sorting strategy
+      const normalizedQuery = text.trim().toLowerCase();
+      const isSearchingENumber = /^e\s*\d+/i.test(normalizedQuery); // Check if searching for E-number
+
       const sortedResults = results.sort((a, b) => {
-        // First priority: exact matches in user's language
-        if (a.lang === i18n.locale && b.lang !== i18n.locale) return -1;
-        if (a.lang !== i18n.locale && b.lang === i18n.locale) return 1;
+        const aName = a.name.toLowerCase();
+        const bName = b.name.toLowerCase();
         
-        // Second priority: exact matches in English
-        if (a.lang === 'en' && b.lang !== 'en') return -1;
-        if (a.lang !== 'en' && b.lang === 'en') return 1;
-        
-        return 0;
+        // 1. Exact matches get highest priority
+        if (aName === normalizedQuery && bName !== normalizedQuery) return -1;
+        if (bName === normalizedQuery && aName !== normalizedQuery) return 1;
+
+        // 2. E-numbers get priority ONLY when user is searching for them
+        if (isSearchingENumber) {
+          const aIsENumber = /^e\d+/i.test(aName);
+          const bIsENumber = /^e\d+/i.test(bName);
+          if (aIsENumber && !bIsENumber) return -1;
+          if (!aIsENumber && bIsENumber) return 1;
+        }
+
+        // 3. Language priority
+        // - Current locale gets highest priority
+        // - English gets second priority
+        if (a.lang !== b.lang) {
+          if (a.lang === i18n.locale) return -1;
+          if (b.lang === i18n.locale) return 1;
+          if (a.lang === 'en') return -1;
+          if (b.lang === 'en') return 1;
+        }
+
+        // 4. Starts with query string
+        const aStartsWith = aName.startsWith(normalizedQuery);
+        const bStartsWith = bName.startsWith(normalizedQuery);
+        if (aStartsWith && !bStartsWith) return -1;
+        if (!aStartsWith && bStartsWith) return 1;
+
+        // 5. Word boundary matches
+        const aWordMatch = new RegExp(`\\b${normalizedQuery}`).test(aName);
+        const bWordMatch = new RegExp(`\\b${normalizedQuery}`).test(bName);
+        if (aWordMatch && !bWordMatch) return -1;
+        if (!aWordMatch && bWordMatch) return 1;
+
+        // 6. Length of name (shorter names first)
+        if (aName.length !== bName.length) {
+          return aName.length - bName.length;
+        }
+
+        // 7. Alphabetical order as final tiebreaker
+        return aName.localeCompare(bName);
       });
       
-      setSearchResults(sortedResults.slice(0, 15)); // Limit to top 15 results
+      setSearchResults(sortedResults.slice(0, 15));
       setShowSearchResults(true);
     } else {
       setSearchResults([]);
@@ -887,19 +925,25 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
             {/* Search Results Dropdown with improved scrolling */}
             {showSearchResults && searchResults.length > 0 && (
               <>
-                <SearchBackdrop onPress={dismissSearchResults} />
+                <TouchableWithoutFeedback onPress={dismissSearchResults}>
+                  <View style={styles.backdrop} />
+                </TouchableWithoutFeedback>
                 <View style={styles.searchResultsContainer}>
-                  <ScrollView
+                  <FlatList
+                    data={searchResults}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => renderSearchResult(item)}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={true}
                     style={styles.searchResults}
                     contentContainerStyle={styles.searchResultsContent}
-                    keyboardShouldPersistTaps="handled"
-                    keyboardDismissMode="on-drag"
-                    nestedScrollEnabled={true}
-                    bounces={false}
-                    showsVerticalScrollIndicator={true}
-                  >
-                    {searchResults.map((result) => renderSearchResult(result))}
-                  </ScrollView>
+                    scrollEventThrottle={16}
+                    onScroll={() => {
+                      if (Platform.OS === 'android') {
+                        Keyboard.dismiss();
+                      }
+                    }}
+                  />
                 </View>
               </>
             )}
@@ -1177,6 +1221,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
+  },
   searchResultsContainer: {
     position: 'absolute',
     top: '100%',
@@ -1185,9 +1237,7 @@ const styles = StyleSheet.create({
     maxHeight: 250,
     backgroundColor: colors.surface,
     borderRadius: 12,
-    marginTop: 4,
-    zIndex: 1000,
-    overflow: 'hidden',
+    zIndex: 2000,
     ...Platform.select({
       ios: {
         shadowColor: colors.shadow,
@@ -1196,22 +1246,25 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
       },
       android: {
-        elevation: 8,
+        elevation: 5,
         borderWidth: 1,
         borderColor: colors.divider,
       },
     }),
   },
   searchResults: {
-    flex: 1,
+    maxHeight: 250,
   },
   searchResultsContent: {
-    flexGrow: 1,
+    paddingVertical: spacing.xs,
   },
   searchResultItem: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     backgroundColor: colors.surface,
+    minHeight: 48,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.divider,
   },
   searchResultContent: {
     flexDirection: 'row',

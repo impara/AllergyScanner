@@ -62,6 +62,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    zIndex: 9999,
+    elevation: Platform.OS === 'android' ? 9999 : undefined,
     ...Platform.select({
       ios: {
         shadowColor: colors.shadow,
