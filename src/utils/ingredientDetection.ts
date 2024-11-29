@@ -4,6 +4,8 @@ import { IngredientsProfile as IngredientProfile } from '../config/firebase';
 import ingredientsTaxonomyData from '../assets/taxonomies/ingredients.json';
 import additivesTaxonomyData from '../assets/taxonomies/additives.json';
 import i18n from '../localization/i18n';
+import { DetectedIngredient } from '../types';
+import { getIngredientName } from './ingredientUtils';
 
 interface TaxonomyData {
   id: string;
@@ -15,284 +17,227 @@ interface TaxonomyData {
   e_number?: string;
 }
 
-const ingredientsTaxonomy: { [key: string]: TaxonomyData } = ingredientsTaxonomyData as {
-  [key: string]: TaxonomyData;
-};
-
-const additivesTaxonomy: { [key: string]: TaxonomyData } = additivesTaxonomyData as {
-  [key: string]: TaxonomyData;
-};
-
 // Combine both taxonomies
 const combinedTaxonomy: { [key: string]: TaxonomyData } = {
-  ...ingredientsTaxonomy,
-  ...additivesTaxonomy
+  ...ingredientsTaxonomyData as { [key: string]: TaxonomyData },
+  ...additivesTaxonomyData as { [key: string]: TaxonomyData }
 };
 
-// Helper function to find matches in a specific language
-const findInLanguage = (name: string, lang: string): { id: string; lang: string }[] => {
-  const matches: { id: string; lang: string }[] = [];
-  const words = name.split(/\s+/);
-  
-  Object.entries(combinedTaxonomy).forEach(([id, data]) => {
-    if (data.labels?.[lang]) {
-      const labels = data.labels[lang];
-      // Check if any label matches exactly or contains all words in sequence
-      if (labels.some(label => {
-        const normalizedLabel = label.toLowerCase();
-        // Try exact match first
-        if (normalizedLabel === name) return true;
-        
-        // Try partial matches for compound words (common in German)
-        if (words.length > 1) {
-          // Check if all words appear in the label in order
-          let lastIndex = -1;
-          return words.every(word => {
-            const idx = normalizedLabel.indexOf(word, lastIndex + 1);
-            if (idx === -1) return false;
-            lastIndex = idx;
-            return true;
-          });
-        }
-        
-        // For single words, check if it's a complete word match
-        return new RegExp(`\\b${name}\\b`).test(normalizedLabel);
-      })) {
-        matches.push({ id, lang });
-      }
-    }
-  });
-  
-  return matches;
+// Helper to normalize text
+const normalizeText = (text: string): string => {
+  return text.toLowerCase()
+    .replace(/^[a-z]{2}:/, '')  // Remove language prefix
+    .replace(/[,\-]/g, ' ')     // Replace commas and hyphens with spaces
+    .trim()
+    .split(/\s+/)               // Split into words
+    .filter(word => word.length > 2)  // Only keep words longer than 2 characters
+    .join(' ');
 };
 
-// Helper function to find matches in all languages
-const findInAllLanguages = (name: string): { id: string; lang: string }[] => {
-  const matches: { id: string; lang: string }[] = [];
-  const languages = new Set(
-    Object.values(combinedTaxonomy).flatMap(data => 
-      Object.keys(data.labels || {})
-    )
-  );
-  
-  languages.forEach(lang => {
-    const langMatches = findInLanguage(name, lang);
-    matches.push(...langMatches);
-  });
-  
-  return matches;
-};
-
-/**
- * Function to find the standardized ingredient IDs given an ingredient name.
- * @param ingredientName - The ingredient name to find.
- * @returns An array of standardized ingredient IDs.
- */
-export const findIngredientIdsWithLang = (
-  ingredientName: string,
-  preferredLang: string = i18n.locale
-): { id: string; lang: string }[] => {
-  const lowerName = ingredientName.toLowerCase().trim();
-  
-  // First try preferred language
-  const preferredMatches = findInLanguage(lowerName, preferredLang);
-  if (preferredMatches.length > 0) {
-    return preferredMatches;
-  }
-  
-  // Then try English as fallback
-  if (preferredLang !== 'en') {
-    const englishMatches = findInLanguage(lowerName, 'en');
-    if (englishMatches.length > 0) {
-      return englishMatches;
-    }
-  }
-  
-  // Finally try other languages
-  return findInAllLanguages(lowerName);
-};
-
-/**
- * Helper function to get phrases to remove for a specific language
- */
-const getPhrasesToRemove = (lang: string): string[] => {
-  try {
-    const translations = i18n.translations[lang];
-    if (!translations?.ingredients?.phrasesToRemove) {
-      return [];
-    }
-    return Object.values(translations.ingredients.phrasesToRemove)
-      .flat()
-      .filter(phrase => typeof phrase === 'string');
-  } catch (error) {
-    console.warn('Error getting phrases to remove:', error);
-    return [];
-  }
-};
-
-/**
- * Parse and normalize ingredients text into a list of individual ingredients
- */
-export const parseIngredients = (ingredientsText: string, productLang?: string): string[] => {
-  if (!ingredientsText) return [];
-
-  if (Array.isArray(ingredientsText)) {
-    return ingredientsText.map(ingredient => ingredient.trim());
-  }
-
-  // Normalize text: remove special characters, convert to lowercase
-  const normalizedText = ingredientsText
-    .toLowerCase()
-    .replace(/[\(\)\[\]]/g, ' ')
-    .replace(/[^a-zA-ZÀ-ÿ0-9,\s]/g, ' '); // Keep accented characters
-
-  // Get language-specific phrases to remove
-  const phrasesToRemove = [
-    // Common phrases across all languages
-    'www',
-    '@',
-    'http',
-    // Get language-specific phrases
-    ...getPhrasesToRemove(productLang || 'en'),
-    // Add English phrases as fallback
-    ...(productLang !== 'en' ? getPhrasesToRemove('en') : [])
-  ];
-
-  let cleanedText = normalizedText;
-  phrasesToRemove.forEach((phrase) => {
-    if (phrase) {
-      const regex = new RegExp(`\\b${phrase}\\b`, 'gi');
-      cleanedText = cleanedText.replace(regex, ' ');
-    }
-  });
-
-  // Remove content within parentheses
-  cleanedText = cleanedText.replace(/\([^)]*\)/g, ' ');
-
-  // Remove percentage values
-  cleanedText = cleanedText.replace(/\d+([.,]\d+)?%/g, ' ');
-
-  // Collapse multiple spaces into one
-  cleanedText = cleanedText.replace(/\s+/g, ' ');
-
-  // Split ingredients by common delimiters
-  const ingredientsList = cleanedText
-    .split(/[,;]/)
-    .map((ingredient) => ingredient.trim())
-    .filter((ingredient) => {
-      if (ingredient.length === 0) return false;
-      if (ingredient.length === 1) return false;
-      if (/^\d+$/.test(ingredient)) return false; // Remove pure numbers
-      return true;
-    });
-
-  // Remove duplicates
-  return Array.from(new Set(ingredientsList));
-};
-
-/**
- * Detect ingredients from various sources and match against user's enabled ingredients
- */
-export const unifiedDetectIngredients = (
+// Main ingredient detection function
+export const detectIngredients = (
   ingredientsList: string[],
   userIngredientsData: IngredientProfile,
-  apiIngredientTags: string[],
+  apiIngredientTags: string[] = [],
   productData?: any
-): { id: string; lang?: string }[] => {
-  const detectedIds = new Set<string>();
+): DetectedIngredient[] => {
+  const detectedIngredients = new Map<string, DetectedIngredient>();
+  const productLang = productData?.lang || i18n.locale;
 
-  // Detect product language from API response
-  const productLang = productData?.product?.lang || 
-                     (productData?.product?.languages_codes ? 
-                       Object.entries(productData.product.languages_codes)
-                         .sort(([,a], [,b]) => Number(b) - Number(a))[0][0] 
-                       : 'en');
+  // Get enabled ingredients
+  const enabledIngredients = Object.entries(userIngredientsData)
+    .filter(([_, data]) => data.selected)
+    .map(([id, data]) => ({
+      id,
+      taxonomyData: combinedTaxonomy[id],
+      lang: data.lang || productLang,
+      category: data.category
+    }));
 
-  // Map user ingredients to IDs with language
-  const userIngredientIds = new Map<string, { lang?: string; originalId: string }>();
-  for (const [id, data] of Object.entries(userIngredientsData)) {
-    if (data.selected) {
-      // Store both the full ID and the base ingredient name
-      const normalizedId = id.toLowerCase()
-        .replace(/^[a-z]{2}:/, '')  // Remove language prefix
-        .split(',')[0];             // Take only the first part before comma
+  console.log('Looking for ingredients:', enabledIngredients.map(ing => ({
+    id: ing.id,
+    name: getIngredientName(ing.id, ing.lang),
+    lang: ing.lang
+  })));
+
+  // Process each ingredient from the list
+  ingredientsList.forEach(ingredient => {
+    // Skip ingredients that are too short
+    if (ingredient.length <= 2) return;
+    
+    const normalizedIngredient = normalizeText(ingredient);
+    if (!normalizedIngredient) return; // Skip if nothing left after normalization
+
+    enabledIngredients.forEach(enabled => {
+      if (!enabled.taxonomyData?.labels) return;
+
+      // Check in ingredient's language first, then English as fallback
+      const languages = [enabled.lang, 'en'];
       
-      userIngredientIds.set(normalizedId, { 
-        lang: data.lang,
-        originalId: id 
-      });
-    }
-  }
+      for (const lang of languages) {
+        const labels = enabled.taxonomyData.labels[lang] || [];
+        const synonyms = enabled.taxonomyData.synonyms?.[lang] || [];
+        
+        for (const term of [...labels, ...synonyms]) {
+          const normalizedTerm = normalizeText(term);
+          if (!normalizedTerm) continue;
 
-  // Helper function to check if an ingredient matches any enabled ingredients
-  const checkForMatch = (ingredientId: string, ingredient: string) => {
-    // Normalize the ingredient ID to match how we stored user ingredients
-    const normalizedId = ingredientId.toLowerCase()
-      .replace(/^[a-z]{2}:/, '')
-      .split(',')[0];  // Take only the first part before comma
-    
-    // Also get the base ingredient name without qualifiers
-    const baseIngredient = ingredient.toLowerCase().split(' ')[0];
-    
-    for (const [enabledId, enabledData] of userIngredientIds.entries()) {
-      // Try exact matches first
-      if (normalizedId === enabledId || 
-          baseIngredient === enabledId ||
-          normalizedId.includes(enabledId) || 
-          enabledId.includes(normalizedId)) {
-        detectedIds.add(enabledData.originalId);
-        return true;
-      }
+          // Only match if:
+          // 1. Exact match
+          // 2. One is a complete word within the other
+          const isMatch = 
+            normalizedIngredient === normalizedTerm ||
+            normalizedIngredient.split(' ').some(word => 
+              normalizedTerm === word || 
+              normalizedTerm.split(' ').includes(word)
+            );
 
-      // Try matching against all labels in the taxonomy
-      const enabledIngredient = combinedTaxonomy[enabledData.originalId];
-      if (enabledIngredient?.labels) {
-        for (const labels of Object.values(enabledIngredient.labels)) {
-          for (const label of labels) {
-            const normalizedLabel = label.toLowerCase().split(',')[0];
-            if (normalizedLabel === baseIngredient ||
-                normalizedId.includes(normalizedLabel) ||
-                normalizedLabel.includes(normalizedId) ||
-                ingredient.includes(normalizedLabel) ||
-                normalizedLabel.includes(ingredient)) {
-              detectedIds.add(enabledData.originalId);
-              return true;
-            }
+          if (isMatch) {
+            console.log('Match found:', {
+              ingredient: normalizedIngredient,
+              term: normalizedTerm,
+              lang,
+              matchType: normalizedIngredient === normalizedTerm ? 'exact' : 'partial'
+            });
+
+            detectedIngredients.set(enabled.id, {
+              id: enabled.id,
+              name: getIngredientName(enabled.id, enabled.lang),
+              lang: enabled.lang,
+              category: enabled.category,
+              isAdditive: enabled.taxonomyData.e_number !== undefined,
+              eNumber: enabled.taxonomyData.e_number
+            });
+            
+            return; // Stop after first match for this ingredient
           }
         }
       }
-    }
-    return false;
+    });
+  });
+
+  // Process API tags with stricter matching
+  apiIngredientTags.forEach(tag => {
+    const normalizedTag = normalizeText(tag);
+    if (!normalizedTag) return;
+
+    enabledIngredients.forEach(enabled => {
+      const normalizedId = normalizeText(enabled.id);
+      if (normalizedTag === normalizedId) {
+        detectedIngredients.set(enabled.id, {
+          id: enabled.id,
+          name: getIngredientName(enabled.id, enabled.lang),
+          lang: enabled.lang,
+          category: enabled.category,
+          isAdditive: enabled.taxonomyData?.e_number !== undefined,
+          eNumber: enabled.taxonomyData?.e_number
+        });
+      }
+    });
+  });
+
+  return Array.from(detectedIngredients.values());
+};
+
+// Helper function to parse ingredients text
+export const parseIngredients = (text: string, lang?: string): string[] => {
+  const phrasesToRemove = i18n.t('ingredients.phrasesToRemove', { locale: lang || i18n.locale }) as {
+    [key: string]: string[];
   };
-
-  // First try to detect ingredients in the product's language
-  ingredientsList.forEach((ingredient) => {
-    const productLangMatches = findInLanguage(ingredient, productLang);
-    productLangMatches.forEach(({ id: ingredientId }) => {
-      checkForMatch(ingredientId, ingredient);
+  
+  let cleanedText = text.toLowerCase();
+  
+  Object.values(phrasesToRemove).forEach(phrases => {
+    (phrases as string[]).forEach(phrase => {
+      cleanedText = cleanedText.replace(new RegExp(phrase, 'gi'), '');
     });
   });
 
-  // Try English as a fallback for unmatched ingredients
-  if (productLang !== 'en') {
-    ingredientsList.forEach((ingredient) => {
-      const englishMatches = findInLanguage(ingredient, 'en');
-      englishMatches.forEach(({ id: ingredientId }) => {
-        checkForMatch(ingredientId, ingredient);
-      });
-    });
-  }
+  return cleanedText
+    .split(/[,;()]/)
+    .map(i => i.trim())
+    .filter(i => i.length > 0);
+};
 
-  // Process API tags
-  apiIngredientTags.forEach((tag) => {
-    const normalizedTag = tag.toLowerCase()
-      .replace(/^[a-z]{2}:/, '')
-      .replace(/-/g, ' ');
+// For backward compatibility
+export const unifiedDetectIngredients = detectIngredients;
 
-    checkForMatch(normalizedTag, normalizedTag);
+// Add this function export
+export const findIngredientIdsWithLang = (
+  query: string,
+  lang: string = i18n.locale
+): Array<{ id: string; lang: string }> => {
+  const normalizedQuery = query.toLowerCase()
+    .replace(/^[a-z]{2}:/, '')  // Remove language prefix
+    .trim();
+
+  const matches: Array<{ id: string; lang: string }> = [];
+
+  // Search through taxonomy
+  Object.entries(combinedTaxonomy).forEach(([id, data]) => {
+    // Check labels in the specified language
+    if (data.labels?.[lang]) {
+      const labels = data.labels[lang];
+      if (labels.some(label => 
+        label.toLowerCase().includes(normalizedQuery) ||
+        normalizedQuery.includes(label.toLowerCase())
+      )) {
+        matches.push({ id, lang });
+        return;
+      }
+    }
+
+    // Check synonyms in the specified language
+    if (data.synonyms?.[lang]) {
+      const synonyms = data.synonyms[lang];
+      if (synonyms.some(synonym => 
+        synonym.toLowerCase().includes(normalizedQuery) ||
+        normalizedQuery.includes(synonym.toLowerCase())
+      )) {
+        matches.push({ id, lang });
+        return;
+      }
+    }
+
+    // If no match in preferred language and it's not English,
+    // try English as fallback
+    if (lang !== 'en' && data.labels?.['en']) {
+      const englishLabels = data.labels['en'];
+      if (englishLabels.some(label => 
+        label.toLowerCase().includes(normalizedQuery) ||
+        normalizedQuery.includes(label.toLowerCase())
+      )) {
+        matches.push({ id, lang: 'en' });
+      }
+    }
   });
 
-  return Array.from(detectedIds).map(id => ({ id }));
+  // Sort matches by relevance:
+  // 1. Exact matches first
+  // 2. Starts with query
+  // 3. Contains query
+  return matches.sort((a, b) => {
+    const aLabels = combinedTaxonomy[a.id].labels?.[a.lang] || [];
+    const bLabels = combinedTaxonomy[b.id].labels?.[b.lang] || [];
+
+    const aHasExact = aLabels.some(label => 
+      label.toLowerCase() === normalizedQuery);
+    const bHasExact = bLabels.some(label => 
+      label.toLowerCase() === normalizedQuery);
+
+    if (aHasExact && !bHasExact) return -1;
+    if (!aHasExact && bHasExact) return 1;
+
+    const aStartsWith = aLabels.some(label => 
+      label.toLowerCase().startsWith(normalizedQuery));
+    const bStartsWith = bLabels.some(label => 
+      label.toLowerCase().startsWith(normalizedQuery));
+
+    if (aStartsWith && !bStartsWith) return -1;
+    if (!aStartsWith && bStartsWith) return 1;
+
+    return 0;
+  });
 };
 
 

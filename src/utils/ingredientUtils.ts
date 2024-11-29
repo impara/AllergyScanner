@@ -2,7 +2,6 @@ import ingredientsTaxonomy from '../assets/taxonomies/ingredients.json';
 import additivesTaxonomy from '../assets/taxonomies/additives.json';
 import * as Localization from 'expo-localization';
 import { IngredientsProfile } from '../config/firebase';
-import { findIngredientIdsWithLang } from './ingredientDetection';
 
 // Combine both taxonomies
 const combinedTaxonomy = { ...ingredientsTaxonomy, ...additivesTaxonomy };
@@ -148,6 +147,18 @@ export const findIngredientsByName = (
         lang: bestLang
       };
     });
+
+  // Log matched ingredients for debugging
+  console.log('Matched ingredients:', {
+    query,
+    locale,
+    count: matchedIngredients.length,
+    matches: matchedIngredients.map(({ id, name, lang }) => ({
+      id,
+      name,
+      lang
+    }))
+  });
 
   // Sort results so exact matches appear first
   return matchedIngredients.sort((a, b) => {

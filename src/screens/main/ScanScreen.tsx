@@ -15,7 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { getOpenFoodFactsProductInfo } from '../../services/api';
 import { getUserIngredients, IngredientsProfile } from '../../config/firebase';
 import { RootStackNavigationProp, TabNavigationProp, DetectedIngredient } from '../../types/navigation';
-import { unifiedDetectIngredients, parseIngredients } from '../../utils/ingredientDetection';
+import { detectIngredients, parseIngredients } from '../../utils/ingredientDetection';
 import { ProductInfo } from '../../types/product';
 import { colors } from '../../theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -266,11 +266,11 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
       }
 
       // Detect ingredients using all available sources
-      const detectedIngredients = unifiedDetectIngredients(
+      const detectedIngredients = detectIngredients(
         ingredientsList,
         userIngredientsData,
         apiIngredientTags,
-        { product: productInfo.product }
+        { lang: productInfo.product.lang }
       );
 
       // Navigate to product info screen with results

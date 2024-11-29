@@ -16,7 +16,7 @@ import { Text, Chip, IconButton, Divider } from 'react-native-paper';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RouteProp, useRoute } from '@react-navigation/core';
 import { RootStackParamList, ProductInfoScreenRouteProp, DetectedIngredient } from '../../types/navigation';
-import { getIngredientName } from '../../utils/ingredientUtils';
+import { getIngredientName, isAdditive, getENumber } from '../../utils/ingredientUtils';
 import i18n from '../../localization/i18n';
 import { useLanguage } from '../../context/LanguageContext';
 import { colors } from '../../theme/colors';
@@ -65,16 +65,38 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
   };
 
   const getLocalizedIngredients = () => {
-    console.log('ProductInfo Ingredient Sources:', {
-      ingredientsList: productInfo.ingredientsList?.length,
-      ingredients_hierarchy: productInfo.ingredients_hierarchy?.length,
-      ingredients_tags: productInfo.ingredients_tags?.length,
-      keywords: productInfo._keywords?.length
+    const sources = {
+      ingredientsList: productInfo.ingredientsList?.length || 0,
+      ingredients_hierarchy: productInfo.ingredients_hierarchy?.length || 0,
+      ingredients_tags: productInfo.ingredients_tags?.length || 0,
+      keywords: productInfo._keywords?.length || 0
+    };
+
+    // Enhanced logging to show detected ingredients and their details
+    console.log('Product Ingredient Analysis:', {
+      timestamp: new Date().toISOString(),
+      productName: getLocalizedProductName(),
+      availableSources: sources,
+      selectedSource: productInfo.ingredientsList?.length > 0 ? 'ingredientsList' :
+                     productInfo[`ingredients_text_${locale}`] ? `ingredients_text_${locale}` :
+                     productInfo.ingredients_text_en ? 'ingredients_text_en' :
+                     productInfo.ingredients_text ? 'ingredients_text' :
+                     productInfo.ingredients_hierarchy?.length ? 'ingredients_hierarchy' :
+                     productInfo.ingredients_tags?.length ? 'ingredients_tags' :
+                     productInfo._keywords?.length ? '_keywords' : 'none',
+      detectedIngredients: detectedIngredients.map(({ id }) => ({
+        id,
+        name: getIngredientName(id, locale),
+        isAdditive: isAdditive(id),
+        ...(isAdditive(id) && { eNumber: getENumber(id) })
+      })),
+      totalDetected: detectedIngredients.length,
+      additiveCount: detectedIngredients.filter(({ id }) => isAdditive(id)).length
     });
 
     // First try the passed ingredientsList from our detection
     if (productInfo.ingredientsList?.length > 0) {
-      // console.log('Using provided ingredientsList:', productInfo.ingredientsList);
+      console.log('Using provided ingredientsList:', productInfo.ingredientsList);
       return productInfo.ingredientsList;
     }
 
@@ -82,7 +104,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
     const localizedIngredientsKey = `ingredients_text_${locale}`;
     if (productInfo[localizedIngredientsKey]) {
       const ingredients = parseIngredients(productInfo[localizedIngredientsKey]);
-      // console.log('Using localized ingredients text:', ingredients);
+      console.log('Using localized ingredients text:', ingredients);
       return ingredients;
     }
 
@@ -96,7 +118,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
     // Try default ingredients text
     if (productInfo.ingredients_text) {
       const ingredients = parseIngredients(productInfo.ingredients_text);
-      // console.log('Using default ingredients text:', ingredients);
+      console.log('Using default ingredients text:', ingredients);
       return ingredients;
     }
 
@@ -105,7 +127,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
       const ingredients = productInfo.ingredients_hierarchy.map(i => 
         i.replace(/^en:/, '').replace(/-/g, ' ').trim()
       );
-      // console.log('Using ingredients_hierarchy:', ingredients);
+      console.log('Using ingredients_hierarchy:', ingredients);
       return ingredients;
     }
 
@@ -114,7 +136,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
       const ingredients = productInfo.ingredients_tags.map(i => 
         i.replace(/^en:/, '').replace(/-/g, ' ').trim()
       );
-      // console.log('Using ingredients_tags:', ingredients);
+      console.log('Using ingredients_tags:', ingredients);
       return ingredients;
     }
 
@@ -123,7 +145,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
       const ingredients = productInfo._keywords.filter(k => 
         !['food', 'product', 'med', 'and', 'contains'].includes(k.toLowerCase())
       );
-      // console.log('Using _keywords:', ingredients);
+      console.log('Using _keywords:', ingredients);
       return ingredients;
     }
 

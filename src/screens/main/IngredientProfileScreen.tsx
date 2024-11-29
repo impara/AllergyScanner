@@ -837,6 +837,52 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
     );
   };
 
+  useEffect(() => {
+    // Group ingredients by category and enabled status
+    const enabledIngredients = Object.entries(checkedIngredients)
+      .filter(([_, data]) => data.selected)
+      .reduce((acc, [id, data]) => {
+        const category = data.category || 'other';
+        if (!acc[category]) {
+          acc[category] = [];
+        }
+        acc[category].push({
+          id,
+          name: getIngredientName(id, data.lang),
+          isAdditive: isAdditive(id),
+          eNumber: isAdditive(id) ? getENumber(id) : undefined,
+          lang: data.lang
+        });
+        return acc;
+      }, {} as Record<string, Array<{
+        id: string;
+        name: string;
+        isAdditive: boolean;
+        eNumber?: string;
+        lang?: string;
+      }>>);
+
+    console.log('\n=== Enabled Ingredients Profile ===');
+    console.log('Timestamp:', new Date().toISOString());
+    console.log('Total Ingredients:', Object.keys(checkedIngredients).length);
+    console.log('Total Enabled:', Object.values(checkedIngredients).filter(ing => ing.selected).length);
+    console.log('\nEnabled Ingredients by Category:');
+    
+    Object.entries(enabledIngredients).forEach(([category, ingredients]) => {
+      console.log(`\n${category.toUpperCase()} (${ingredients.length} ingredients):`);
+      ingredients.forEach((ing, index) => {
+        console.log(`${index + 1}. ${ing.name}`);
+        console.log(`   ID: ${ing.id}`);
+        console.log(`   Language: ${ing.lang || 'default'}`);
+        if (ing.isAdditive) {
+          console.log(`   Type: Additive${ing.eNumber ? ` (E${ing.eNumber})` : ''}`);
+        }
+      });
+    });
+    
+    console.log('\n===============================\n');
+  }, [checkedIngredients]);
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
