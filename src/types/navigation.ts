@@ -18,6 +18,8 @@ export interface DetectedIngredient {
   eNumber?: string;
   selected?: boolean;
   categories?: string[];
+  matchType?: 'exact' | 'label' | 'synonym' | 'parent' | 'child';
+  matchScore?: number;
 }
 
 export interface IngredientData {
@@ -25,6 +27,14 @@ export interface IngredientData {
   name: string;
   lang?: string;
   category?: string;
+}
+
+export interface IngredientMatch {
+  ingredientId: string;
+  matchedTerm: string;
+  score: number;
+  matchType: 'exact' | 'label' | 'synonym' | 'parent' | 'child';
+  language: string;
 }
 
 export type RootStackParamList = {
