@@ -41,8 +41,15 @@ const SPRING_CONFIG = {
   restSpeedThreshold: 0.01,
 };
 
-const DRAG_DISMISS_THRESHOLD = 50;
-const VELOCITY_THRESHOLD = 0.5;
+const DRAG_DISMISS_THRESHOLD = 150;
+const VELOCITY_THRESHOLD = 1.5;
+const DRAG_AREA_HEIGHT = 32;
+
+const DragHandle: React.FC = () => (
+  <View style={styles.dragHandleContainer}>
+    <View style={styles.dragHandle} />
+  </View>
+);
 
 const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({ 
   theme = defaultTheme, 
@@ -249,69 +256,155 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
     return <>{sections}</>;
   };
 
+  const [isDraggingFromHandle, setIsDraggingFromHandle] = useState(false);
+
   const panResponder = React.useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponder: (_, gesture) => {
-        const isDownwardGesture = gesture.dy > 0;
-        const isFromTopArea = gesture.moveY < 100;
-        return isDownwardGesture && isFromTopArea;
+      onStartShouldSetPanResponder: (evt) => {
+        const touchInDragArea = evt.nativeEvent.locationY < DRAG_AREA_HEIGHT;
+        if (touchInDragArea) {
+          setIsDraggingFromHandle(true);
+          return true;
+        }
+        return false;
       },
-      onPanResponderMove: Animated.event(
-        [null, { dy: pan.y }],
-        { useNativeDriver: true }
-      ),
+      onMoveShouldSetPanResponder: (_, gesture) => {
+        if (!isDraggingFromHandle) return false;
+        
+        const isDownwardGesture = gesture.dy > 0;
+        return isDownwardGesture;
+      },
+      onPanResponderGrant: () => {
+        pan.extractOffset();
+      },
+      onPanResponderMove: (_, gesture) => {
+        if (isDraggingFromHandle) {
+          Animated.event(
+            [null, { dy: pan.y }],
+            { useNativeDriver: Platform.OS === 'android' }
+          )(_, gesture);
+        }
+      },
       onPanResponderRelease: (_, gesture) => {
+        setIsDraggingFromHandle(false);
+
         if (gesture.dy > DRAG_DISMISS_THRESHOLD || gesture.vy > VELOCITY_THRESHOLD) {
           closeModal();
         } else {
           // Spring back to original position
-          Animated.parallel([
-            Animated.spring(pan.y, {
-              toValue: 0,
-              ...SPRING_CONFIG,
-              useNativeDriver: true,
-            }),
-            Animated.spring(animatedOpacity, {
-              toValue: 1,
-              ...SPRING_CONFIG,
-              useNativeDriver: true,
-            })
-          ]).start();
+          Animated.spring(pan.y, {
+            toValue: 0,
+            ...SPRING_CONFIG,
+            useNativeDriver: Platform.OS === 'android',
+          }).start();
         }
+      },
+      onPanResponderTerminate: () => {
+        setIsDraggingFromHandle(false);
+        Animated.spring(pan.y, {
+          toValue: 0,
+          ...SPRING_CONFIG,
+          useNativeDriver: Platform.OS === 'android',
+        }).start();
       },
     })
   ).current;
 
   const closeModal = () => {
-    Animated.parallel([
-      Animated.timing(pan.y, {
-        toValue: 800,
-        duration: 300,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      }),
-      Animated.timing(animatedOpacity, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      })
-    ]).start(() => {
-      setModalVisible(false);
-      navigation.goBack();
+    const closeAnimation = Platform.select({
+      ios: () => {
+        Animated.parallel([
+          Animated.timing(pan.y, {
+            toValue: 800,
+            duration: 300,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: false,
+          }),
+          Animated.timing(animatedOpacity, {
+            toValue: 0,
+            duration: 200,
+            useNativeDriver: true,
+          })
+        ]).start(() => {
+          setModalVisible(false);
+          navigation.goBack();
+        });
+      },
+      android: () => {
+        Animated.parallel([
+          Animated.timing(pan.y, {
+            toValue: 800,
+            duration: 300,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(animatedOpacity, {
+            toValue: 0,
+            duration: 200,
+            useNativeDriver: true,
+          })
+        ]).start(() => {
+          setModalVisible(false);
+          navigation.goBack();
+        });
+      },
+      default: () => {
+        Animated.parallel([
+          Animated.timing(pan.y, {
+            toValue: 800,
+            duration: 300,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(animatedOpacity, {
+            toValue: 0,
+            duration: 200,
+            useNativeDriver: true,
+          })
+        ]).start(() => {
+          setModalVisible(false);
+          navigation.goBack();
+        });
+      }
+    }) ?? (() => {
+      Animated.parallel([
+        Animated.timing(pan.y, {
+          toValue: 800,
+          duration: 300,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(animatedOpacity, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        })
+      ]).start(() => {
+        setModalVisible(false);
+        navigation.goBack();
+      });
     });
+
+    closeAnimation();
   };
 
   const animatedStyle = {
-    transform: [
-      {
-        translateY: pan.y.interpolate({
-          inputRange: [-200, 0, 800],
-          outputRange: [-50, 0, 800],
-          extrapolate: 'clamp',
-        }),
-      }
-    ],
+    transform: Platform.select({
+      ios: [
+        {
+          translateY: pan.y
+        }
+      ],
+      android: [
+        {
+          translateY: pan.y.interpolate({
+            inputRange: [-200, 0, 800],
+            outputRange: [-50, 0, 800],
+            extrapolate: 'clamp',
+          }),
+        }
+      ],
+    }),
     opacity: animatedOpacity.interpolate({
       inputRange: [0, 1],
       outputRange: [0.5, 1],
@@ -407,35 +500,42 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
       visible={modalVisible}
       onRequestClose={closeModal}
     >
-      <Animated.View style={[styles.modalContainer, animatedStyle]} {...panResponder.panHandlers}>
+      <Animated.View 
+        style={[styles.modalContainer, animatedStyle]} 
+        {...panResponder.panHandlers}
+      >
         <SafeAreaView style={[styles.safeArea, platformShadow]}>
           <View style={[
-            styles.headerContainer,
-            detectedIngredients.length === 0 ? { backgroundColor: `${colors.success}15` } : { backgroundColor: `${colors.warning}15` }
+            styles.headerWrapper,
+            detectedIngredients.length === 0 
+              ? { backgroundColor: `${colors.success}15` } 
+              : { backgroundColor: `${colors.warning}15` }
           ]}>
-            <View style={styles.dragIndicator} />
-            <View style={styles.headerContent}>
-              <TouchableOpacity
-                accessibilityLabel={i18n.t('product.close')}
-                accessibilityRole="button"
-                onPress={closeModal}
-                style={styles.closeButton}
-              >
-                <IconButton
-                  icon="chevron-down"
-                  size={32}
-                  iconColor={detectedIngredients.length === 0 ? colors.success : colors.warning}
-                />
-              </TouchableOpacity>
-              <Text 
-                style={[
-                  styles.headerTitle,
-                  { color: detectedIngredients.length === 0 ? colors.success : colors.warning }
-                ]} 
-                numberOfLines={1}
-              >
-                {getLocalizedProductName()}
-              </Text>
+            <DragHandle />
+            <View style={styles.headerContainer}>
+              <View style={styles.headerContent}>
+                <TouchableOpacity
+                  accessibilityLabel={i18n.t('product.close')}
+                  accessibilityRole="button"
+                  onPress={closeModal}
+                  style={styles.closeButton}
+                >
+                  <IconButton
+                    icon="chevron-down"
+                    size={32}
+                    iconColor={detectedIngredients.length === 0 ? colors.success : colors.warning}
+                  />
+                </TouchableOpacity>
+                <Text 
+                  style={[
+                    styles.headerTitle,
+                    { color: detectedIngredients.length === 0 ? colors.success : colors.warning }
+                  ]} 
+                  numberOfLines={1}
+                >
+                  {getLocalizedProductName()}
+                </Text>
+              </View>
             </View>
           </View>
 
@@ -446,6 +546,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
             bounces={true}
             overScrollMode="always"
             alwaysBounceVertical={true}
+            scrollEnabled={!isDraggingFromHandle}
           >
             <Text style={styles.brandText}>
               {productInfo.brands || productInfo.brand || i18n.t('product.unknownBrand')}
@@ -502,14 +603,23 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    marginTop: Platform.OS === 'ios' ? 0 : spacing.md,
+    marginTop: Platform.select({
+      ios: 0,
+      android: spacing.md,
+    }),
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   safeArea: {
     flex: 1,
     backgroundColor: colors.background,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: Platform.select({
+      ios: 10,
+      android: 20,
+    }),
+    borderTopRightRadius: Platform.select({
+      ios: 10,
+      android: 20,
+    }),
     overflow: 'hidden',
     marginTop: 'auto',
     ...Platform.select({
@@ -524,28 +634,36 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  headerContainer: {
-    paddingTop: spacing.xs,
-    paddingBottom: spacing.md,
+  headerWrapper: {
     borderBottomWidth: 1,
     borderBottomColor: colors.divider,
-    backgroundColor: `${colors.success}15`,
+  },
+  dragHandleContainer: {
+    width: '100%',
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: spacing.xs / 2,
+    ...Platform.select({
+      ios: {
+        paddingTop: spacing.xs,
+      },
+      android: {
+        paddingTop: spacing.xs / 2,
+      },
+    }),
+  },
+  headerContainer: {
+    paddingBottom: spacing.sm,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingRight: spacing.xl,
-  },
-  dragIndicator: {
-    width: 40,
-    height: 4,
-    backgroundColor: colors.coolGray,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: spacing.xs,
+    paddingTop: 0,
   },
   closeButton: {
-    padding: spacing.xs,
+    padding: spacing.xs / 2,
     marginLeft: spacing.xs,
   },
   headerTitle: {
@@ -554,6 +672,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginLeft: spacing.md,
     color: colors.success,
+    fontSize: Platform.select({
+      ios: 18,
+      android: 20,
+    }),
   },
   scrollView: {
     flex: 1,
@@ -656,6 +778,22 @@ const styles = StyleSheet.create({
   nutrientText: {
     ...typography.body1,
     marginBottom: spacing.xs,
+  },
+  dragHandle: {
+    width: 40,
+    height: Platform.select({
+      ios: 5,
+      android: 4,
+    }),
+    backgroundColor: colors.coolGray,
+    borderRadius: Platform.select({
+      ios: 2.5,
+      android: 2,
+    }),
+    opacity: Platform.select({
+      ios: 0.3,
+      android: 0.5,
+    }),
   },
 });
 
