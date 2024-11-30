@@ -127,6 +127,7 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
 
       try {
         const productInfo = await getOpenFoodFactsProductInfo(data);
+        // console.log('Raw OpenFoodFacts response:', JSON.stringify(productInfo.product, null, 2));
         
         const canScan = await useOneScan();
         if (!canScan) {
@@ -156,7 +157,7 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
         await processProductInfo(productInfo);
 
       } catch (error) {
-        console.log('OpenFoodFacts Error:', error);
+        // console.log('OpenFoodFacts Error:', error);
         await logScan(data, false);
         
         Alert.alert(
@@ -270,7 +271,10 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
         ingredientsList,
         userIngredientsData,
         apiIngredientTags,
-        { lang: productInfo.product.lang }
+        { 
+          lang: productInfo.product.lang,
+          nutriments: productInfo.product.nutriments
+        }
       );
 
       // Navigate to product info screen with results

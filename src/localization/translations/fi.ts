@@ -117,13 +117,11 @@ export default {
     fat: 'Rasva',
     noNutritionalInfo: 'Ravintosisältötietoja ei saatavilla.',
     nutriments: {
-      title: 'Ravintosisältö:',
-      'energy-kcal': 'Kalorit: {value} {unit}',
-      'energy': 'Kalorit: {value} {unit}',
-      proteins: 'Proteiini: {value}g',
-      carbohydrates: 'Hiilihydraatit: {value}g',
-      fat: 'Rasva: {value}g',
-      na: 'N/A'
+      title: 'Ravintosisältö',
+      'energy-kcal': '{{value}} {{unit}}',
+      proteins: 'Proteiini: {{value}}{{unit}}',
+      carbohydrates: 'Hiilihydraatit: {{value}}{{unit}}',
+      fat: 'Rasva: {{value}}{{unit}}'
     },
     unknownBrand: 'Tuntematon merkki',
   },

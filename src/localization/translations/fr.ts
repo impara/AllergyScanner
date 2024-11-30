@@ -117,13 +117,11 @@ export default {
     fat: 'Lipides',
     noNutritionalInfo: 'Information nutritionnelle non disponible.',
     nutriments: {
-      title: 'Information Nutritionnelle :',
-      'energy-kcal': 'Calories : {value} {unit}',
-      'energy': 'Calories : {value} {unit}',
-      proteins: 'Protéines : {value}g',
-      carbohydrates: 'Glucides : {value}g',
-      fat: 'Lipides : {value}g',
-      na: 'N/D'
+      title: 'Valeurs Nutritionnelles',
+      'energy-kcal': '{{value}} {{unit}}',
+      proteins: 'Protéines: {{value}}{{unit}}',
+      carbohydrates: 'Glucides: {{value}}{{unit}}',
+      fat: 'Lipides: {{value}}{{unit}}'
     },
     unknownBrand: 'Marque Inconnue',
   },

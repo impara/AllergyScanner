@@ -117,13 +117,11 @@ export default {
     fat: 'Fedt',
     noNutritionalInfo: 'Næringsindhold ikke tilgængeligt.',
     nutriments: {
-      title: 'Næringsindhold:',
-      'energy-kcal': 'Kalorier: {value} {unit}',
-      'energy': 'Kalorier: {value} {unit}',
-      proteins: 'Protein: {value}g',
-      carbohydrates: 'Kulhydrater: {value}g',
-      fat: 'Fedt: {value}g',
-      na: 'N/A'
+      title: 'Næringsindhold',
+      'energy-kcal': '{{value}} {{unit}}',
+      proteins: 'Protein: {{value}}{{unit}}',
+      carbohydrates: 'Kulhydrater: {{value}}{{unit}}',
+      fat: 'Fedt: {{value}}{{unit}}'
     },
     unknownBrand: 'Ukendt mærke',
   },

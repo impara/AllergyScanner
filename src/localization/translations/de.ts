@@ -116,13 +116,11 @@ export default {
     fat: 'Fett',
     noNutritionalInfo: 'Nährwertinformationen nicht verfügbar.',
     nutriments: {
-      title: 'Nährwertinformationen:',
-      'energy-kcal': 'Kalorien: {value} {unit}',
-      'energy': 'Kalorien: {value} {unit}',
-      proteins: 'Eiweiß: {value}g',
-      carbohydrates: 'Kohlenhydrate: {value}g',
-      fat: 'Fett: {value}g',
-      na: 'k.A.'
+      title: 'Nährwertangaben',
+      'energy-kcal': '{{value}} {{unit}}',
+      proteins: 'Eiweiß: {{value}}{{unit}}',
+      carbohydrates: 'Kohlenhydrate: {{value}}{{unit}}',
+      fat: 'Fett: {{value}}{{unit}}'
     },
     unknownBrand: 'Unbekannte Marke',
   },

@@ -119,13 +119,11 @@ export default {
     fat: 'Grasas',
     noNutritionalInfo: 'Información nutricional no disponible.',
     nutriments: {
-      title: 'Información Nutricional:',
-      'energy-kcal': 'Calorías: {value} {unit}',
-      'energy': 'Calorías: {value} {unit}',
-      proteins: 'Proteínas: {value}g',
-      carbohydrates: 'Carbohidratos: {value}g',
-      fat: 'Grasas: {value}g',
-      na: 'N/D'
+      title: 'Información Nutricional',
+      'energy-kcal': '{{value}} {{unit}}',
+      proteins: 'Proteínas: {{value}}{{unit}}',
+      carbohydrates: 'Carbohidratos: {{value}}{{unit}}',
+      fat: 'Grasas: {{value}}{{unit}}'
     },
     unknownBrand: 'Marca Desconocida',
   },

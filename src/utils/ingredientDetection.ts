@@ -121,10 +121,11 @@ const logMatch = (match: {
   matchType: 'exact' | 'partial' | 'compound';
   matchScore: number;
 }) => {
-  console.log('Match found:', {
-    ...match,
-    quality: `${match.matchScore}/120` // Max score is 100 + 20 language bonus
-  });
+  // Log the match for debugging
+  // console.log('Match found:', {
+  //   ...match,
+  //   quality: `${match.matchScore}/120` // Max score is 100 + 20 language bonus
+  // });
 };
 
 // Main ingredient detection function
@@ -151,11 +152,11 @@ export const detectIngredients = (
       categories: getIngredientCategories(id, userIngredientsData)
     }));
 
-  console.log('Looking for ingredients:', enabledIngredients.map(ing => ({
-    id: ing.id,
-    name: getIngredientName(ing.id, ing.lang),
-    categories: ing.categories
-  })));
+  // console.log('Looking for ingredients:', enabledIngredients.map(ing => ({
+  //   id: ing.id,
+  //   name: getIngredientName(ing.id, ing.lang),
+  //   categories: ing.categories
+  // })));
 
   // Process each ingredient from the list
   ingredientsList.forEach(ingredient => {
@@ -275,6 +276,58 @@ export const detectIngredients = (
       }
     });
   });
+
+  // Add nutriments-based detection when ingredients are missing
+  if (detectedIngredients.size === 0 && productData?.nutriments) {
+    // console.log('Checking nutriments for sugar:', {
+    //   hasNutriments: !!productData.nutriments,
+    //   sugars: productData.nutriments.sugars,
+    //   sugars_100g: productData.nutriments.sugars_100g
+    // });
+
+    const { sugars, sugars_100g } = productData.nutriments;
+    if ((sugars || sugars_100g) > 0) {
+      // console.log('Found sugar in nutriments:', { sugars, sugars_100g });
+      
+      const sugarEnabled = Object.entries(userIngredientsData)
+        .find(([id, data]) => id.includes('sugar') && data.selected);
+      
+      // console.log('Sugar enabled check:', {
+      //   sugarEnabled: !!sugarEnabled,
+      //   enabledId: sugarEnabled?.[0],
+      //   enabledData: sugarEnabled?.[1]
+      // });
+      
+      if (sugarEnabled) {
+        const [id, data] = sugarEnabled;
+        const lang = data.lang || i18n.locale;
+        
+        // console.log('Adding sugar from nutriments:', {
+        //   id,
+        //   lang,
+        //   name: getIngredientName(id, lang)
+        // });
+        
+        detectedIngredients.set(id, {
+          id,
+          name: getIngredientName(id, lang),
+          lang,
+          category: data.category,
+          categories: getIngredientCategories(id, userIngredientsData),
+          isAdditive: false,
+          matchType: 'nutriment',
+          matchScore: 100
+        });
+      }
+    } else {
+      // console.log('No sugar found in nutriments');
+    }
+  } else {
+    // console.log('Skipping nutriments check:', {
+    //   hasDetectedIngredients: detectedIngredients.size > 0,
+    //   hasNutriments: !!productData?.nutriments
+    // });
+  }
 
   // Sort detected ingredients by match score before returning
   return Array.from(detectedIngredients.values())
