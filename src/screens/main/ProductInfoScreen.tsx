@@ -11,6 +11,7 @@ import {
   Animated,
   PanResponder,
   Platform,
+  Easing,
 } from 'react-native';
 import { Text, Chip, IconButton, Divider } from 'react-native-paper';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
@@ -31,8 +32,17 @@ import { checkContrast, getAccessibleFontSize } from '../../utils/accessibility'
 import { useScreenReader } from '../../hooks/useScreenReader';
 import { parseIngredients } from '../../utils/ingredientDetection';
 
-const DRAG_THRESHOLD = 100;
-const ANIMATION_DURATION = 300;
+const SPRING_CONFIG = {
+  damping: 20,
+  mass: 1,
+  stiffness: 100,
+  overshootClamping: false,
+  restDisplacementThreshold: 0.01,
+  restSpeedThreshold: 0.01,
+};
+
+const DRAG_DISMISS_THRESHOLD = 50;
+const VELOCITY_THRESHOLD = 0.5;
 
 const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({ 
   theme = defaultTheme, 
@@ -44,7 +54,8 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
   const { announce } = useScreenReader();
 
   const [modalVisible, setModalVisible] = useState(true);
-  const pan = React.useRef(new Animated.Value(0)).current;
+  const pan = React.useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
+  const animatedOpacity = React.useRef(new Animated.Value(0)).current;
 
   // Platform-specific shadow styles
   const platformShadow = Platform.select({
@@ -246,44 +257,65 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
         const isFromTopArea = gesture.moveY < 100;
         return isDownwardGesture && isFromTopArea;
       },
-      onPanResponderMove: (_, gesture) => {
-        if (gesture.dy > 0) {
-          pan.setValue(gesture.dy);
-        }
-      },
+      onPanResponderMove: Animated.event(
+        [null, { dy: pan.y }],
+        { useNativeDriver: true }
+      ),
       onPanResponderRelease: (_, gesture) => {
-        if (gesture.dy > DRAG_THRESHOLD || gesture.vy > 0.5) {
+        if (gesture.dy > DRAG_DISMISS_THRESHOLD || gesture.vy > VELOCITY_THRESHOLD) {
           closeModal();
         } else {
-          Animated.spring(pan, {
-            toValue: 0,
-            useNativeDriver: true,
-            bounciness: 8,
-          }).start();
+          // Spring back to original position
+          Animated.parallel([
+            Animated.spring(pan.y, {
+              toValue: 0,
+              ...SPRING_CONFIG,
+              useNativeDriver: true,
+            }),
+            Animated.spring(animatedOpacity, {
+              toValue: 1,
+              ...SPRING_CONFIG,
+              useNativeDriver: true,
+            })
+          ]).start();
         }
       },
     })
   ).current;
 
   const closeModal = () => {
-    Animated.timing(pan, {
-      toValue: 800,
-      duration: ANIMATION_DURATION,
-      useNativeDriver: true,
-    }).start(() => {
+    Animated.parallel([
+      Animated.timing(pan.y, {
+        toValue: 800,
+        duration: 300,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+      Animated.timing(animatedOpacity, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      })
+    ]).start(() => {
       setModalVisible(false);
       navigation.goBack();
     });
   };
 
   const animatedStyle = {
-    transform: [{
-      translateY: pan.interpolate({
-        inputRange: [0, 800],
-        outputRange: [0, 800],
-        extrapolate: 'clamp',
-      }),
-    }],
+    transform: [
+      {
+        translateY: pan.y.interpolate({
+          inputRange: [-200, 0, 800],
+          outputRange: [-50, 0, 800],
+          extrapolate: 'clamp',
+        }),
+      }
+    ],
+    opacity: animatedOpacity.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0.5, 1],
+    }),
   };
 
   const renderSafetyIndicator = () => {
@@ -347,6 +379,26 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
     
     return hasValues;
   };
+
+  useEffect(() => {
+    if (modalVisible) {
+      pan.setValue({ x: 0, y: 800 });
+      animatedOpacity.setValue(0);
+      
+      Animated.parallel([
+        Animated.spring(pan.y, {
+          toValue: 0,
+          ...SPRING_CONFIG,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animatedOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        })
+      ]).start();
+    }
+  }, [modalVisible]);
 
   return (
     <Modal
@@ -451,6 +503,7 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     marginTop: Platform.OS === 'ios' ? 0 : spacing.md,
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   safeArea: {
     flex: 1,
@@ -459,6 +512,17 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     overflow: 'hidden',
     marginTop: 'auto',
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: -3 },
+        shadowOpacity: 0.2,
+        shadowRadius: 5,
+      },
+      android: {
+        elevation: 24,
+      },
+    }),
   },
   headerContainer: {
     paddingTop: spacing.xs,
