@@ -1,8 +1,9 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-paper';
+import { ScrollView, StyleSheet, View, Platform } from 'react-native';
+import { Text, IconButton } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography } from '../../theme';
+import { useNavigation } from '@react-navigation/native';
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <View style={styles.section}>
@@ -18,11 +19,26 @@ const BulletPoint: React.FC<{ text: string }> = ({ text }) => (
 );
 
 const TermsOfServiceScreen: React.FC = () => {
-  return (
-    <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Terms of Service</Text>
+  const navigation = useNavigation();
 
+  return (
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+      <View style={styles.headerContainer}>
+        <View style={styles.headerContent}>
+          <IconButton
+            icon="arrow-left"
+            size={24}
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          />
+          <Text style={styles.headerTitle}>Terms of Service</Text>
+          <View style={styles.placeholderButton} />
+        </View>
+      </View>
+      <ScrollView 
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={true}
+      >
         <Section title="1. Acceptance of Terms">
           <Text style={styles.text}>
             By accessing and using the PurePlate application, you acknowledge that you have read, 
@@ -111,14 +127,42 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  headerContainer: {
+    backgroundColor: colors.surface,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
+    ...Platform.select({
+      ios: {
+        shadowColor: colors.shadow,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 1,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  backButton: {
+    marginLeft: spacing.xs,
+  },
+  placeholderButton: {
+    width: 48, // Same width as the back button for proper centering
+  },
+  headerTitle: {
+    ...typography.h6,
+    color: colors.text,
+    flex: 1,
+    textAlign: 'center',
+  },
   container: {
     padding: spacing.md,
-  },
-  title: {
-    ...typography.h5,
-    color: colors.text,
-    marginBottom: spacing.lg,
-    textAlign: 'center',
   },
   section: {
     marginBottom: spacing.lg,

@@ -81,9 +81,9 @@ module.exports = ({ config }) => {
     }
 
     // Manually set versioning
-    const newVersion = '1.11'; // Incremented version
-    const newAndroidVersionCode = 11; // Incremented versionCode
-    const newiOSBuildNumber = '11'; // Incremented buildNumber
+    const newVersion = '1.14'; // Incremented version
+    const newAndroidVersionCode = 14; // Incremented versionCode
+    const newiOSBuildNumber = '14'; // Incremented buildNumber
     const newRuntimeVersion = `${newVersion}+${newAndroidVersionCode}`; // "1.0.4+4"
 
     console.log(`Version: ${newVersion}, Android: ${newAndroidVersionCode}, iOS: ${newiOSBuildNumber}, Runtime: ${newRuntimeVersion}`);
@@ -142,6 +142,11 @@ module.exports = ({ config }) => {
             config: {
                 googleMobileAds: {
                     delayAppMeasurementInit: true,
+                },
+                systemUiConfig: {
+                    edgeToEdge: true,
+                    navigationBarColor: 'transparent',
+                    statusBarColor: 'transparent',
                 },
             },
         },

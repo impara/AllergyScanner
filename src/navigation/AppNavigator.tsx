@@ -2,7 +2,6 @@
 import React, { useContext } from 'react';
 import AuthNavigator from './AuthNavigator';
 import AppStackNavigator from './AppStackNavigator';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthContext } from '../context/AuthContext';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { colors } from '../theme';
@@ -26,6 +25,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: colors.background,
   },
 });
 

@@ -10,6 +10,7 @@ import TermsOfServiceScreen from '../screens/main/TermsOfServiceScreen';
 import IngredientProfileScreen from '../screens/main/IngredientProfileScreen';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BaseProduct } from '../types/product';
+import { colors } from '../theme';
 
 export interface DetectedIngredient {
     id: string;
@@ -47,7 +48,13 @@ const AppStackNavigator: React.FC = () => {
     <AppStack.Navigator
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: 'white' },
+        contentStyle: { 
+          backgroundColor: colors.background,
+        },
+        animation: 'slide_from_right',
+        presentation: 'card',
+        headerTransparent: true,
+        headerShadowVisible: false,
       }}
     >
       <AppStack.Screen name="MainTabs" component={BottomTabNavigator} />
@@ -80,8 +87,7 @@ const AppStackNavigator: React.FC = () => {
         name="PrivacyPolicy"
         component={PrivacyPolicyScreen}
         options={{ 
-          title: 'Privacy Policy',
-          headerShown: true,
+          headerShown: false,
           headerBackTitle: 'Back',
         }}
       />
@@ -89,8 +95,7 @@ const AppStackNavigator: React.FC = () => {
         name="TermsOfService"
         component={TermsOfServiceScreen}
         options={{ 
-          title: 'Terms of Service',
-          headerShown: true,
+          headerShown: false,
           headerBackTitle: 'Back',
         }}
       />

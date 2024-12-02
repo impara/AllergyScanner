@@ -31,6 +31,7 @@ import { ProductInfoScreenProps } from '../../navigation/AppStackNavigator';
 import { checkContrast, getAccessibleFontSize } from '../../utils/accessibility';
 import { useScreenReader } from '../../hooks/useScreenReader';
 import { parseIngredients } from '../../utils/ingredientDetection';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SPRING_CONFIG = {
   damping: 20,
@@ -59,6 +60,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
   const { productInfo, detectedIngredients } = route.params;
   const { locale } = useLanguage();
   const { announce } = useScreenReader();
+  const insets = useSafeAreaInsets();
 
   const [modalVisible, setModalVisible] = useState(true);
   const pan = React.useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
@@ -91,30 +93,30 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
     };
 
     // Enhanced logging to show detected ingredients and their details
-    // console.log('Product Ingredient Analysis:', {
-    //   timestamp: new Date().toISOString(),
-    //   productName: getLocalizedProductName(),
-    //   availableSources: sources,
-    //   selectedSource: productInfo.ingredientsList?.length > 0 ? 'ingredientsList' :
-    //                  productInfo[`ingredients_text_${locale}`] ? `ingredients_text_${locale}` :
-    //                  productInfo.ingredients_text_en ? 'ingredients_text_en' :
-    //                  productInfo.ingredients_text ? 'ingredients_text' :
-    //                  productInfo.ingredients_hierarchy?.length ? 'ingredients_hierarchy' :
-    //                  productInfo.ingredients_tags?.length ? 'ingredients_tags' :
-    //                  productInfo._keywords?.length ? '_keywords' : 'none',
-    //   detectedIngredients: detectedIngredients.map(({ id }) => ({
-    //     id,
-    //     name: getIngredientName(id, locale),
-    //     isAdditive: isAdditive(id),
-    //     ...(isAdditive(id) && { eNumber: getENumber(id) })
-    //   })),
-    //   totalDetected: detectedIngredients.length,
-    //   additiveCount: detectedIngredients.filter(({ id }) => isAdditive(id)).length
-    // });
+     console.log('Product Ingredient Analysis:', {
+       timestamp: new Date().toISOString(),
+       productName: getLocalizedProductName(),
+       availableSources: sources,
+       selectedSource: productInfo.ingredientsList?.length > 0 ? 'ingredientsList' :
+                      productInfo[`ingredients_text_${locale}`] ? `ingredients_text_${locale}` :
+                      productInfo.ingredients_text_en ? 'ingredients_text_en' :
+                     productInfo.ingredients_text ? 'ingredients_text' :
+                     productInfo.ingredients_hierarchy?.length ? 'ingredients_hierarchy' :
+                     productInfo.ingredients_tags?.length ? 'ingredients_tags' :
+                      productInfo._keywords?.length ? '_keywords' : 'none',
+       detectedIngredients: detectedIngredients.map(({ id }) => ({
+         id,
+         name: getIngredientName(id, locale),
+         isAdditive: isAdditive(id),
+         ...(isAdditive(id) && { eNumber: getENumber(id) })
+       })),
+       totalDetected: detectedIngredients.length,
+       additiveCount: detectedIngredients.filter(({ id }) => isAdditive(id)).length
+     });
 
-    // First try the passed ingredientsList from our detection
+     // First try the passed ingredientsList from our detection
     if (productInfo.ingredientsList?.length > 0) {
-      // console.log('Using provided ingredientsList:', productInfo.ingredientsList);
+      console.log('Using provided ingredientsList:', productInfo.ingredientsList);
       return productInfo.ingredientsList;
     }
 
@@ -122,21 +124,21 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
     const localizedIngredientsKey = `ingredients_text_${locale}`;
     if (productInfo[localizedIngredientsKey]) {
       const ingredients = parseIngredients(productInfo[localizedIngredientsKey]);
-      // console.log('Using localized ingredients text:', ingredients);
+       console.log('Using localized ingredients text:', ingredients);
       return ingredients;
     }
 
     // Try English ingredients text
     if (productInfo.ingredients_text_en) {
       const ingredients = parseIngredients(productInfo.ingredients_text_en);
-      //console.log('Using English ingredients text:', ingredients);
+      console.log('Using English ingredients text:', ingredients);
       return ingredients;
     }
 
     // Try default ingredients text
     if (productInfo.ingredients_text) {
       const ingredients = parseIngredients(productInfo.ingredients_text);
-      // console.log('Using default ingredients text:', ingredients);
+      console.log('Using default ingredients text:', ingredients);
       return ingredients;
     }
 
@@ -145,7 +147,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
       const ingredients = productInfo.ingredients_hierarchy.map(i => 
         i.replace(/^en:/, '').replace(/-/g, ' ').trim()
       );
-      // console.log('Using ingredients_hierarchy:', ingredients);
+      console.log('Using ingredients_hierarchy:', ingredients);
       return ingredients;
     }
 
@@ -154,7 +156,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
       const ingredients = productInfo.ingredients_tags.map(i => 
         i.replace(/^en:/, '').replace(/-/g, ' ').trim()
       );
-      // console.log('Using ingredients_tags:', ingredients);
+      console.log('Using ingredients_tags:', ingredients);
       return ingredients;
     }
 
@@ -163,11 +165,11 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
       const ingredients = productInfo._keywords.filter(k => 
         !['food', 'product', 'med', 'and', 'contains'].includes(k.toLowerCase())
       );
-      // console.log('Using _keywords:', ingredients);
+      console.log('Using _keywords:', ingredients);
       return ingredients;
     }
 
-    // console.log('No ingredients found from any source');
+     console.log('No ingredients found from any source');
     return [];
   };
 
@@ -453,7 +455,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
   const hasNutrientValues = () => {
     const nutriments = productInfo?.nutriments;
     if (!nutriments) {
-      // console.log('No nutriments object found');
+       console.log('No nutriments object found');
       return false;
     }
     
@@ -501,7 +503,10 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
       onRequestClose={closeModal}
     >
       <Animated.View 
-        style={[styles.modalContainer, animatedStyle]} 
+        style={[styles.modalContainer, animatedStyle, {
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom
+        }]} 
         {...panResponder.panHandlers}
       >
         <SafeAreaView style={[styles.safeArea, platformShadow]}>
@@ -603,35 +608,18 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    marginTop: Platform.select({
-      ios: 0,
-      android: spacing.md,
-    }),
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: colors.background,
   },
   safeArea: {
     flex: 1,
     backgroundColor: colors.background,
-    borderTopLeftRadius: Platform.select({
-      ios: 10,
-      android: 20,
-    }),
-    borderTopRightRadius: Platform.select({
-      ios: 10,
-      android: 20,
-    }),
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     overflow: 'hidden',
     marginTop: 'auto',
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.shadow,
-        shadowOffset: { width: 0, height: -3 },
-        shadowOpacity: 0.2,
-        shadowRadius: 5,
-      },
-      android: {
-        elevation: 24,
-      },
+    ...(Platform.OS === 'android' && {
+      elevationOverlay: true,
+      elevation: 24,
     }),
   },
   headerWrapper: {

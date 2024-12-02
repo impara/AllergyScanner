@@ -42,7 +42,7 @@ const BottomTabNavigator = ({ initialRouteName = 'Ingredients' }) => {
     >
       <Tab.Screen
         name="Scan"
-        component={ScanScreenWrapper} // Use the wrapper component instead of inline function
+        component={ScanScreenWrapper}
         options={{
           tabBarLabel: ({ color }) => (
             <Text style={{ color }}>{i18n.t('navigation.scan')}</Text>

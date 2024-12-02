@@ -94,6 +94,9 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           // Don't throw here - we still want to keep the local change
         }
       }
+
+      // Store in AsyncStorage
+      await AsyncStorage.setItem('@userLanguage', newLocale);
     } catch (error) {
       // Rollback on failure
       if (!succeeded) {

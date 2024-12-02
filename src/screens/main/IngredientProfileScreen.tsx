@@ -836,7 +836,8 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
       </TouchableOpacity>
     );
   };
-
+  
+  /*
   useEffect(() => {
     // Group ingredients by category and enabled status
     const enabledIngredients = Object.entries(checkedIngredients)
@@ -882,7 +883,8 @@ const IngredientProfileScreen: React.FC<IngredientProfileScreenProps> = ({
     
     console.log('\n===============================\n');
   }, [checkedIngredients]);
-
+  */
+ 
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -1284,18 +1286,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 12,
     zIndex: 2000,
-    ...Platform.select({
-      ios: {
-        shadowColor: colors.shadow,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 5,
-        borderWidth: 1,
-        borderColor: colors.divider,
-      },
+    ...(Platform.OS === 'android' ? {
+      elevationOverlay: true,
+      elevation: 5,
+      borderWidth: 1,
+      borderColor: colors.divider,
+    } : {
+      shadowColor: colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
     }),
   },
   searchResults: {

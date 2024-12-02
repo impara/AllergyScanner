@@ -2,13 +2,13 @@
 import 'react-native-gesture-handler';
 import React, { useEffect, useState, useContext } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { ThemeProvider, DefaultTheme } from 'styled-components/native';
+import { ThemeProvider } from 'styled-components/native';
 import { Provider as PaperProvider, MD3LightTheme } from 'react-native-paper';
 import AppNavigator from './src/navigation/AppNavigator';
 import { theme, colors, typography, spacing, shadows } from './src/theme';
-import { AuthProvider, AuthContext } from './src/context/AuthContext';
+import { AuthProvider } from './src/context/AuthContext';
 import { LanguageProvider } from './src/context/LanguageContext';
-import { View, ActivityIndicator, Platform, Text, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, Platform, Text, StyleSheet, StatusBar } from 'react-native';
 import * as firebase from './src/config/firebase';
 import { LogBox } from 'react-native';
 import { adService } from './src/services/ads';
@@ -16,7 +16,7 @@ import { initializeGoogleSignIn } from './src/config/googleSignIn';
 import Constants from 'expo-constants';
 import LanguageSelectionModal from './src/components/LanguageSelectionModal';
 import { useNetworkStatus } from './src/hooks/useNetworkStatus';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, Theme as NavigationTheme, DefaultTheme } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AccessibilityProvider } from './src/context/AccessibilityContext';
 import * as Updates from 'expo-updates';
@@ -24,7 +24,7 @@ import { Alert } from 'react-native';
 import { Button, Portal, Modal } from 'react-native-paper';
 import i18n from './src/localization/i18n';
 
-// Create a custom theme that extends MD3LightTheme
+// Create a custom Paper theme
 const paperTheme = {
   ...MD3LightTheme,
   colors: {
@@ -37,6 +37,20 @@ const paperTheme = {
     text: colors.text,
     onSurface: colors.text,
     backdrop: 'rgba(0, 0, 0, 0.5)',
+  },
+};
+
+// Create a custom Navigation theme
+const navigationTheme: NavigationTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: colors.primary,
+    background: colors.background,
+    card: colors.surface,
+    text: colors.text,
+    border: 'transparent',
+    notification: colors.error,
   },
 };
 
@@ -192,12 +206,17 @@ const App: React.FC = () => {
     <SafeAreaProvider>
       <AccessibilityProvider>
         <NavigationContainer theme={navigationTheme}>
+          <StatusBar
+            translucent
+            backgroundColor="transparent"
+            barStyle="dark-content"
+          />
           <GestureHandlerRootView style={{ flex: 1 }}>
             <PaperProvider theme={paperTheme}>
               <ThemeProvider theme={theme}>
                 <AuthProvider>
                   <LanguageProvider>
-                    <AppContent />
+                    <AppNavigator />
                     <Portal>
                       <Modal
                         visible={updateAvailable}
@@ -238,34 +257,6 @@ const App: React.FC = () => {
         </NavigationContainer>
       </AccessibilityProvider>
     </SafeAreaProvider>
-  );
-};
-
-// Add navigation theme
-const navigationTheme = {
-  dark: false,
-  colors: {
-    primary: colors.primary,
-    background: colors.background,
-    card: colors.surface,
-    text: colors.text,
-    border: colors.divider,
-    notification: colors.error,
-  },
-};
-
-// Create a new component to handle the content that needs both contexts
-const AppContent: React.FC = () => {
-  const { showLanguageSelection, setShowLanguageSelection } = useContext(AuthContext);
-  
-  return (
-    <>
-      <AppNavigator />
-      <LanguageSelectionModal
-        visible={showLanguageSelection}
-        onDismiss={() => setShowLanguageSelection(false)}
-      />
-    </>
   );
 };
 

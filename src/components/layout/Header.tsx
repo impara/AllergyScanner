@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, StatusBar } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../theme/colors';
+import { useTheme } from '@react-navigation/native';
 
 interface HeaderProps {
   title: string;
@@ -9,17 +10,25 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ title }) => {
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
 
   return (
-    <View style={[styles.header, { paddingTop: insets.top }]}>
-      <Text style={styles.title}>{title}</Text>
-    </View>
+    <>
+      <StatusBar
+        translucent
+        backgroundColor="transparent"
+        barStyle={theme.dark ? 'light-content' : 'dark-content'}
+      />
+      <View style={[styles.header, { paddingTop: insets.top }]}>
+        <Text style={styles.title}>{title}</Text>
+      </View>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   header: {
-    height: 50,
+    minHeight: 50,
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',

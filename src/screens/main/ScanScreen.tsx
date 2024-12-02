@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Linking,
   Animated,
+  Platform,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { BarCodeScanner } from 'expo-barcode-scanner';
@@ -408,7 +409,7 @@ const styles = StyleSheet.create({
   },
   instructions: {
     position: 'absolute',
-    top: 60,
+    top: Platform.OS === 'ios' ? 100 : 80,
     alignSelf: 'center',
     textAlign: 'center',
     marginTop: 20,
@@ -455,16 +456,25 @@ const styles = StyleSheet.create({
   },
   scanCounter: {
     position: 'absolute',
-    top: 20,
+    top: Platform.OS === 'ios' ? 60 : 40,
     right: 20,
     backgroundColor: 'rgba(0,0,0,0.6)',
     padding: 10,
     borderRadius: 8,
     zIndex: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   scanCounterText: {
     color: colors.surface,
-    fontSize: 16,
+    fontSize: 14,
+    textAlign: 'center',
   },
   adLoadingOverlay: {
     position: 'absolute',

@@ -6,6 +6,9 @@ import i18n from '../localization/i18n';
 import { useLanguage } from '../context/LanguageContext';
 import { useScreenReader } from '../hooks/useScreenReader';
 import { getAccessibleColor, checkContrast } from '../utils/accessibility';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import { getFirebaseDb } from '../config/firebase';
 
 interface LanguageSelectionModalProps {
   visible: boolean;
@@ -35,6 +38,18 @@ const LanguageSelectionModal: React.FC<LanguageSelectionModalProps> = ({
     setError(null);
     try {
       await setLocale(languageCode);
+      
+      // Get current user
+      const currentUser = auth().currentUser;
+      if (currentUser) {
+        // Update the hasSelectedLanguage flag in Firestore
+        await getFirebaseDb().collection('users').doc(currentUser.uid).update({
+          selectedLanguage: languageCode,
+          hasSelectedLanguage: true,
+          lastUpdated: firestore.FieldValue.serverTimestamp()
+        });
+      }
+      
       announce(i18n.t('settings.languageChanged', { language: languages.find(l => l.code === languageCode)?.name }));
       onDismiss();
     } catch (err) {
