@@ -229,6 +229,8 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
         ...(productInfo.product.allergens_hierarchy || []),
         ...(productInfo.product.additives_tags || []),
         ...(productInfo.product.ingredients_hierarchy || []),
+        ...(productInfo.product.traces_tags || []),
+        ...(productInfo.product.ingredients_analysis_tags || [])
       ];
 
       // Get ingredients list from various sources

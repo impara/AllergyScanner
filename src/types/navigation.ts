@@ -18,7 +18,7 @@ export interface DetectedIngredient {
   eNumber?: string;
   selected?: boolean;
   categories?: string[];
-  matchType?: 'exact' | 'label' | 'synonym' | 'parent' | 'child' | 'nutriment';
+  matchType?: 'exact' | 'label' | 'synonym' | 'parent' | 'child' | 'nutriment' | 'api_tag' | 'allergen_tag' | 'analysis_tag';
   matchScore?: number;
 }
 
