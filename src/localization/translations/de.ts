@@ -236,6 +236,7 @@ export default {
     later: 'Später',
     errorTitle: 'Update-Fehler',
     errorMessage: 'Update konnte nicht angewendet werden. Bitte versuchen Sie es später erneut.',
+    applying: 'Update wird angewendet...',
   },
   languages: {
     en: 'Englisch',

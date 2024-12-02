@@ -239,6 +239,7 @@ export default {
     later: 'Más Tarde',
     errorTitle: 'Error de Actualización',
     errorMessage: 'No se pudo aplicar la actualización. Por favor, inténtelo de nuevo más tarde.',
+    applying: 'Aplicando actualización...',
   },
   languages: {
     en: 'Inglés',

@@ -43,8 +43,9 @@ const paperTheme = {
 const App: React.FC = () => {
   const [isAppReady, setAppReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const { hasStableConnection } = useNetworkStatus();
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const { hasStableConnection } = useNetworkStatus();
 
   useEffect(() => {
     if (hasStableConnection) {
@@ -61,24 +62,28 @@ const App: React.FC = () => {
       
       if (update.isAvailable) {
         console.log('Update available, downloading...');
-        await Updates.fetchUpdateAsync();
-        setUpdateAvailable(true);
+        const result = await Updates.fetchUpdateAsync();
+        if (result.isNew) {
+          setUpdateAvailable(true);
+        }
       }
     } catch (error) {
       console.error('Error checking for updates:', error);
-      // Don't block app initialization for update errors
+      // Don't block app initialization on update check failure
+      setAppReady(true);
     }
   };
 
   const applyUpdate = async () => {
     try {
+      setIsUpdating(true);
       await Updates.reloadAsync();
     } catch (error) {
       console.error('Error applying update:', error);
+      setIsUpdating(false);
       Alert.alert(
         i18n.t('updates.errorTitle'),
-        i18n.t('updates.errorMessage'),
-        [{ text: i18n.t('common.ok') }]
+        i18n.t('updates.errorMessage')
       );
     }
   };
@@ -162,10 +167,15 @@ const App: React.FC = () => {
     }
   };
 
-  if (!isAppReady) {
+  if (!isAppReady || isUpdating) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={styles.loadingText}>
+          {isUpdating 
+            ? i18n.t('updates.applying') 
+            : i18n.t('common.loading')}
+        </Text>
       </View>
     );
   }
@@ -312,6 +322,12 @@ const styles = StyleSheet.create({
   button: {
     minWidth: 120,
     marginHorizontal: spacing.xs,
+  },
+  loadingText: {
+    marginTop: spacing.md,
+    color: colors.text,
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
 

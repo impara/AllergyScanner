@@ -241,6 +241,7 @@ export default {
     later: 'Later',
     errorTitle: 'Update Error',
     errorMessage: 'Failed to apply the update. Please try again later.',
+    applying: 'Applying update...',
   },
   languages: {
     en: 'English',

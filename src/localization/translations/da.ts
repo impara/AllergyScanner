@@ -237,6 +237,7 @@ export default {
     later: 'Senere',
     errorTitle: 'Opdateringsfejl',
     errorMessage: 'Kunne ikke anvende opdateringen. Prøv venligst igen senere.',
+    applying: 'Anvender opdatering...',
   },
   languages: {
     en: 'Engelsk',

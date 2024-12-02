@@ -237,6 +237,7 @@ export default {
     later: 'Plus Tard',
     errorTitle: 'Erreur de Mise à Jour',
     errorMessage: 'Impossible d\'appliquer la mise à jour. Veuillez réessayer plus tard.',
+    applying: 'Application de la mise à jour...',
   },
   languages: {
     en: 'Anglais',
