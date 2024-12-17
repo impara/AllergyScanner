@@ -26,6 +26,7 @@ import { logScan } from '../../services/analytics';
 import { Button } from '../../components';
 import { theme as defaultTheme } from '../../theme';
 import { CustomTheme } from '../../types/theme';
+import { useInterstitialAd } from '../../hooks/useInterstitialAd';
 
 type ScanScreenNavigationProp = RootStackNavigationProp & TabNavigationProp;
 
@@ -47,6 +48,8 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const { scansRemaining, useOneScan, watchAdForScans, isAdLoading, isAdReady } = useScanLimit();
   const isMountedRef = useRef(true);
+  const { showInterstitialAd } = useInterstitialAd();
+  const scanCountRef = useRef(0);
 
   useEffect(() => {
     (async () => {
@@ -279,6 +282,13 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
           nutriments: productInfo.product.nutriments
         }
       );
+
+      scanCountRef.current += 1;
+      
+      // Show interstitial ad every 3 successful scans
+      if (scanCountRef.current % 3 === 0) {
+        await showInterstitialAd();
+      }
 
       // Navigate to product info screen with results
       navigateToProductInfo({

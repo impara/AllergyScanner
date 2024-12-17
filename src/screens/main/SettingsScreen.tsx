@@ -12,12 +12,14 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AppStackParamList } from '../../navigation/AppStackNavigator';
 import { LanguageSelectionModal } from '../../components';
+import { useInterstitialAd } from '../../hooks/useInterstitialAd';
 
 const SettingsScreen: React.FC = () => {
   const { signOutUser } = useContext(AuthContext);
   const [languageDialogVisible, setLanguageDialogVisible] = useState(false);
   const { locale } = useLanguage();
   const navigation = useNavigation<StackNavigationProp<AppStackParamList>>();
+  const { showInterstitialAd } = useInterstitialAd();
 
   const languages = [
     { code: 'en', name: i18n.t('settings.english'), flag: '🇬🇧' },
@@ -39,6 +41,11 @@ const SettingsScreen: React.FC = () => {
     } catch (error) {
       console.error('Logout error:', error);
     }
+  };
+
+  const handlePolicyNavigation = async (screen: 'PrivacyPolicy' | 'TermsOfService') => {
+    await showInterstitialAd();
+    navigation.navigate(screen);
   };
 
   return (
@@ -84,7 +91,7 @@ const SettingsScreen: React.FC = () => {
           
           <TouchableOpacity
             style={styles.settingsItem}
-            onPress={() => navigation.navigate('PrivacyPolicy')}
+            onPress={() => handlePolicyNavigation('PrivacyPolicy')}
             accessible={true}
             accessibilityRole="button"
             accessibilityLabel={i18n.t('settings.privacyPolicy')}
@@ -98,7 +105,7 @@ const SettingsScreen: React.FC = () => {
 
           <TouchableOpacity
             style={[styles.settingsItem, { marginTop: spacing.sm }]}
-            onPress={() => navigation.navigate('TermsOfService')}
+            onPress={() => handlePolicyNavigation('TermsOfService')}
             accessible={true}
             accessibilityRole="button"
             accessibilityLabel={i18n.t('settings.termsOfService')}

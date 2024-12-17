@@ -1,7 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { adService } from '../services';
-import { logRewardedAdWatch } from '../services/analytics';
 import { Platform, Alert } from 'react-native';
 import i18n from '../localization/i18n';
 
@@ -16,7 +15,7 @@ interface ScanLimitContextType {
 }
 
 const ScanLimitContext = createContext<ScanLimitContextType>({
-  scansRemaining: 5,
+  scansRemaining: 3,
   resetDaily: async () => {},
   useOneScan: async () => false,
   watchAdForScans: async () => {},
@@ -24,7 +23,7 @@ const ScanLimitContext = createContext<ScanLimitContextType>({
   isAdReady: false,
 });
 
-const DAILY_SCAN_LIMIT = 5;
+const DAILY_SCAN_LIMIT = 3;
 const SCANS_PER_AD = 3;
 const STORAGE_KEY = '@lastResetDate';
 const SCANS_REMAINING_KEY = '@scansRemaining';

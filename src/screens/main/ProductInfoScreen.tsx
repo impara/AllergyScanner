@@ -32,6 +32,7 @@ import { checkContrast, getAccessibleFontSize } from '../../utils/accessibility'
 import { useScreenReader } from '../../hooks/useScreenReader';
 import { parseIngredients } from '../../utils/ingredientDetection';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useInterstitialAd } from '../../hooks/useInterstitialAd';
 
 const SPRING_CONFIG = {
   damping: 20,
@@ -61,6 +62,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
   const { locale } = useLanguage();
   const { announce } = useScreenReader();
   const insets = useSafeAreaInsets();
+  const { showInterstitialAd } = useInterstitialAd();
 
   const [modalVisible, setModalVisible] = useState(true);
   const pan = React.useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
@@ -312,7 +314,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
     })
   ).current;
 
-  const closeModal = () => {
+  const closeModal = async () => {
     const closeAnimation = Platform.select({
       ios: () => {
         Animated.parallel([
@@ -327,9 +329,11 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
             duration: 200,
             useNativeDriver: true,
           })
-        ]).start(() => {
+        ]).start(async () => {
           setModalVisible(false);
           navigation.goBack();
+          // Show interstitial ad after modal is closed
+          await showInterstitialAd();
         });
       },
       android: () => {
@@ -345,9 +349,11 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
             duration: 200,
             useNativeDriver: true,
           })
-        ]).start(() => {
+        ]).start(async () => {
           setModalVisible(false);
           navigation.goBack();
+          // Show interstitial ad after modal is closed
+          await showInterstitialAd();
         });
       },
       default: () => {
@@ -363,9 +369,11 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
             duration: 200,
             useNativeDriver: true,
           })
-        ]).start(() => {
+        ]).start(async () => {
           setModalVisible(false);
           navigation.goBack();
+          // Show interstitial ad after modal is closed
+          await showInterstitialAd();
         });
       }
     }) ?? (() => {
@@ -381,9 +389,11 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
           duration: 200,
           useNativeDriver: true,
         })
-      ]).start(() => {
+      ]).start(async () => {
         setModalVisible(false);
         navigation.goBack();
+        // Show interstitial ad after modal is closed
+        await showInterstitialAd();
       });
     });
 
