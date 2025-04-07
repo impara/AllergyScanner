@@ -125,77 +125,76 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
       return;
     }
 
+    // Check scans *before* attempting API call to prevent unnecessary API usage if out of scans
+    if (scansRemaining <= 0) {
+      Alert.alert(
+        i18n.t('scan.scanLimitReached'),
+        i18n.t('scan.watchAdPrompt'),
+        [
+          {
+            text: isAdLoading ? i18n.t('ads.loading') : i18n.t('scan.watchAdButton'),
+            onPress: isAdLoading ? undefined : watchAdForScans, // Disable button while loading
+            style: isAdLoading ? 'default' : 'default',
+          },
+          {
+            text: i18n.t('common.cancel'),
+            style: 'cancel'
+          }
+        ]
+      );
+      return;
+    }
+
     try {
       setIsScanning(true);
       setLoading(true);
 
-      try {
-        const productInfo = await getOpenFoodFactsProductInfo(data);
-        // console.log('Raw OpenFoodFacts response:', JSON.stringify(productInfo.product, null, 2));
-        
-        const canScan = await useOneScan();
-        if (!canScan) {
-          Alert.alert(
-            i18n.t('scan.scanLimitReached'),
-            i18n.t('scan.watchAdPrompt'),
-            [
-              isAdLoading ? 
-                {
-                  text: i18n.t('ads.loading'),
-                  onPress: () => {}
-                } :
-                {
-                  text: i18n.t('scan.watchAdButton'),
-                  onPress: watchAdForScans
-                },
-              {
-                text: i18n.t('common.cancel'),
-                style: 'cancel'
-              }
-            ]
-          );
-          return;
-        }
+      // Get product info FIRST
+      const productInfo = await getOpenFoodFactsProductInfo(data);
+      // console.log('Raw OpenFoodFacts response:', JSON.stringify(productInfo.product, null, 2));
 
-        await logScan(data, true);
-        await processProductInfo(productInfo);
-
-      } catch (error) {
-        // console.log('OpenFoodFacts Error:', error);
-        await logScan(data, false);
-        
-        Alert.alert(
-          i18n.t('scan.productNotFound'),
-          i18n.t('scan.productNotFoundDesc'),
+      // NOW attempt to use a scan credit
+      const scanUsedSuccessfully = await useOneScan();
+      
+      // Double-check scan usage success (although the initial check should prevent this)
+      if (!scanUsedSuccessfully) {
+         Alert.alert(
+          i18n.t('common.error'),
+          i18n.t('scan.scanUseErrorDesc'),
           [
             {
               text: i18n.t('common.ok'),
-              onPress: () => {
-                setIsScanning(false);
-                setLoading(false);
-              },
-            },
-          ],
-          { cancelable: false }
+              style: 'cancel'
+            }
+          ]
         );
+        // No return here, allow finally block to reset loading state
+      } else {
+          // Scan used, log and process
+          await logScan(data, true); 
+          await processProductInfo(productInfo);
       }
+
     } catch (error) {
-      console.error('Unexpected Error:', error);
+      // API Error (Product not found, network error, etc.) - Scan was NOT used
+      // console.log('OpenFoodFacts Error:', error);
+      await logScan(data, false); // Log the failed scan attempt
+      
       Alert.alert(
-        i18n.t('scan.error'),
-        i18n.t('scan.unexpectedError'),
+        i18n.t('scan.productNotFound'),
+        i18n.t('scan.productNotFoundDesc'),
         [
           {
-            text: 'OK',
+            text: i18n.t('common.ok'),
             onPress: () => {
-              setIsScanning(false);
-              setLoading(false);
+              // No state changes needed here, handled in finally
             },
           },
         ],
         { cancelable: false }
       );
     } finally {
+      // Ensure loading and scanning states are reset regardless of success/failure/scan usage
       if (isMountedRef.current) {
         setLoading(false);
         
@@ -207,7 +206,7 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
           if (isMountedRef.current) {
             setIsScanning(false);
           }
-        }, 2000);
+        }, 2000); // Keep the re-scan delay
       }
     }
   };

@@ -63,41 +63,63 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const lastResetDate = await AsyncStorage.getItem(STORAGE_KEY);
       const storedScansRemaining = await AsyncStorage.getItem(SCANS_REMAINING_KEY);
       const today = new Date().toDateString();
+      let initialScans = DAILY_SCAN_LIMIT; // Default for first launch or errors
 
-      if (!lastResetDate || lastResetDate !== today) {
-        // It's a new day or first launch, reset to default
-        await resetDaily();
-      } else if (storedScansRemaining !== null) {
-        // Same day, load stored value
+      if (lastResetDate && storedScansRemaining !== null) {
         const remaining = parseInt(storedScansRemaining, 10);
-        // Validate the parsed value
         if (!isNaN(remaining) && remaining >= 0) {
-          setScansRemaining(remaining);
+          if (lastResetDate === today) {
+            // Same day, just load the stored value
+            initialScans = remaining;
+            console.log('[ScanLimit] Initializing same day scans:', initialScans);
+          } else {
+            // New day, check if previous day ended with > 0 scans
+            if (remaining > 0) {
+              initialScans = DAILY_SCAN_LIMIT; // Reset to full limit
+              console.log('[ScanLimit] Initializing new day reset (had scans remaining):', initialScans);
+            } else {
+              initialScans = 0; // Start new day with 0 scans
+              console.log('[ScanLimit] Initializing new day (had 0 scans remaining):', initialScans);
+            }
+          }
         } else {
-          // Invalid stored value, reset to default
-          await resetDaily();
+           console.warn('[ScanLimit] Invalid stored scan count, resetting to default.');
         }
       } else {
-        // No stored value but same day, reset to default
-        await resetDaily();
+        console.log('[ScanLimit] First launch or no stored data, resetting to default.');
       }
+      
+      // Set the initial state and update storage for the new day if needed
+      setScansRemaining(initialScans);
+      await AsyncStorage.setItem(STORAGE_KEY, today); 
+      await AsyncStorage.setItem(SCANS_REMAINING_KEY, initialScans.toString());
+
     } catch (error) {
       console.error('Error initializing scan limit:', error);
       // Fallback to default value on error
       setScansRemaining(DAILY_SCAN_LIMIT);
+      try {
+        // Attempt to reset storage on error as well
+        const todayOnError = new Date().toDateString();
+        await AsyncStorage.setItem(STORAGE_KEY, todayOnError);
+        await AsyncStorage.setItem(SCANS_REMAINING_KEY, DAILY_SCAN_LIMIT.toString());
+      } catch (storageError) {
+        console.error('Error resetting storage during fallback:', storageError);
+      }
     }
   };
 
   const resetDaily = async () => {
     try {
       const today = new Date().toDateString();
-      // Set both values atomically
+      // This function is now primarily for manual resets or potentially future use cases
+      // The main daily logic is handled in initializeScanLimit
       await Promise.all([
         AsyncStorage.setItem(STORAGE_KEY, today),
         AsyncStorage.setItem(SCANS_REMAINING_KEY, DAILY_SCAN_LIMIT.toString())
       ]);
       setScansRemaining(DAILY_SCAN_LIMIT);
-      console.log('[ScanLimit] Reset daily limit to:', DAILY_SCAN_LIMIT);
+      console.log('[ScanLimit] Manual reset daily limit to:', DAILY_SCAN_LIMIT);
     } catch (error) {
       console.error('Error resetting scan limit:', error);
       // Fallback to default value on error
@@ -166,29 +188,35 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
       }
 
+      // Now, attempt to show the ad using the service
       console.log('[ScanLimit] Attempting to show rewarded ad...');
       const success = await adService.showRewardedAd();
 
       if (success) {
+        // Ad was shown and completed successfully
         console.log('[ScanLimit] Ad completed successfully, adding scans');
         await grantExtraScans();
       } else {
-        console.log('[ScanLimit] Ad was not completed, granting reward anyway');
+        // Ad was not shown successfully (e.g., internal error, network issue during show)
+        // OR the user closed the ad without completing the reward requirements.
+        console.log('[ScanLimit] Ad was not completed or failed to show. No scans granted.');
         Alert.alert(
-          i18n.t('ads.completionError'),
-          i18n.t('ads.completionErrorDesc'),
+          i18n.t('ads.completionError'), // Title: "Ad Not Completed"
+          i18n.t('ads.completionErrorDesc'), // Body: "The ad didn't finish. Please try again for more scans."
           [{ text: i18n.t('common.ok') }]
         );
-        await grantExtraScans();
+        // Ensure no scans are granted in this case
       }
     } catch (error) {
-      console.error('[ScanLimit] Error in watchAdForScans:', error);
+      // Catch errors specifically from the adService.showRewardedAd() call itself
+      // These are likely more severe errors than just the ad not completing.
+      console.error('[ScanLimit] Error trying to show rewarded ad:', error);
       Alert.alert(
-        i18n.t('ads.loadError'),
-        i18n.t('ads.loadErrorDesc'),
+        i18n.t('ads.showError'), // Title: "Ad Display Error"
+        i18n.t('ads.showErrorDesc'), // Body: "Could not display ad. Please check connection and try again."
         [{ text: i18n.t('common.ok') }]
       );
-      await grantExtraScans();
+       // Ensure no scans are granted on error
     } finally {
       setIsAdLoading(false);
     }
@@ -197,19 +225,20 @@ export const ScanLimitProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Helper function to grant extra scans
   const grantExtraScans = async () => {
     try {
-      const newCount = Math.min(DAILY_SCAN_LIMIT, (scansRemaining || 0) + SCANS_PER_AD);
+      // Intentionally allow exceeding DAILY_SCAN_LIMIT if user watches multiple ads
+      const newCount = (scansRemaining || 0) + SCANS_PER_AD; 
       await AsyncStorage.setItem(SCANS_REMAINING_KEY, newCount.toString());
       setScansRemaining(newCount);
       Alert.alert(
         i18n.t('ads.rewarded'),
-        i18n.t('ads.rewardedDesc'),
+        i18n.t('ads.rewardedDesc', { count: SCANS_PER_AD }), // Pass count to i18n
         [{ text: i18n.t('common.ok') }]
       );
     } catch (error) {
-      console.error('[ScanLimit] Error updating scans:', error);
+      console.error('[ScanLimit] Error updating scans after reward:', error);
       Alert.alert(
-        i18n.t('common.error'),
-        i18n.t('ads.errorDesc'),
+        i18n.t('ads.grantError'),
+        i18n.t('ads.grantErrorDesc'),
         [{ text: i18n.t('common.ok') }]
       );
     }

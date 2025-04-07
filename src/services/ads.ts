@@ -303,72 +303,87 @@ class AdService {
     adType: AdType,
     location: string
   ): Promise<boolean> {
-    if (!ad.loaded) {
-      await this.logAdEventWithMetadata(AdEvent.SHOW_ATTEMPT, {
-        ad_type: adType,
-        ad_unit_id: ad.adUnitId,
-        trigger_location: location
-      });
-
-      try {
-        await (adType === AdType.REWARDED ? this.loadRewardedAd() : this.loadInterstitialAd());
-        if (!ad.loaded) return false;
-      } catch (error) {
-        return false;
+    return new Promise(async (resolve, reject) => {
+      if (!this.isInitialized || !ad) {
+        console.warn(`[AdService] Attempted to show ${adType} ad before initialization or without ad object.`)
+        await this.logAdEventWithMetadata(AdEvent.SHOW_FAILURE, {
+          ad_type: adType,
+          ad_unit_id: ad?.adUnitId,
+          error_message: 'Not initialized or ad object missing',
+          trigger_location: location
+        });
+        return resolve(false);
       }
-    }
 
-    return new Promise((resolve) => {
-      let hasResolved = false;
-      let hasEarnedReward = false;
-      let adShowStartTime = Date.now();
+      // Check if ad is already loaded, if not, attempt to load it now
+      if (!ad.loaded) {
+        console.log(`[AdService] ${adType} ad not loaded. Attempting to load before showing...`);
+        try {
+          if (adType === AdType.REWARDED) {
+            await this.loadRewardedAd();
+          } else {
+            await this.loadInterstitialAd();
+          }
+          if (!ad.loaded) {
+             console.warn(`[AdService] Failed to load ${adType} ad immediately before showing.`);
+             await this.logAdEventWithMetadata(AdEvent.SHOW_FAILURE, {
+                ad_type: adType,
+                ad_unit_id: ad.adUnitId,
+                error_message: 'Failed to load ad before show',
+                trigger_location: location
+              });
+             return resolve(false); // Resolve false if still not loaded
+          }
+        } catch (error: any) {
+          console.error(`[AdService] Error loading ${adType} ad immediately before show:`, error);
+          await this.logAdEventWithMetadata(AdEvent.SHOW_FAILURE, {
+            ad_type: adType,
+            ad_unit_id: ad.adUnitId,
+            error_message: `Load error before show: ${error.message}`,
+            error_code: (error as AdError).code,
+            trigger_location: location
+          });
+          return resolve(false); // Resolve false on load error
+        }
+      }
+
+      let adShown = false;
+      let earnedReward = false;
 
       const cleanup = async () => {
-        this.unsubscribeCallbacks = this.unsubscribeCallbacks.filter(
-          cb => cb !== unsubscribeError && cb !== unsubscribeClosed && cb !== unsubscribeEarned
-        );
-        if (!hasResolved) {
-          hasResolved = true;
+        console.log(`[AdService] Cleaning up listeners for ${adType} show.`);
+        if (unsubscribeError) unsubscribeError();
+        if (unsubscribeOpened) unsubscribeOpened();
+        if (unsubscribeClosed) unsubscribeClosed();
+        if (unsubscribeRewarded) unsubscribeRewarded();
 
-          // Update state first
-          if (adType === AdType.INTERSTITIAL) {
-            this.lastInterstitialShow = adShowStartTime;
-            this.totalAdsShown++;
-          } else if (adType === AdType.REWARDED && hasEarnedReward) {
-            this.totalAdsShown++;
-          }
-
-          // Then log events
-          if (adType === AdType.REWARDED && hasEarnedReward) {
-            await this.logAdEventWithMetadata(AdEvent.REWARD_EARNED, {
-              ad_type: adType,
-              ad_unit_id: ad.adUnitId,
-              trigger_location: location
+        // --- Proactive Reloading Logic --- 
+        if (adType === AdType.REWARDED) {
+          // Regardless of whether the ad was shown successfully or closed early,
+          // attempt to load the next one immediately.
+          console.log("[AdService] Triggering proactive reload for next rewarded ad.");
+          try {
+            // Don't await this, let it run in the background
+            this.loadRewardedAd().catch(err => {
+              console.warn("[AdService] Proactive rewarded ad reload failed:", err);
             });
+          } catch (err) {
+            // Catch potential synchronous errors from loadRewardedAd if any
+             console.warn("[AdService] Error initiating proactive rewarded ad reload:", err);
           }
-
-          if (__DEV__) {
-            console.log('[AdService] Ad shown successfully:', {
-              type: adType,
-              totalAdsShown: this.totalAdsShown,
-              lastShowTime: this.lastInterstitialShow,
-              timeSinceStart: Date.now() - global.appStartTime
-            });
-          }
-
-          resolve(adType === AdType.REWARDED ? hasEarnedReward : true);
         }
-        void this.loadRewardedAd().catch(() => {});
+        // --- End Proactive Reloading Logic ---
       };
 
       let unsubscribeError: (() => void) | null = null;
+      let unsubscribeOpened: (() => void) | null = null;
       let unsubscribeClosed: (() => void) | null = null;
-      let unsubscribeEarned: (() => void) | null = null;
+      let unsubscribeRewarded: (() => void) | null = null;
 
       const handleShowError = (error: unknown) => {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const errorMessage = error instanceof Error ? error.message : 'Unknown show error';
         const errorCode = (error as { code?: string })?.code || 'unknown';
-        
+        console.error(`[AdService] Failed to show ${adType} ad:`, error);
         void (async () => {
           await this.logAdEventWithMetadata(AdEvent.SHOW_FAILURE, {
             ad_type: adType,
@@ -378,64 +393,83 @@ class AdService {
             trigger_location: location
           });
           await cleanup();
+          resolve(false); // Ad failed to show
         })();
       };
-
+      
+      // --- Listener Setup --- 
       if (adType === AdType.REWARDED && ad instanceof RewardedAd) {
-        unsubscribeError = ad.addAdEventListener(
-          AdEventType.ERROR,
-          handleShowError
-        );
-
-        unsubscribeClosed = ad.addAdEventListener(
-          AdEventType.CLOSED,
-          () => {
+        // Listeners specific to RewardedAd
+        const rewardedAd = ad as RewardedAd; // Assert type for clarity
+        
+        unsubscribeError = rewardedAd.addAdEventListener(AdEventType.ERROR, handleShowError);
+        unsubscribeOpened = rewardedAd.addAdEventListener(AdEventType.OPENED, () => {
+            console.log(`[AdService] Rewarded ad opened.`);
+            adShown = true;
+            this.totalAdsShown++;
+        });
+        unsubscribeClosed = rewardedAd.addAdEventListener(AdEventType.CLOSED, () => {
+            console.log(`[AdService] Rewarded ad closed.`);
             void (async () => {
-              await cleanup();
-              await this.logAdEventWithMetadata(AdEvent.CLOSED, {
+               await this.logAdEventWithMetadata(AdEvent.CLOSED, {
                 ad_type: adType,
-                ad_unit_id: ad.adUnitId,
+                ad_unit_id: rewardedAd.adUnitId,
                 trigger_location: location
               });
-            })();
-          }
-        );
-
-        unsubscribeEarned = ad.addAdEventListener(
-          RewardedAdEventType.EARNED_REWARD,
-          () => {
-            hasEarnedReward = true;
-          }
-        );
-      } else if (ad instanceof InterstitialAd) {
-        unsubscribeError = ad.addAdEventListener(
-          AdEventType.ERROR,
-          handleShowError
-        );
-
-        unsubscribeClosed = ad.addAdEventListener(
-          AdEventType.CLOSED,
-          () => {
-            void (async () => {
               await cleanup();
-              await this.logAdEventWithMetadata(AdEvent.CLOSED, {
-                ad_type: adType,
-                ad_unit_id: ad.adUnitId,
-                trigger_location: location
-              });
+              resolve(earnedReward); // Resolve with reward status for rewarded ads
             })();
-          }
-        );
+        });
+        unsubscribeRewarded = rewardedAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, (reward) => {
+            console.log(`[AdService] User earned reward:`, reward);
+            earnedReward = true;
+            void this.logAdEventWithMetadata(AdEvent.REWARD_EARNED, {
+                ad_type: adType,
+                ad_unit_id: rewardedAd.adUnitId,
+                trigger_location: location
+            });
+        });
+
+      } else if (adType === AdType.INTERSTITIAL && ad instanceof InterstitialAd) {
+        // Listeners specific to InterstitialAd
+        const interstitialAd = ad as InterstitialAd; // Assert type
+
+        unsubscribeError = interstitialAd.addAdEventListener(AdEventType.ERROR, handleShowError);
+        unsubscribeOpened = interstitialAd.addAdEventListener(AdEventType.OPENED, () => {
+            console.log(`[AdService] Interstitial ad opened.`);
+            adShown = true;
+            this.totalAdsShown++;
+            this.lastInterstitialShow = Date.now();
+        });
+        unsubscribeClosed = interstitialAd.addAdEventListener(AdEventType.CLOSED, () => {
+            console.log(`[AdService] Interstitial ad closed.`);
+            void (async () => {
+                await this.logAdEventWithMetadata(AdEvent.CLOSED, {
+                    ad_type: adType,
+                    ad_unit_id: interstitialAd.adUnitId,
+                    trigger_location: location
+                });
+                await cleanup();
+                resolve(adShown); // Resolve with shown status for interstitial
+            })();
+        });
+      } else {
+          // Should not happen if ad object and adType are consistent
+          console.error("[AdService] Mismatch between adType and ad object type in listener setup.");
+          return resolve(false);
       }
+      // --- End Listener Setup ---
 
-      if (unsubscribeError) this.unsubscribeCallbacks.push(unsubscribeError);
-      if (unsubscribeClosed) this.unsubscribeCallbacks.push(unsubscribeClosed);
-      if (unsubscribeEarned) this.unsubscribeCallbacks.push(unsubscribeEarned);
-
-      void ad.show().catch(error => {
-        console.error(`[AdService] Show ${adType} ad error:`, error);
-        void cleanup();
-      });
+      try {
+        console.log(`[AdService] Attempting to show ${adType} ad.`);
+        await ad.show();
+        // If ad.show() resolves without error, it means the show process initiated.
+        // The actual success/failure/reward is handled by the listeners.
+        // We don't resolve the promise here; it's resolved in the CLOSED listener.
+      } catch (error) {
+        // This catch block might handle synchronous errors from ad.show()
+        handleShowError(error);
+      }
     });
   }
 

@@ -81,9 +81,9 @@ module.exports = ({ config }) => {
     }
 
     // Manually set versioning
-    const newVersion = '1.15'; // Incremented version
-    const newAndroidVersionCode = 15; // Incremented versionCode
-    const newiOSBuildNumber = '15'; // Incremented buildNumber
+    const newVersion = '1.16'; // Incremented version
+    const newAndroidVersionCode = 16; // Incremented versionCode
+    const newiOSBuildNumber = '16'; // Incremented buildNumber
     const newRuntimeVersion = `${newVersion}+${newAndroidVersionCode}`; // "1.0.4+4"
 
     console.log(`Version: ${newVersion}, Android: ${newAndroidVersionCode}, iOS: ${newiOSBuildNumber}, Runtime: ${newRuntimeVersion}`);
