@@ -35,10 +35,8 @@ export default {
     productNotFoundDesc: 'Désolé, le code-barres n\'a pas été trouvé dans la base de données. Veuillez essayer un autre produit.',
     unexpectedError: 'Une erreur inattendue s\'est produite lors du scan.',
     scanUseErrorDesc: 'Une erreur inattendue s\'est produite lors de la tentative d\'utilisation d\'un crédit de scan. Veuillez réessayer de scanner.',
-    scansRemaining: 'Scans restants : {{count}}',
-    scanLimitReached: 'Limite de Scans Atteinte',
     watchAdPrompt: 'Regarder une publicité pour obtenir plus de scans ?',
-    watchAdButton: 'Regarder la Publicité',
+    watchAdButton: 'Regarder la publicité',
   },
   ingredients: {
     title: 'Profil des Ingrédients',
@@ -238,6 +236,7 @@ export default {
   updates: {
     availableTitle: 'Mise à Jour Disponible',
     availableMessage: 'Une nouvelle version de l\'application est prête à être installée. Voulez-vous redémarrer maintenant ?',
+    downloadedMessage: 'Mise à jour téléchargée. Elle sera appliquée au prochain démarrage de l\'application.',
     restart: 'Redémarrer Maintenant',
     later: 'Plus Tard',
     errorTitle: 'Erreur de Mise à Jour',

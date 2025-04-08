@@ -35,10 +35,8 @@ export default {
     productNotFoundDesc: 'Beklager, stregkoden blev ikke fundet i databasen. Prøv venligst et andet produkt.',
     unexpectedError: 'Der opstod en uventet fejl under scanningen.',
     scanUseErrorDesc: 'Der opstod en uventet fejl under forsøget på at bruge en scanningskredit. Prøv venligst at scanne igen.',
-    scansRemaining: 'Scanninger tilbage: {{count}}',
-    scanLimitReached: 'Scanningsgrænse Nået',
     watchAdPrompt: 'Se en annonce for at få flere scanninger?',
-    watchAdButton: 'Se Annonce',
+    watchAdButton: 'Se annonce',
   },
   ingredients: {
     title: 'Ingrediensprofil',
@@ -237,7 +235,8 @@ export default {
   },
   updates: {
     availableTitle: 'Opdatering Tilgængelig',
-    availableMessage: 'En ny version af appen er klar til installation. Vil du genstarte nu?',
+    availableMessage: 'En ny version af appen er klar til installation. Ønsker du at genstarte nu?',
+    downloadedMessage: 'Opdatering downloadet. Den vil blive anvendt næste gang du åbner appen.',
     restart: 'Genstart Nu',
     later: 'Senere',
     errorTitle: 'Opdateringsfejl',

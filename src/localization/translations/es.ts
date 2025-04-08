@@ -36,11 +36,9 @@ export default {
     openSettings: 'Abrir Configuración',
     productNotFoundDesc: 'Lo sentimos, el código de barras no se encontró en la base de datos. Por favor, intente con otro producto.',
     unexpectedError: 'Ocurrió un error inesperado durante el escaneo.',
-    scanUseErrorDesc: 'Ocurrió un error inesperado al intentar usar un crédito de escaneo. Por favor, intente escanear de nuevo.',
-    scansRemaining: 'Escaneos restantes: {{count}}',
-    scanLimitReached: 'Límite de Escaneos Alcanzado',
+    scanUseErrorDesc: 'Ocurrió un error inesperado al intentar usar un crédito de escaneo. Por favor, intenta escanear de nuevo.',
     watchAdPrompt: '¿Ver un anuncio para obtener más escaneos?',
-    watchAdButton: 'Ver Anuncio',
+    watchAdButton: 'Ver anuncio',
   },
   ingredients: {
     title: 'Perfil de Ingredientes',
@@ -240,6 +238,7 @@ export default {
   updates: {
     availableTitle: 'Actualización Disponible',
     availableMessage: '¿Una nueva versión de la aplicación está lista para instalar. ¿Desea reiniciar ahora?',
+    downloadedMessage: 'Actualización descargada. Se aplicará la próxima vez que abra la aplicación.',
     restart: 'Reiniciar Ahora',
     later: 'Más Tarde',
     errorTitle: 'Error de Actualización',

@@ -9,6 +9,7 @@ import {
   Linking,
   Animated,
   Platform,
+  TouchableOpacity,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import { BarCodeScanner } from 'expo-barcode-scanner';
@@ -44,6 +45,7 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
   const [isScanning, setIsScanning] = useState(false);
   const scanTimeoutRef = useRef<NodeJS.Timeout>();
   const [isScannerEnabled, setScannerEnabled] = useState(true);
+  const [showAdPrompt, setShowAdPrompt] = useState(false);
   const scannerRef = useRef<BarCodeScanner>(null);
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const { scansRemaining, useOneScan, watchAdForScans, isAdLoading, isAdReady } = useScanLimit();
@@ -125,23 +127,9 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
       return;
     }
 
-    // Check scans *before* attempting API call to prevent unnecessary API usage if out of scans
+    // Check scans *before* attempting API call
     if (scansRemaining <= 0) {
-      Alert.alert(
-        i18n.t('scan.scanLimitReached'),
-        i18n.t('scan.watchAdPrompt'),
-        [
-          {
-            text: isAdLoading ? i18n.t('ads.loading') : i18n.t('scan.watchAdButton'),
-            onPress: isAdLoading ? undefined : watchAdForScans, // Disable button while loading
-            style: isAdLoading ? 'default' : 'default',
-          },
-          {
-            text: i18n.t('common.cancel'),
-            style: 'cancel'
-          }
-        ]
-      );
+      setShowAdPrompt(true);
       return;
     }
 
@@ -340,37 +328,34 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
 
   if (hasPermission === null) {
     return (
-      <View style={styles.permissionContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text>{i18n.t('camera.loading')}</Text>
-      </View>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={[styles.statusText, { color: theme.colors.text }]}>
+          {i18n.t('scan.requestingPermission')}
+        </Text>
+      </SafeAreaView>
     );
   }
 
   if (hasPermission === false) {
     return (
-      <View style={styles.permissionContainer}>
-        <Text>{i18n.t('camera.permission')}</Text>
-        <Text>{i18n.t('camera.permissionDesc')}</Text>
-        <Text
-          style={styles.link}
-          onPress={() => Linking.openSettings()}
-        >
-          {i18n.t('camera.openSettings')}
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <Text style={[styles.statusText, { color: theme.colors.text, marginBottom: 20 }]}>
+          {i18n.t('scan.noCameraPermission')}
         </Text>
-      </View>
+        <Button onPress={() => Linking.openSettings()}>
+          {i18n.t('scan.openSettings')}
+        </Button>
+      </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <Text style={styles.instructions}>
-        {i18n.t('scan.instructions')}
-      </Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {isScannerEnabled && (
         <BarCodeScanner
           ref={scannerRef}
-          onBarCodeScanned={isScanning ? undefined : handleBarCodeScanned}
+          onBarCodeScanned={handleBarCodeScanned}
           style={StyleSheet.absoluteFillObject}
           barCodeTypes={[
             BarCodeScanner.Constants.BarCodeType.ean13,
@@ -380,110 +365,172 @@ const ScanScreen: React.FC<ScanScreenProps> = ({
           ]}
         />
       )}
+
       <View style={styles.overlay}>
-        <Animated.View
-          style={[styles.targetBox, { transform: [{ scale: scaleAnim }] }]}
-        />
+        <View style={styles.topSection}>
+        </View>
+
+        <View style={styles.middleSection}>
+          <View style={styles.viewfinder}>
+            <Animated.View
+              style={[styles.scanLine, { transform: [{ scaleX: scaleAnim }] }]}
+            />
+          </View>
+        </View>
+
+        <View style={styles.bottomSection}>
+        </View>
       </View>
+
       {loading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#fff" />
-          <Text style={styles.loadingText}>{i18n.t('scan.processing')}</Text>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={[styles.loadingText, { color: theme.colors.textOnDark || '#FFFFFF' }]}>
+            {i18n.t('scan.loadingProduct')}
+          </Text>
         </View>
       )}
-      <View style={styles.scanCounter}>
-        <Text style={styles.scanCounterText}>
-          {i18n.t('scan.scansRemaining', { count: scansRemaining })}
-        </Text>
-      </View>
-      {renderAdLoadingOverlay()}
+
+      {showAdPrompt && (
+        <View style={styles.adPromptOverlay}>
+          <View style={[styles.adPromptContainer, { backgroundColor: theme.colors.surface }]}>
+            <Text style={[styles.adPromptText, { color: theme.colors.text }]}>
+              {i18n.t('scan.watchAdPrompt')}
+            </Text>
+            <View style={styles.adPromptButtons}>
+              <Button
+                variant="primary"
+                onPress={() => {
+                  setShowAdPrompt(false);
+                  if (!isAdLoading) {
+                    watchAdForScans();
+                  }
+                }}
+                disabled={isAdLoading}
+                loading={isAdLoading}
+                style={styles.adPromptButton}
+              >
+                {isAdLoading ? i18n.t('ads.loading') : i18n.t('scan.watchAdButton')}
+              </Button>
+              <Button
+                variant="outline"
+                onPress={() => setShowAdPrompt(false)}
+                style={styles.adPromptButton}
+              >
+                {i18n.t('common.cancel')}
+              </Button>
+            </View>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  permissionContainer: {
+  container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  link: {
-    marginTop: 10,
-    color: 'blue',
-    textDecorationLine: 'underline',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  instructions: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 100 : 80,
-    alignSelf: 'center',
+  statusText: {
+    fontSize: 18,
     textAlign: 'center',
-    marginTop: 20,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    color: colors.surface,
-    padding: 10,
-    borderRadius: 8,
     marginHorizontal: 20,
-    zIndex: 2,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+  },
+  topSection: {
+    width: '100%',
+    alignItems: 'flex-end',
+    paddingTop: Platform.OS === 'android' ? 20 : 10,
+  },
+  middleSection: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1,
+    width: '100%',
   },
-  targetBox: {
-    width: 250,
-    height: 250,
+  viewfinder: {
+    width: '80%',
+    aspectRatio: 1.5,
     borderWidth: 2,
-    borderColor: colors.primary,
+    borderColor: 'white',
+    borderRadius: 10,
+    overflow: 'hidden',
+    position: 'relative',
     backgroundColor: 'transparent',
-    borderRadius: 12,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.7,
-    shadowRadius: 10,
-    elevation: 5,
   },
-  loadingOverlay: {
+  scanLine: {
     position: 'absolute',
     top: '50%',
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: colors.primary,
+    shadowColor: colors.primary,
+    shadowOpacity: 0.8,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 5,
+  },
+  bottomSection: {
+     width: '100%',
+     paddingBottom: 20,
+     alignItems: 'center',
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    padding: 20,
-    borderRadius: 10,
-    alignSelf: 'center',
-    zIndex: 3,
   },
   loadingText: {
     marginTop: 10,
-    color: colors.surface,
     fontSize: 16,
   },
-  scanCounter: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 40,
-    right: 20,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    padding: 10,
-    borderRadius: 8,
-    zIndex: 2,
+  adPromptOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  adPromptContainer: {
+    width: '90%',
+    maxWidth: 400,
+    borderRadius: 15,
+    padding: 25,
+    alignItems: 'center',
+    elevation: 5,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5,
   },
-  scanCounterText: {
-    color: colors.surface,
-    fontSize: 14,
+  adPromptText: {
+    fontSize: 18,
     textAlign: 'center',
+    marginBottom: 25,
+    lineHeight: 24,
+  },
+  adPromptButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  adPromptButton: {
+    flex: 1,
+    marginHorizontal: 8,
+    minWidth: 120,
+  },
+  adPromptButtonLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   adLoadingOverlay: {
     position: 'absolute',
@@ -495,6 +542,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 4,
+  },
+  containedButton: {
+    borderWidth: 0,
+  },
+  containedButtonLabel: {
+  },
+  outlinedButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+  },
+  outlinedButtonLabel: {
   },
 });
 

@@ -36,11 +36,9 @@ export default {
     openSettings: 'Einstellungen öffnen',
     productNotFoundDesc: 'Entschuldigung, der Barcode wurde nicht in der Datenbank gefunden. Bitte versuchen Sie ein anderes Produkt.',
     unexpectedError: 'Ein unerwarteter Fehler ist beim Scannen aufgetreten.',
-    scanUseErrorDesc: 'Ein unerwarteter Fehler ist beim Versuch aufgetreten, einen Scan-Kredit zu verwenden. Bitte versuchen Sie erneut zu scannen.',
-    scansRemaining: 'Verbleibende Scans: {{count}}',
-    scanLimitReached: 'Scan-Limit Erreicht',
+    scanUseErrorDesc: 'Bei dem Versuch, einen Scan-Kredit zu verwenden, ist ein unerwarteter Fehler aufgetreten. Bitte versuchen Sie erneut zu scannen.',
     watchAdPrompt: 'Eine Anzeige ansehen, um mehr Scans zu erhalten?',
-    watchAdButton: 'Anzeige Ansehen',
+    watchAdButton: 'Anzeige ansehen',
   },
   ingredients: {
     title: 'Zutatenprofil',
@@ -237,6 +235,7 @@ export default {
   updates: {
     availableTitle: 'Update Verfügbar',
     availableMessage: 'Eine neue Version der App ist zur Installation bereit. Möchten Sie jetzt neu starten?',
+    downloadedMessage: 'Update heruntergeladen. Es wird beim nächsten Start der App angewendet.',
     restart: 'Jetzt Neu Starten',
     later: 'Später',
     errorTitle: 'Update-Fehler',
