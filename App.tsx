@@ -58,7 +58,6 @@ const App: React.FC = () => {
   const [isAppReady, setAppReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
   const { hasStableConnection } = useNetworkStatus();
 
   useEffect(() => {
@@ -85,20 +84,6 @@ const App: React.FC = () => {
       console.error('Error checking for updates:', error);
       // Don't block app initialization on update check failure
       setAppReady(true);
-    }
-  };
-
-  const applyUpdate = async () => {
-    try {
-      setIsUpdating(true);
-      await Updates.reloadAsync();
-    } catch (error) {
-      console.error('Error applying update:', error);
-      setIsUpdating(false);
-      Alert.alert(
-        i18n.t('updates.errorTitle'),
-        i18n.t('updates.errorMessage')
-      );
     }
   };
 
@@ -181,14 +166,12 @@ const App: React.FC = () => {
     }
   };
 
-  if (!isAppReady || isUpdating) {
+  if (!isAppReady) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>
-          {isUpdating 
-            ? i18n.t('updates.applying') 
-            : i18n.t('common.loading')}
+          {i18n.t('common.loading')}
         </Text>
       </View>
     );
@@ -228,22 +211,15 @@ const App: React.FC = () => {
                             {i18n.t('updates.availableTitle')}
                           </Text>
                           <Text style={styles.modalText}>
-                            {i18n.t('updates.availableMessage')}
+                            {i18n.t('updates.downloadedMessage')}
                           </Text>
                           <View style={styles.modalButtons}>
                             <Button
                               mode="contained"
-                              onPress={applyUpdate}
-                              style={styles.button}
-                            >
-                              {i18n.t('updates.restart')}
-                            </Button>
-                            <Button
-                              mode="outlined"
                               onPress={() => setUpdateAvailable(false)}
                               style={styles.button}
                             >
-                              {i18n.t('updates.later')}
+                              {i18n.t('common.ok')}
                             </Button>
                           </View>
                         </View>

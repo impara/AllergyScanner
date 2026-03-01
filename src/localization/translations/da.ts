@@ -120,8 +120,15 @@ export default {
       'energy-kcal': '{{value}} {{unit}}',
       proteins: 'Protein: {{value}}{{unit}}',
       carbohydrates: 'Kulhydrater: {{value}}{{unit}}',
-      fat: 'Fedt: {{value}}{{unit}}'
+      fat: 'Fedt: {{value}}{{unit}}',
+      sugars: 'Sukker: {{value}}{{unit}}',
+      'saturated-fat': 'Mættet fedt: {{value}}{{unit}}',
+      fiber: 'Kostfibre: {{value}}{{unit}}',
+      sodium: 'Natrium: {{value}}{{unit}}',
+      salt: 'Salt: {{value}}{{unit}}',
     },
+    nutriScore: 'Nutri-Score',
+    allergenWarning: 'Allergen Advarsel',
     unknownBrand: 'Ukendt mærke',
   },
   categories: {

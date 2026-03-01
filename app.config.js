@@ -81,9 +81,9 @@ module.exports = ({ config }) => {
     }
 
     // Manually set versioning
-    const newVersion = '1.16'; // Incremented version
-    const newAndroidVersionCode = 16; // Incremented versionCode
-    const newiOSBuildNumber = '16'; // Incremented buildNumber
+    const newVersion = '1.18'; // Incremented version
+    const newAndroidVersionCode = 18; // Incremented versionCode
+    const newiOSBuildNumber = '18'; // Incremented buildNumber
     const newRuntimeVersion = `${newVersion}+${newAndroidVersionCode}`; // "1.0.4+4"
 
     console.log(`Version: ${newVersion}, Android: ${newAndroidVersionCode}, iOS: ${newiOSBuildNumber}, Runtime: ${newRuntimeVersion}`);
@@ -103,7 +103,7 @@ module.exports = ({ config }) => {
         updates: {
             url: 'https://u.expo.dev/c2ceb6a3-210e-4d75-b3cf-38878dd25b98',
             enabled: true,
-            checkAutomatically: 'ON_LOAD',
+            checkAutomatically: 'ON_RESTART',
             fallbackToCacheTimeout: 0,
         },
         runtimeVersion: newRuntimeVersion,
@@ -183,9 +183,9 @@ module.exports = ({ config }) => {
                 'expo-build-properties',
                 {
                     android: {
-                        compileSdkVersion: 34,
-                        targetSdkVersion: 34,
-                        buildToolsVersion: '34.0.0',
+                        compileSdkVersion: 35,
+                        targetSdkVersion: 35,
+                        buildToolsVersion: '35.0.0',
                         minSdkVersion: 24,
                         hermesEnabled: false,
                         kotlinVersion: '1.9.24',

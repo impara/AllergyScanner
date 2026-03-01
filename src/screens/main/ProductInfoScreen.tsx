@@ -53,10 +53,10 @@ const DragHandle: React.FC = () => (
   </View>
 );
 
-const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({ 
-  theme = defaultTheme, 
-  route, 
-  navigation 
+const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
+  theme = defaultTheme,
+  route,
+  navigation
 }) => {
   const { productInfo, detectedIngredients } = route.params;
   const { locale } = useLanguage();
@@ -95,28 +95,28 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
     };
 
     // Enhanced logging to show detected ingredients and their details
-     console.log('Product Ingredient Analysis:', {
-       timestamp: new Date().toISOString(),
-       productName: getLocalizedProductName(),
-       availableSources: sources,
-       selectedSource: productInfo.ingredientsList?.length > 0 ? 'ingredientsList' :
-                      productInfo[`ingredients_text_${locale}`] ? `ingredients_text_${locale}` :
-                      productInfo.ingredients_text_en ? 'ingredients_text_en' :
-                     productInfo.ingredients_text ? 'ingredients_text' :
-                     productInfo.ingredients_hierarchy?.length ? 'ingredients_hierarchy' :
-                     productInfo.ingredients_tags?.length ? 'ingredients_tags' :
-                      productInfo._keywords?.length ? '_keywords' : 'none',
-       detectedIngredients: detectedIngredients.map(({ id }) => ({
-         id,
-         name: getIngredientName(id, locale),
-         isAdditive: isAdditive(id),
-         ...(isAdditive(id) && { eNumber: getENumber(id) })
-       })),
-       totalDetected: detectedIngredients.length,
-       additiveCount: detectedIngredients.filter(({ id }) => isAdditive(id)).length
-     });
+    console.log('Product Ingredient Analysis:', {
+      timestamp: new Date().toISOString(),
+      productName: getLocalizedProductName(),
+      availableSources: sources,
+      selectedSource: productInfo.ingredientsList?.length > 0 ? 'ingredientsList' :
+        productInfo[`ingredients_text_${locale}`] ? `ingredients_text_${locale}` :
+          productInfo.ingredients_text_en ? 'ingredients_text_en' :
+            productInfo.ingredients_text ? 'ingredients_text' :
+              productInfo.ingredients_hierarchy?.length ? 'ingredients_hierarchy' :
+                productInfo.ingredients_tags?.length ? 'ingredients_tags' :
+                  productInfo._keywords?.length ? '_keywords' : 'none',
+      detectedIngredients: detectedIngredients.map(({ id }) => ({
+        id,
+        name: getIngredientName(id, locale),
+        isAdditive: isAdditive(id),
+        ...(isAdditive(id) && { eNumber: getENumber(id) })
+      })),
+      totalDetected: detectedIngredients.length,
+      additiveCount: detectedIngredients.filter(({ id }) => isAdditive(id)).length
+    });
 
-     // First try the passed ingredientsList from our detection
+    // First try the passed ingredientsList from our detection
     if (productInfo.ingredientsList?.length > 0) {
       console.log('Using provided ingredientsList:', productInfo.ingredientsList);
       return productInfo.ingredientsList;
@@ -126,7 +126,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
     const localizedIngredientsKey = `ingredients_text_${locale}`;
     if (productInfo[localizedIngredientsKey]) {
       const ingredients = parseIngredients(productInfo[localizedIngredientsKey]);
-       console.log('Using localized ingredients text:', ingredients);
+      console.log('Using localized ingredients text:', ingredients);
       return ingredients;
     }
 
@@ -146,7 +146,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
 
     // Try ingredients hierarchy
     if (productInfo.ingredients_hierarchy?.length) {
-      const ingredients = productInfo.ingredients_hierarchy.map(i => 
+      const ingredients = productInfo.ingredients_hierarchy.map(i =>
         i.replace(/^en:/, '').replace(/-/g, ' ').trim()
       );
       console.log('Using ingredients_hierarchy:', ingredients);
@@ -155,7 +155,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
 
     // Try ingredients tags
     if (productInfo.ingredients_tags?.length) {
-      const ingredients = productInfo.ingredients_tags.map(i => 
+      const ingredients = productInfo.ingredients_tags.map(i =>
         i.replace(/^en:/, '').replace(/-/g, ' ').trim()
       );
       console.log('Using ingredients_tags:', ingredients);
@@ -164,15 +164,81 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
 
     // Try keywords as last resort
     if (productInfo._keywords?.length) {
-      const ingredients = productInfo._keywords.filter(k => 
+      const ingredients = productInfo._keywords.filter(k =>
         !['food', 'product', 'med', 'and', 'contains'].includes(k.toLowerCase())
       );
       console.log('Using _keywords:', ingredients);
       return ingredients;
     }
 
-     console.log('No ingredients found from any source');
+    console.log('No ingredients found from any source');
     return [];
+  };
+
+  const renderNutriScore = () => {
+    const grade = productInfo.nutriscore_grade?.toUpperCase();
+    // Validate grade is A-E
+    if (!grade || !['A', 'B', 'C', 'D', 'E'].includes(grade)) {
+      return null;
+    }
+
+    const scoreColors: Record<string, string> = {
+      A: '#038141',
+      B: '#85BB2F',
+      C: '#FECB02',
+      D: '#EE8100',
+      E: '#E63E11',
+    };
+
+    return (
+      <View style={styles.nutriScoreContainer}>
+        <Text style={styles.nutriScoreLabel}>
+          {i18n.t('product.nutriScore')}
+        </Text>
+        <View style={[
+          styles.nutriScoreBadge,
+          { backgroundColor: scoreColors[grade] }
+        ]}>
+          <Text style={styles.nutriScoreText}>{grade}</Text>
+        </View>
+      </View>
+    );
+  };
+
+  const renderAllergenWarnings = () => {
+    const allergensTags = productInfo.allergens_tags || [];
+    const allergensText = productInfo.allergens_from_ingredients;
+
+    if (allergensTags.length === 0 && !allergensText) return null;
+
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>
+          {i18n.t('product.allergenWarning')}
+        </Text>
+
+        {allergensTags.length > 0 && (
+          <View style={styles.chipContainer}>
+            {allergensTags.map((tag, index) => (
+              <Chip
+                key={index}
+                style={styles.allergenChip}
+                icon="alert"
+                textStyle={styles.allergenChipText}
+              >
+                {tag.replace('en:', '').replace(/-/g, ' ')}
+              </Chip>
+            ))}
+          </View>
+        )}
+
+        {allergensText && (
+          <Text style={styles.bodyText}>
+            {allergensText.replace(/en:/g, '')}
+          </Text>
+        )}
+      </View>
+    );
   };
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -194,7 +260,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
                 key={index}
                 style={styles.chip}
                 textStyle={styles.chipText}
-                onPress={() => 
+                onPress={() =>
                   navigation.navigate('IngredientsProfile', {
                     ingredientId: ingredientId
                   })
@@ -274,7 +340,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
       },
       onMoveShouldSetPanResponder: (_, gesture) => {
         if (!isDraggingFromHandle) return false;
-        
+
         const isDownwardGesture = gesture.dy > 0;
         return isDownwardGesture;
       },
@@ -426,9 +492,9 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
   const renderSafetyIndicator = () => {
     const isSafe = detectedIngredients.length === 0;
     const message = isSafe ? i18n.t('product.safeToConsume') : i18n.t('product.caution');
-    
+
     return (
-      <View 
+      <View
         style={[styles.safetyContainer, isSafe ? styles.safeContainer : styles.unsafeContainer]}
         accessibilityRole="alert"
         accessibilityLabel={message}
@@ -456,8 +522,8 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
 
   // Announce product safety status when screen loads
   useEffect(() => {
-    const message = detectedIngredients.length === 0 
-      ? i18n.t('product.safeToConsume') 
+    const message = detectedIngredients.length === 0
+      ? i18n.t('product.safeToConsume')
       : i18n.t('product.caution');
     announce(message);
   }, []);
@@ -465,23 +531,27 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
   const hasNutrientValues = () => {
     const nutriments = productInfo?.nutriments;
     if (!nutriments) {
-       console.log('No nutriments object found');
+      console.log('No nutriments object found');
       return false;
     }
-    
+
     // Check if any of the key nutrients have valid values
-    const nutrients = ['energy-kcal', 'proteins', 'carbohydrates', 'fat'];
+    const nutrients = [
+      'energy-kcal', 'proteins', 'carbohydrates', 'fat',
+      'sugars', 'saturated-fat', 'fiber', 'sodium', 'salt'
+    ];
+
     const hasValues = nutrients.some(nutrient => {
-      const value = nutriments[nutrient] || 
-                   nutriments[`${nutrient}_100g`] ||
-                   (nutrient === 'energy-kcal' && nutriments['energy']);
-      const hasValidValue = value != null && 
-                           value !== '' && 
-                           !isNaN(Number(value)) && 
-                           Number(value) > 0;
+      const value = nutriments[nutrient] ||
+        nutriments[`${nutrient}_100g`] ||
+        (nutrient === 'energy-kcal' && nutriments['energy']);
+      const hasValidValue = value != null &&
+        value !== '' &&
+        !isNaN(Number(value)) &&
+        Number(value) > 0;
       return hasValidValue;
     });
-    
+
     return hasValues;
   };
 
@@ -489,7 +559,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
     if (modalVisible) {
       pan.setValue({ x: 0, y: 800 });
       animatedOpacity.setValue(0);
-      
+
       Animated.parallel([
         Animated.spring(pan.y, {
           toValue: 0,
@@ -512,18 +582,18 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
       visible={modalVisible}
       onRequestClose={closeModal}
     >
-      <Animated.View 
+      <Animated.View
         style={[styles.modalContainer, animatedStyle, {
           paddingTop: insets.top,
           paddingBottom: insets.bottom
-        }]} 
+        }]}
         {...panResponder.panHandlers}
       >
         <SafeAreaView style={[styles.safeArea, platformShadow]}>
           <View style={[
             styles.headerWrapper,
-            detectedIngredients.length === 0 
-              ? { backgroundColor: `${colors.success}15` } 
+            detectedIngredients.length === 0
+              ? { backgroundColor: `${colors.success}15` }
               : { backgroundColor: `${colors.warning}15` }
           ]}>
             <DragHandle />
@@ -541,11 +611,11 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
                     iconColor={detectedIngredients.length === 0 ? colors.success : colors.warning}
                   />
                 </TouchableOpacity>
-                <Text 
+                <Text
                   style={[
                     styles.headerTitle,
                     { color: detectedIngredients.length === 0 ? colors.success : colors.warning }
-                  ]} 
+                  ]}
                   numberOfLines={1}
                 >
                   {getLocalizedProductName()}
@@ -554,7 +624,7 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
             </View>
           </View>
 
-          <ScrollView 
+          <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.contentContainer}
             showsVerticalScrollIndicator={true}
@@ -569,6 +639,10 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
 
             {renderSafetyIndicator()}
 
+            {renderNutriScore()}
+
+            {renderAllergenWarnings()}
+
             {renderIngredients()}
 
             {hasNutrientValues() && (
@@ -579,22 +653,36 @@ const ProductInfoScreen: React.FC<ProductInfoScreenProps> = ({
                     {i18n.t('product.nutriments.title')}
                   </Text>
                   <View style={styles.nutrientsContainer}>
-                    {['energy-kcal', 'proteins', 'carbohydrates', 'fat'].map((nutrient) => {
+                    {[
+                      { key: 'energy-kcal', unit: 'kcal' },
+                      { key: 'proteins', unit: 'g' },
+                      { key: 'carbohydrates', unit: 'g' },
+                      { key: 'sugars', unit: 'g' },
+                      { key: 'fat', unit: 'g' },
+                      { key: 'saturated-fat', unit: 'g' },
+                      { key: 'fiber', unit: 'g' },
+                      { key: 'sodium', unit: 'g' },
+                      { key: 'salt', unit: 'g' }
+                    ].map((item) => {
+                      const nutrient = item.key;
                       const nutriments = productInfo?.nutriments;
                       if (!nutriments) return null;
 
-                      const value = nutriments[nutrient] || 
-                                   nutriments[`${nutrient}_100g`] ||
-                                   (nutrient === 'energy-kcal' && nutriments['energy']);
-                      
-                      const unit = nutrient === 'energy-kcal' ? 
-                        (nutriments[`${nutrient}_unit`] || 'kcal') : 
-                        'g';
-                      
-                      if (!value || isNaN(Number(value)) || Number(value) <= 0) {
+                      const value = nutriments[nutrient] ||
+                        nutriments[`${nutrient}_100g`] ||
+                        (nutrient === 'energy-kcal' && nutriments['energy']);
+
+                      // Special handling for sodium/salt - prefer salt if both exist or convert
+                      if (nutrient === 'sodium' && !value && nutriments['salt']) return null; // salt covers it
+
+                      const unit = nutrient === 'energy-kcal' ?
+                        (nutriments[`${nutrient}_unit`] || 'kcal') :
+                        item.unit;
+
+                      if (!value || isNaN(Number(value)) || Number(value) < 0) { // Allow 0
                         return null;
                       }
-                      
+
                       return (
                         <Text key={nutrient} style={styles.nutrientText}>
                           {i18n.t(`product.nutriments.${nutrient}`, {
@@ -712,8 +800,8 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...typography.body2,
-    color: checkContrast(colors.coolGray, colors.background).isValid 
-      ? colors.coolGray 
+    color: checkContrast(colors.coolGray, colors.background).isValid
+      ? colors.coolGray
       : colors.text,
     fontSize: getAccessibleFontSize(14),
   },
@@ -776,6 +864,45 @@ const styles = StyleSheet.create({
   nutrientText: {
     ...typography.body1,
     marginBottom: spacing.xs,
+  },
+  nutriScoreContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+    paddingHorizontal: spacing.sm,
+  },
+  nutriScoreLabel: {
+    ...typography.h6,
+    color: colors.primary,
+    marginRight: spacing.md,
+  },
+  nutriScoreBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...shadows.small,
+  },
+  nutriScoreText: {
+    color: '#FFFFFF',
+    ...typography.h6,
+    fontWeight: 'bold',
+    fontSize: 20,
+  },
+  allergenChip: {
+    margin: 4,
+    backgroundColor: `${colors.error}15`,
+    borderColor: colors.error,
+    borderWidth: 1,
+  },
+  allergenChipText: {
+    color: colors.error,
+  },
+  bodyText: {
+    ...typography.body1,
+    color: colors.text,
+    lineHeight: 24,
   },
   dragHandle: {
     width: 40,

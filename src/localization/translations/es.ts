@@ -122,8 +122,15 @@ export default {
       'energy-kcal': '{{value}} {{unit}}',
       proteins: 'Proteínas: {{value}}{{unit}}',
       carbohydrates: 'Carbohidratos: {{value}}{{unit}}',
-      fat: 'Grasas: {{value}}{{unit}}'
+      fat: 'Grasas: {{value}}{{unit}}',
+      sugars: 'Azúcares: {{value}}{{unit}}',
+      'saturated-fat': 'Grasas saturadas: {{value}}{{unit}}',
+      fiber: 'Fibra: {{value}}{{unit}}',
+      sodium: 'Sodio: {{value}}{{unit}}',
+      salt: 'Sal: {{value}}{{unit}}',
     },
+    nutriScore: 'Nutri-Score',
+    allergenWarning: 'Advertencia de Alérgenos',
     unknownBrand: 'Marca Desconocida',
   },
   categories: {

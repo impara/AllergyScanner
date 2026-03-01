@@ -120,8 +120,15 @@ export default {
       'energy-kcal': '{{value}} {{unit}}',
       proteins: 'Proteiini: {{value}}{{unit}}',
       carbohydrates: 'Hiilihydraatit: {{value}}{{unit}}',
-      fat: 'Rasva: {{value}}{{unit}}'
+      fat: 'Rasva: {{value}}{{unit}}',
+      sugars: 'Sokerit: {{value}}{{unit}}',
+      'saturated-fat': 'Tyydyttynyt rasva: {{value}}{{unit}}',
+      fiber: 'Ravintokuitu: {{value}}{{unit}}',
+      sodium: 'Natrium: {{value}}{{unit}}',
+      salt: 'Suola: {{value}}{{unit}}',
     },
+    nutriScore: 'Nutri-Score',
+    allergenWarning: 'Allergeenivaroitus',
     unknownBrand: 'Tuntematon merkki',
   },
   categories: {
